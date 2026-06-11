@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>איקס עיגול</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      text-shadow: 0 0 20px rgba(100, 200, 255, 0.5);
+    }
+
+    .scoreboard {
+      display: flex;
+      gap: 2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .score-box {
+      text-align: center;
+      background: rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 0.6rem 1.4rem;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .score-box .label { font-size: 0.85rem; opacity: 0.7; }
+    .score-box .val { font-size: 1.8rem; font-weight: bold; }
+    .score-box.x .val { color: #e94560; }
+    .score-box.o .val { color: #0f9b8e; }
+    .score-box.draw .val { color: #f5a623; }
+
+    .status {
+      font-size: 1.3rem;
+      margin-bottom: 1.2rem;
+      height: 2rem;
+      text-align: center;
+      transition: all 0.3s;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, 110px);
+      grid-template-rows: repeat(3, 110px);
+      gap: 8px;
+    }
+
+    .cell {
+      background: rgba(255,255,255,0.08);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      font-weight: bold;
+      cursor: pointer;
+      border: 2px solid rgba(255,255,255,0.12);
+      transition: background 0.2s, transform 0.1s, border-color 0.2s;
+      user-select: none;
+    }
+
+    .cell:hover:not(.taken) {
+      background: rgba(255,255,255,0.18);
+      border-color: rgba(255,255,255,0.35);
+      transform: scale(1.05);
+    }
+
+    .cell.x { color: #e94560; }
+    .cell.o { color: #0f9b8e; }
+    .cell.win { background: rgba(255,255,255,0.22); border-color: gold; box-shadow: 0 0 16px gold; }
+    .cell.taken { cursor: default; }
+
+    .buttons {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    button {
+      padding: 0.7rem 1.6rem;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: transform 0.1s, opacity 0.2s;
+      font-weight: bold;
+    }
+
+    button:active { transform: scale(0.96); }
+
+    #btn-restart {
+      background: linear-gradient(135deg, #e94560, #c0392b);
+      color: white;
+    }
+
+    #btn-reset {
+      background: rgba(255,255,255,0.15);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+
+    .mode-selector {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .mode-btn {
+      padding: 0.4rem 1rem;
+      border-radius: 20px;
+      border: 1.5px solid rgba(255,255,255,0.3);
+      background: transparent;
+      color: white;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    .mode-btn.active {
+      background: rgba(255,255,255,0.25);
+      border-color: white;
+    }
+  </style>
+</head>
+<body>
+
+<h1>✗ איקס עיגול ○</h1>
+
+<div class="mode-selector">
+  <button class="mode-btn active" id="mode-2p">שני שחקנים</button>
+  <button class="mode-btn" id="mode-ai">נגד מחשב</button>
+</div>
+
+<div class="scoreboard">
+  <div class="score-box x"><div class="label">✗ איקס</div><div class="val" id="score-x">0</div></div>
+  <div class="score-box draw"><div class="label">תיקו</div><div class="val" id="score-d">0</div></div>
+  <div class="score-box o"><div class="label">○ עיגול</div><div class="val" id="score-o">0</div></div>
+</div>
+
+<div class="status" id="status">תור השחקן: ✗</div>
+
+<div class="board" id="board">
+  <div class="cell" data-i="0"></div>
+  <div class="cell" data-i="1"></div>
+  <div class="cell" data-i="2"></div>
+  <div class="cell" data-i="3"></div>
+  <div class="cell" data-i="4"></div>
+  <div class="cell" data-i="5"></div>
+  <div class="cell" data-i="6"></div>
+  <div class="cell" data-i="7"></div>
+  <div class="cell" data-i="8"></div>
+</div>
+
+<div class="buttons">
+  <button id="btn-restart">משחק חדש</button>
+  <button id="btn-reset">אפס ניקוד</button>
+</div>
+
+<script>
+  const WINS = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+  let board, current, gameOver, vsAI;
+  let scores = { X: 0, O: 0, D: 0 };
+
+  const cells = Array.from(document.querySelectorAll('.cell'));
+  const statusEl = document.getElementById('status');
+
+  function init() {
+    board = Array(9).fill('');
+    current = 'X';
+    gameOver = false;
+    cells.forEach(c => { c.textContent = ''; c.className = 'cell'; });
+    setStatus(`תור השחקן: ${current === 'X' ? '✗' : '○'}`);
+  }
+
+  function setStatus(msg) { statusEl.textContent = msg; }
+
+  function checkWin(b, p) {
+    return WINS.find(combo => combo.every(i => b[i] === p)) || null;
+  }
+
+  function checkDraw(b) { return b.every(v => v); }
+
+  function mark(index, player) {
+    board[index] = player;
+    cells[index].textContent = player === 'X' ? '✗' : '○';
+    cells[index].classList.add(player.toLowerCase(), 'taken');
+  }
+
+  function endGame(winner, combo) {
+    gameOver = true;
+    if (winner) {
+      combo.forEach(i => cells[i].classList.add('win'));
+      const label = winner === 'X' ? 'איקס' : 'עיגול';
+      setStatus(`🎉 ${label} ניצח!`);
+      scores[winner]++;
+    } else {
+      setStatus('🤝 תיקו!');
+      scores.D++;
+    }
+    document.getElementById('score-x').textContent = scores.X;
+    document.getElementById('score-o').textContent = scores.O;
+    document.getElementById('score-d').textContent = scores.D;
+  }
+
+  function playerMove(index) {
+    if (gameOver || board[index]) return;
+    mark(index, current);
+    const combo = checkWin(board, current);
+    if (combo) { endGame(current, combo); return; }
+    if (checkDraw(board)) { endGame(null, null); return; }
+    current = current === 'X' ? 'O' : 'X';
+    setStatus(`תור השחקן: ${current === 'X' ? '✗' : '○'}`);
+    if (vsAI && current === 'O') setTimeout(aiMove, 400);
+  }
+
+  // Minimax AI
+  function minimax(b, isMax) {
+    if (checkWin(b, 'O')) return 10;
+    if (checkWin(b, 'X')) return -10;
+    if (b.every(v => v)) return 0;
+    let best = isMax ? -Infinity : Infinity;
+    for (let i = 0; i < 9; i++) {
+      if (!b[i]) {
+        b[i] = isMax ? 'O' : 'X';
+        const score = minimax(b, !isMax);
+        b[i] = '';
+        best = isMax ? Math.max(best, score) : Math.min(best, score);
+      }
+    }
+    return best;
+  }
+
+  function aiMove() {
+    if (gameOver) return;
+    let best = -Infinity, move = -1;
+    for (let i = 0; i < 9; i++) {
+      if (!board[i]) {
+        board[i] = 'O';
+        const s = minimax(board, false);
+        board[i] = '';
+        if (s > best) { best = s; move = i; }
+      }
+    }
+    mark(move, 'O');
+    const combo = checkWin(board, 'O');
+    if (combo) { endGame('O', combo); return; }
+    if (checkDraw(board)) { endGame(null, null); return; }
+    current = 'X';
+    setStatus('תור השחקן: ✗');
+  }
+
+  cells.forEach(c => c.addEventListener('click', () => {
+    if (!vsAI || current === 'X') playerMove(+c.dataset.i);
+  }));
+
+  document.getElementById('btn-restart').addEventListener('click', init);
+
+  document.getElementById('btn-reset').addEventListener('click', () => {
+    scores = { X: 0, O: 0, D: 0 };
+    document.getElementById('score-x').textContent = 0;
+    document.getElementById('score-o').textContent = 0;
+    document.getElementById('score-d').textContent = 0;
+    init();
+  });
+
+  document.getElementById('mode-2p').addEventListener('click', () => {
+    vsAI = false;
+    document.getElementById('mode-2p').classList.add('active');
+    document.getElementById('mode-ai').classList.remove('active');
+    init();
+  });
+
+  document.getElementById('mode-ai').addEventListener('click', () => {
+    vsAI = true;
+    document.getElementById('mode-ai').classList.add('active');
+    document.getElementById('mode-2p').classList.remove('active');
+    init();
+  });
+
+  init();
+</script>
+</body>
+</html>

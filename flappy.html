@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flappy Bird</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(180deg, #4ec0ca 0%, #71d6e0 100%);
+    color: #333;
+  }
+  .card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,.25);
+    padding: 28px;
+    width: 360px;
+    max-width: 92vw;
+  }
+  h1 { text-align: center; color: #f9a825; margin-bottom: 6px; font-size: 28px; }
+  .subtitle { text-align: center; color: #888; margin-bottom: 20px; font-size: 14px; }
+  label { display: block; font-size: 13px; margin: 12px 0 4px; color: #555; }
+  input[type=text], input[type=password] {
+    width: 100%;
+    padding: 11px 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 15px;
+    outline: none;
+    transition: border .15s;
+  }
+  input:focus { border-color: #4ec0ca; }
+  .btn-row { display: flex; gap: 10px; margin-top: 20px; }
+  button {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform .08s, filter .15s;
+  }
+  button:active { transform: scale(.97); }
+  .primary { background: #4ec0ca; color: #fff; }
+  .primary:hover { filter: brightness(1.05); }
+  .ghost { background: #f0f0f0; color: #444; }
+  .ghost:hover { filter: brightness(.97); }
+  .msg { text-align: center; font-size: 13px; margin-top: 14px; min-height: 18px; }
+  .msg.error { color: #e53935; }
+  .msg.success { color: #43a047; }
+
+  /* Game screen */
+  #gameScreen { display: none; }
+  .game-card { width: auto; padding: 18px; }
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    gap: 14px;
+  }
+  .topbar .hello { font-weight: 600; color: #555; font-size: 14px; }
+  .topbar .high { color: #f9a825; font-weight: 700; font-size: 14px; }
+  #logoutBtn {
+    flex: none;
+    padding: 7px 14px;
+    background: #f0f0f0;
+    color: #555;
+    font-size: 13px;
+  }
+  canvas {
+    display: block;
+    border-radius: 10px;
+    background: #71c5cf;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .hint { text-align: center; font-size: 12px; color: #888; margin-top: 10px; }
+
+  .controls-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .controls-row label { margin: 0; font-size: 13px; color: #555; }
+  select {
+    padding: 6px 8px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 13px;
+    background: #fff;
+    cursor: pointer;
+  }
+  .seg { display: flex; gap: 6px; margin-right: auto; }
+  .seg button {
+    flex: none;
+    padding: 6px 12px;
+    font-size: 13px;
+    background: #f0f0f0;
+    color: #555;
+    font-weight: 600;
+  }
+  .seg button.active { background: #4ec0ca; color: #fff; }
+  #soundToggle { flex: none; padding: 6px 12px; font-size: 13px; background: #f0f0f0; color: #555; }
+
+  /* Leaderboard modal */
+  .overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+  }
+  .overlay.show { display: flex; }
+  .modal { background: #fff; border-radius: 14px; padding: 22px; width: 320px; max-width: 92vw; }
+  .modal h2 { color: #f9a825; text-align: center; margin-bottom: 14px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { padding: 8px 6px; text-align: right; border-bottom: 1px solid #eee; }
+  th { color: #888; font-size: 12px; }
+  td.rank { color: #f9a825; font-weight: 700; width: 30px; }
+  td.sc { font-weight: 700; }
+  tr.me { background: #fff7e0; }
+  .modal .close { width: 100%; margin-top: 16px; background: #4ec0ca; color: #fff; }
+  .empty { text-align: center; color: #999; padding: 16px; font-size: 13px; }
+</style>
+</head>
+<body>
+
+  <!-- ===== Login Screen ===== -->
+  <div class="card" id="loginScreen">
+    <h1>🐤 Flappy Bird</h1>
+    <div class="subtitle">התחבר או הירשם כדי לשחק</div>
+
+    <label for="username">שם משתמש</label>
+    <input type="text" id="username" autocomplete="username" placeholder="הכנס שם משתמש">
+
+    <label for="password">סיסמה</label>
+    <input type="password" id="password" autocomplete="current-password" placeholder="הכנס סיסמה">
+
+    <div class="btn-row">
+      <button class="primary" id="loginBtn">התחברות</button>
+      <button class="ghost" id="registerBtn">הרשמה</button>
+    </div>
+    <div class="msg" id="authMsg"></div>
+  </div>
+
+  <!-- ===== Game Screen ===== -->
+  <div class="card game-card" id="gameScreen">
+    <div class="topbar">
+      <span class="hello" id="hello"></span>
+      <span class="high" id="highLabel">שיא: 0</span>
+      <button id="logoutBtn">התנתקות</button>
+    </div>
+    <div class="controls-row">
+      <div class="seg" id="diffSeg">
+        <button data-diff="easy">קל</button>
+        <button data-diff="normal" class="active">רגיל</button>
+        <button data-diff="hard">קשה</button>
+      </div>
+      <button id="boardBtn" class="ghost" style="flex:none;padding:6px 12px;font-size:13px;">🏆 שיאים</button>
+      <button id="soundToggle">🔊</button>
+    </div>
+    <canvas id="canvas" width="340" height="480"></canvas>
+    <div class="hint">לחץ רווח / חץ למעלה / קליק / מגע כדי לעוף</div>
+  </div>
+
+  <!-- ===== Leaderboard Modal ===== -->
+  <div class="overlay" id="boardOverlay">
+    <div class="modal">
+      <h2>🏆 טבלת שיאים</h2>
+      <div id="boardBody"></div>
+      <button class="close" id="boardClose">סגור</button>
+    </div>
+  </div>
+
+<script>
+/* ===================== Storage (עמיד) ===================== */
+// כשהדף נפתח מ-file:// או בתוך iframe מסוים, localStorage עלול לזרוק שגיאה.
+// משתמשים בעטיפה שנופלת חזרה לאחסון בזיכרון כדי שהמשחק ימשיך לעבוד.
+const memStore = {};
+let storageWorks = false;
+try {
+  const k = "__flappy_test__";
+  localStorage.setItem(k, "1");
+  localStorage.removeItem(k);
+  storageWorks = true;
+} catch (e) { storageWorks = false; }
+
+const store = {
+  get(key) {
+    if (storageWorks) { try { return localStorage.getItem(key); } catch (e) {} }
+    return key in memStore ? memStore[key] : null;
+  },
+  set(key, val) {
+    if (storageWorks) { try { localStorage.setItem(key, val); return; } catch (e) {} }
+    memStore[key] = val;
+  },
+};
+
+/* ===================== Auth ===================== */
+const USERS_KEY = "flappyUsers";
+
+// hash בסיסי — לא אבטחה אמיתית, רק כדי לא לשמור plaintext גלוי
+function hashPw(pw) {
+  return btoa(encodeURIComponent(pw));
+}
+function loadUsers() {
+  try { return JSON.parse(store.get(USERS_KEY)) || {}; }
+  catch { return {}; }
+}
+function saveUsers(users) {
+  store.set(USERS_KEY, JSON.stringify(users));
+}
+
+const loginScreen = document.getElementById("loginScreen");
+const gameScreen  = document.getElementById("gameScreen");
+const authMsg     = document.getElementById("authMsg");
+let currentUser = null;
+
+function showMsg(text, type) {
+  authMsg.textContent = text;
+  authMsg.className = "msg " + (type || "");
+}
+
+function getCreds() {
+  const u = document.getElementById("username").value.trim();
+  const p = document.getElementById("password").value;
+  return { u, p };
+}
+
+document.getElementById("registerBtn").addEventListener("click", () => {
+  const { u, p } = getCreds();
+  if (!u || !p) { showMsg("נא למלא שם משתמש וסיסמה", "error"); return; }
+  if (p.length < 4) { showMsg("הסיסמה חייבת להכיל לפחות 4 תווים", "error"); return; }
+  const users = loadUsers();
+  if (users[u]) { showMsg("שם המשתמש כבר תפוס", "error"); return; }
+  users[u] = hashPw(p);
+  saveUsers(users);
+  showMsg("נרשמת בהצלחה! אפשר להתחבר.", "success");
+});
+
+document.getElementById("loginBtn").addEventListener("click", () => {
+  const { u, p } = getCreds();
+  if (!u || !p) { showMsg("נא למלא שם משתמש וסיסמה", "error"); return; }
+  const users = loadUsers();
+  if (!users[u] || users[u] !== hashPw(p)) {
+    showMsg("שם משתמש או סיסמה שגויים", "error");
+    return;
+  }
+  enterGame(u);
+});
+
+// Enter key submits login
+document.getElementById("password").addEventListener("keydown", e => {
+  if (e.key === "Enter") document.getElementById("loginBtn").click();
+});
+
+document.getElementById("logoutBtn").addEventListener("click", () => {
+  stopGame();
+  currentUser = null;
+  gameScreen.style.display = "none";
+  loginScreen.style.display = "block";
+  document.getElementById("password").value = "";
+  showMsg("", "");
+});
+
+const BOARD_KEY = "flappyLeaderboard";
+function loadBoard() {
+  try { return JSON.parse(store.get(BOARD_KEY)) || {}; }
+  catch { return {}; }
+}
+function saveBoard(b) { store.set(BOARD_KEY, JSON.stringify(b)); }
+function getHigh(user) { const e = loadBoard()[user]; return e ? e.score : 0; }
+function recordScore(user, sc, diff) {
+  const b = loadBoard();
+  if (!b[user] || sc > b[user].score) { b[user] = { score: sc, diff }; saveBoard(b); return true; }
+  return false;
+}
+
+function enterGame(user) {
+  currentUser = user;
+  loginScreen.style.display = "none";
+  gameScreen.style.display = "block";
+  document.getElementById("hello").textContent = "שלום, " + user;
+  document.getElementById("highLabel").textContent = "שיא: " + getHigh(user);
+  initGame();
+}
+
+/* ===================== Game ===================== */
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+const W = canvas.width, H = canvas.height;
+
+const PIPE_W = 56;
+const FLAP = -5.6;
+
+// דרגות קושי
+const DIFFICULTIES = {
+  easy:   { gravity: 0.20, gap: 190, speed: 1.5, interval: 1900, label: "קל" },
+  normal: { gravity: 0.26, gap: 165, speed: 1.9, interval: 1650, label: "רגיל" },
+  hard:   { gravity: 0.36, gap: 130, speed: 2.6, interval: 1300, label: "קשה" },
+};
+let difficulty = "normal";
+let cfg = DIFFICULTIES[difficulty];
+
+let bird, pipes, monkeys, shots, score, state, lastPipe, lastMonkey, rafId;
+// state: "ready" | "playing" | "over"
+
+function initGame() {
+  resetGame();
+  state = "ready";
+  if (!rafId) loop();
+}
+
+function resetGame() {
+  bird = { x: 80, y: H / 2, vy: 0, r: 14 };
+  pipes = [];
+  monkeys = [];
+  shots = [];
+  score = 0;
+  lastPipe = 0;
+  lastMonkey = 0;
+}
+
+const MONKEY_INTERVAL = 4200; // כל כמה זמן מופיע קוף
+const MONKEY_SPEED = 1.1;
+const SHOT_SPEED = 3.2;
+const SHOT_R = 6;
+function spawnMonkey() {
+  const y = 40 + Math.random() * (H - 120);
+  monkeys.push({ x: W + 20, y, lastShot: performance.now(), shotEvery: 1100 + Math.random() * 800 });
+}
+
+function startGame() {
+  resetGame();
+  state = "playing";
+  lastPipe = performance.now();
+  lastMonkey = performance.now();
+  // 3 קופים כבר בהתחלה, פרושים לאורך המסך
+  for (let i = 0; i < 3; i++) {
+    spawnMonkey();
+    monkeys[i].x = W - 30 - i * 90;
+    monkeys[i].y = 60 + Math.random() * (H - 160);
+  }
+}
+
+function stopGame() {
+  if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+}
+
+function flap() {
+  if (state === "ready") { startGame(); bird.vy = FLAP; playSound("flap"); }
+  else if (state === "playing") { bird.vy = FLAP; playSound("flap"); }
+  else if (state === "over") { startGame(); }
+}
+
+function spawnPipe() {
+  const margin = 50;
+  const gapY = margin + Math.random() * (H - cfg.gap - margin * 2);
+  pipes.push({ x: W, gapY, passed: false });
+}
+
+function update(now, dt) {
+  if (state !== "playing") return;
+
+  // dt = יחס מול 60fps, כך שהמהירות זהה בכל קצב רענון מסך
+  bird.vy += cfg.gravity * dt;
+  bird.y += bird.vy * dt;
+
+  if (now - lastPipe > cfg.interval) {
+    spawnPipe();
+    lastPipe = now;
+  }
+
+  for (const p of pipes) {
+    p.x -= cfg.speed * dt;
+    if (!p.passed && p.x + PIPE_W < bird.x) {
+      p.passed = true;
+      score++;
+      playSound("score");
+    }
+  }
+  pipes = pipes.filter(p => p.x + PIPE_W > 0);
+
+  // קופים
+  if (now - lastMonkey > MONKEY_INTERVAL) {
+    spawnMonkey();
+    lastMonkey = now;
+  }
+  for (const m of monkeys) {
+    m.x -= MONKEY_SPEED * dt;
+    if (now - m.lastShot > m.shotEvery && m.x < W && m.x > 0) {
+      m.lastShot = now;
+      // יורה לכיוון מיקום הציפור הנוכחי
+      const dx = bird.x - m.x, dy = bird.y - m.y;
+      const len = Math.hypot(dx, dy) || 1;
+      shots.push({ x: m.x, y: m.y, vx: (dx / len) * SHOT_SPEED, vy: (dy / len) * SHOT_SPEED });
+      playSound("flap");
+    }
+  }
+  monkeys = monkeys.filter(m => m.x > -30);
+
+  // קליעים
+  for (const s of shots) {
+    s.x += s.vx * dt;
+    s.y += s.vy * dt;
+  }
+  shots = shots.filter(s => s.x > -20 && s.x < W + 20 && s.y > -20 && s.y < H + 20);
+
+  // collisions
+  if (bird.y + bird.r > H || bird.y - bird.r < 0) { gameOver(); return; }
+  for (const p of pipes) {
+    if (bird.x + bird.r > p.x && bird.x - bird.r < p.x + PIPE_W) {
+      if (bird.y - bird.r < p.gapY || bird.y + bird.r > p.gapY + cfg.gap) {
+        gameOver();
+        return;
+      }
+    }
+  }
+  // פגיעת קליע בציפור
+  for (const s of shots) {
+    if (Math.hypot(s.x - bird.x, s.y - bird.y) < bird.r + SHOT_R) {
+      gameOver();
+      return;
+    }
+  }
+}
+
+function gameOver() {
+  state = "over";
+  playSound("hit");
+  if (recordScore(currentUser, score, difficulty)) {
+    document.getElementById("highLabel").textContent = "שיא: " + score;
+  }
+}
+
+function draw() {
+  // background
+  ctx.fillStyle = "#71c5cf";
+  ctx.fillRect(0, 0, W, H);
+
+  // pipes
+  for (const p of pipes) {
+    ctx.fillStyle = "#5cb85c";
+    ctx.strokeStyle = "#3d8b3d";
+    ctx.lineWidth = 2;
+    // top
+    ctx.fillRect(p.x, 0, PIPE_W, p.gapY);
+    ctx.strokeRect(p.x, 0, PIPE_W, p.gapY);
+    // bottom
+    ctx.fillRect(p.x, p.gapY + cfg.gap, PIPE_W, H - p.gapY - cfg.gap);
+    ctx.strokeRect(p.x, p.gapY + cfg.gap, PIPE_W, H - p.gapY - cfg.gap);
+  }
+
+  // ground line
+  ctx.fillStyle = "#ded895";
+  ctx.fillRect(0, H - 6, W, 6);
+
+  // monkeys 🐒
+  ctx.font = "26px serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  for (const m of monkeys) {
+    ctx.fillText("🐒", m.x, m.y);
+  }
+  ctx.textBaseline = "alphabetic";
+
+  // shots
+  for (const s of shots) {
+    ctx.save();
+    ctx.translate(s.x, s.y);
+    ctx.rotate(Math.atan2(s.vy, s.vx)); // פונה לכיוון התנועה
+    ctx.fillStyle = "#f1c6a7";
+    ctx.strokeStyle = "#c98e6a";
+    ctx.lineWidth = 1;
+    // גוף
+    const L = SHOT_R * 2.4, r = SHOT_R * 0.7;
+    ctx.beginPath();
+    ctx.moveTo(-L / 2, -r);
+    ctx.lineTo(L / 2 - r, -r);
+    ctx.arc(L / 2 - r, 0, r, -Math.PI / 2, Math.PI / 2);
+    ctx.lineTo(-L / 2, r);
+    ctx.arc(-L / 2, 0, r, Math.PI / 2, -Math.PI / 2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    // שני עיגולים בבסיס
+    ctx.beginPath();
+    ctx.arc(-L / 2, -r * 0.6, r * 0.85, 0, Math.PI * 2);
+    ctx.arc(-L / 2, r * 0.6, r * 0.85, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // bird
+  ctx.save();
+  ctx.translate(bird.x, bird.y);
+  const tilt = Math.max(-0.5, Math.min(1.0, bird.vy / 12));
+  ctx.rotate(tilt);
+  ctx.fillStyle = "#f9d71c";
+  ctx.beginPath();
+  ctx.arc(0, 0, bird.r, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#f4a000"; // beak
+  ctx.beginPath();
+  ctx.moveTo(bird.r - 2, -2);
+  ctx.lineTo(bird.r + 8, 0);
+  ctx.lineTo(bird.r - 2, 4);
+  ctx.fill();
+  ctx.fillStyle = "#fff"; // eye
+  ctx.beginPath();
+  ctx.arc(5, -5, 4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#000";
+  ctx.beginPath();
+  ctx.arc(6, -5, 2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  // score
+  ctx.fillStyle = "#fff";
+  ctx.strokeStyle = "#000";
+  ctx.lineWidth = 3;
+  ctx.font = "bold 36px Segoe UI, Arial";
+  ctx.textAlign = "center";
+  ctx.strokeText(score, W / 2, 60);
+  ctx.fillText(score, W / 2, 60);
+
+  // overlays
+  if (state === "ready" || state === "over") {
+    ctx.fillStyle = "rgba(0,0,0,.45)";
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = "#fff";
+    ctx.textAlign = "center";
+    if (state === "ready") {
+      ctx.font = "bold 26px Segoe UI, Arial";
+      ctx.fillText("מוכן?", W / 2, H / 2 - 20);
+      ctx.font = "16px Segoe UI, Arial";
+      ctx.fillText("לחץ כדי להתחיל", W / 2, H / 2 + 14);
+    } else {
+      ctx.font = "bold 30px Segoe UI, Arial";
+      ctx.fillText("Game Over", W / 2, H / 2 - 30);
+      ctx.font = "18px Segoe UI, Arial";
+      ctx.fillText("ניקוד: " + score, W / 2, H / 2 + 2);
+      ctx.fillText("שיא: " + getHigh(currentUser), W / 2, H / 2 + 28);
+      ctx.font = "15px Segoe UI, Arial";
+      ctx.fillText("לחץ כדי לשחק שוב", W / 2, H / 2 + 60);
+    }
+  }
+}
+
+let lastFrame = 0;
+function loop(now) {
+  now = now || performance.now();
+  if (!lastFrame) lastFrame = now;
+  // יחס מול פריים של 60fps (16.67ms), עם הגבלה כדי למנוע "קפיצות" אחרי האטה
+  let dt = (now - lastFrame) / 16.67;
+  lastFrame = now;
+  if (dt > 2.5) dt = 2.5;
+  update(now, dt);
+  draw();
+  rafId = requestAnimationFrame(loop);
+}
+
+/* ---- controls ---- */
+canvas.addEventListener("mousedown", e => { e.preventDefault(); flap(); });
+canvas.addEventListener("touchstart", e => { e.preventDefault(); flap(); }, { passive: false });
+window.addEventListener("keydown", e => {
+  if (gameScreen.style.display === "none") return;
+  if (e.code === "Space" || e.code === "ArrowUp") { e.preventDefault(); flap(); }
+});
+
+/* ---- sound (WebAudio, ללא קבצים) ---- */
+let soundOn = true;
+let audioCtx = null;
+function playSound(type) {
+  if (!soundOn) return;
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    const t = audioCtx.currentTime;
+    if (type === "flap") {
+      o.type = "square"; o.frequency.setValueAtTime(600, t);
+      o.frequency.exponentialRampToValueAtTime(900, t + 0.08);
+      g.gain.setValueAtTime(0.08, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+      o.start(t); o.stop(t + 0.12);
+    } else if (type === "score") {
+      o.type = "sine"; o.frequency.setValueAtTime(880, t);
+      o.frequency.setValueAtTime(1320, t + 0.07);
+      g.gain.setValueAtTime(0.09, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+      o.start(t); o.stop(t + 0.18);
+    } else if (type === "hit") {
+      o.type = "sawtooth"; o.frequency.setValueAtTime(300, t);
+      o.frequency.exponentialRampToValueAtTime(80, t + 0.3);
+      g.gain.setValueAtTime(0.12, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+      o.start(t); o.stop(t + 0.35);
+    }
+  } catch (e) { /* ignore audio errors */ }
+}
+
+const soundToggle = document.getElementById("soundToggle");
+soundToggle.addEventListener("click", () => {
+  soundOn = !soundOn;
+  soundToggle.textContent = soundOn ? "🔊" : "🔇";
+});
+
+/* ---- difficulty selector ---- */
+document.getElementById("diffSeg").addEventListener("click", e => {
+  const btn = e.target.closest("button[data-diff]");
+  if (!btn) return;
+  difficulty = btn.dataset.diff;
+  cfg = DIFFICULTIES[difficulty];
+  document.querySelectorAll("#diffSeg button").forEach(b => b.classList.toggle("active", b === btn));
+  // איפוס המשחק כדי שדרגת הקושי החדשה תיכנס לתוקף
+  resetGame();
+  state = "ready";
+});
+
+/* ---- leaderboard ---- */
+const boardOverlay = document.getElementById("boardOverlay");
+function renderBoard() {
+  const b = loadBoard();
+  const rows = Object.entries(b)
+    .map(([user, e]) => ({ user, score: e.score, diff: e.diff }))
+    .sort((a, c) => c.score - a.score)
+    .slice(0, 10);
+  const body = document.getElementById("boardBody");
+  if (rows.length === 0) { body.innerHTML = '<div class="empty">עדיין אין שיאים — שחק כדי להופיע כאן!</div>'; return; }
+  let html = '<table><tr><th>#</th><th>שחקן</th><th>ניקוד</th><th>דרגה</th></tr>';
+  rows.forEach((r, i) => {
+    const me = r.user === currentUser ? ' class="me"' : '';
+    const dl = (DIFFICULTIES[r.diff] || {}).label || r.diff;
+    html += `<tr${me}><td class="rank">${i + 1}</td><td>${escapeHtml(r.user)}</td><td class="sc">${r.score}</td><td>${dl}</td></tr>`;
+  });
+  html += '</table>';
+  body.innerHTML = html;
+}
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+document.getElementById("boardBtn").addEventListener("click", () => { renderBoard(); boardOverlay.classList.add("show"); });
+document.getElementById("boardClose").addEventListener("click", () => boardOverlay.classList.remove("show"));
+boardOverlay.addEventListener("click", e => { if (e.target === boardOverlay) boardOverlay.classList.remove("show"); });
+</script>
+</body>
+</html>
