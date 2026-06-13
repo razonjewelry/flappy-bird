@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>פילון מלמד אנגלית 🐘</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body {
+    font-family: "Segoe UI", "Varela Round", Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(180deg, #bfe9ff 0%, #d6f5e3 60%, #fff7d6 100%);
+    color: #34495e;
+    overflow: hidden;
+    user-select: none;
+  }
+  #app {
+    width: 100%;
+    max-width: 520px;
+    height: 100vh;
+    max-height: 920px;
+    position: relative;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ---------- Screens ---------- */
+  .screen { display: none; flex: 1; flex-direction: column; animation: fadeIn .3s ease; }
+  .screen.active { display: flex; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px);} to {opacity:1; transform:none;} }
+
+  /* ---------- Top bar ---------- */
+  .topbar { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; min-height: 54px; }
+  .topbar h2 { font-size: 24px; color: #2d6a8e; flex: 1; text-align: center; }
+  .iconbtn {
+    width: 52px; height: 52px; border: none; border-radius: 16px;
+    background: #fff; box-shadow: 0 4px 0 #cdd9e0; font-size: 26px;
+    cursor: pointer; transition: transform .08s; flex-shrink: 0;
+  }
+  .iconbtn:active { transform: translateY(3px); box-shadow: 0 1px 0 #cdd9e0; }
+
+  /* ---------- Elephant ---------- */
+  .ele { height: 100%; width: auto; max-width: 100%; display: block; overflow: visible; }
+  .ele-wrap { display: flex; align-items: center; justify-content: center; }
+  .ele-wrap > div { height: 100%; display: flex; align-items: center; justify-content: center; }
+  .ele-bob { animation: bob 2.6s ease-in-out infinite; transform-origin: center bottom; }
+  @keyframes bob { 0%,100%{transform:translateY(0) rotate(-1deg);} 50%{transform:translateY(-10px) rotate(1deg);} }
+  .ele-cheer { animation: cheer .6s ease; }
+  @keyframes cheer { 0%{transform:scale(1) rotate(0);} 25%{transform:scale(1.12) rotate(-6deg);} 50%{transform:scale(1.12) rotate(6deg);} 75%{transform:scale(1.12) rotate(-4deg);} 100%{transform:scale(1) rotate(0);} }
+  .eye { transform-box: fill-box; transform-origin: center; animation: blink 5s infinite; }
+  @keyframes blink { 0%,93%,100%{transform:scaleY(1);} 96%{transform:scaleY(.1);} }
+
+  /* ---------- Home ---------- */
+  #home .hero { flex: 0 0 auto; height: 230px; }
+  .speech {
+    background: #fff; border-radius: 20px; padding: 12px 16px; margin: 6px auto 18px;
+    box-shadow: 0 6px 0 #e6ecef; font-size: 19px; text-align: center; font-weight: 600;
+    color: #3a8ab5; max-width: 380px; position: relative;
+  }
+  .speech::after {
+    content: ""; position: absolute; top: -12px; right: 50%; transform: translateX(50%);
+    border: 8px solid transparent; border-bottom-color: #fff;
+  }
+  .topic-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 4px; }
+  .topic-btn {
+    border: none; border-radius: 24px; padding: 22px 10px; cursor: pointer;
+    color: #fff; font-size: 21px; font-weight: 700; display: flex; flex-direction: column;
+    align-items: center; gap: 8px; box-shadow: 0 6px 0 rgba(0,0,0,.18); transition: transform .08s;
+  }
+  .topic-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,.18); }
+  .topic-btn .ic { font-size: 52px; line-height: 1; }
+  .t-animals { background: linear-gradient(160deg,#ff9a76,#ff7043); }
+  .t-colors  { background: linear-gradient(160deg,#7ed4f0,#26a6d6); }
+  .t-numbers { background: linear-gradient(160deg,#9ad36a,#5cb544); }
+  .t-letters { background: linear-gradient(160deg,#c79bf0,#9c5bd6); }
+
+  /* ---------- Menu ---------- */
+  #menu .menu-ele { height: 200px; flex: 0 0 auto; }
+  .mode-btn {
+    border: none; border-radius: 24px; padding: 26px; margin: 10px 0; cursor: pointer;
+    font-size: 26px; font-weight: 800; color: #fff; display: flex; align-items: center;
+    justify-content: center; gap: 14px; box-shadow: 0 7px 0 rgba(0,0,0,.18); transition: transform .08s;
+  }
+  .mode-btn:active { transform: translateY(4px); box-shadow: 0 3px 0 rgba(0,0,0,.18); }
+  .mode-learn { background: linear-gradient(160deg,#ffd166,#f9a825); }
+  .mode-play  { background: linear-gradient(160deg,#06d6a0,#04a07a); }
+  .mode-btn .ic { font-size: 40px; }
+
+  /* ---------- Visuals (shared) ---------- */
+  .vis { display: flex; align-items: center; justify-content: center; }
+  .vis.emoji { font-size: 33vmin; max-font-size: 170px; line-height: 1; }
+  .colorbox { width: 70%; aspect-ratio: 1; border-radius: 28px; box-shadow: inset 0 -10px 0 rgba(0,0,0,.12), 0 6px 14px rgba(0,0,0,.15); }
+  .shape-svg { width: 70%; height: auto; }
+  .numbox { flex-direction: column; gap: 10px; }
+  .numbox .digit { font-size: 30vmin; font-weight: 900; color: #5cb544; line-height: .9; }
+  .numbox .dots { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; max-width: 80%; }
+  .numbox .dot { width: 26px; height: 26px; border-radius: 50%; background: #ff7043; box-shadow: inset 0 -4px 0 rgba(0,0,0,.12); }
+  .letterbox { font-size: 38vmin; font-weight: 900; color: #9c5bd6; line-height: 1; }
+
+  /* ---------- Learn ---------- */
+  #learn .stage { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .flashcard {
+    background: #fff; border-radius: 30px; box-shadow: 0 10px 0 #e1e8ec, 0 16px 30px rgba(0,0,0,.12);
+    width: 100%; max-width: 360px; aspect-ratio: 0.9; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; cursor: pointer; padding: 20px; gap: 6px;
+    animation: pop .3s ease;
+  }
+  .flashcard:active { transform: scale(.98); }
+  @keyframes pop { from{transform:scale(.85); opacity:0;} to{transform:scale(1); opacity:1;} }
+  .flashcard .vis-area { flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; }
+  .flashcard .word { font-size: 40px; font-weight: 800; color: #2d6a8e; }
+  .flashcard .sub { font-size: 18px; color: #ff7043; font-weight: 700; }
+  .flashcard .he { font-size: 17px; color: #9aa7b0; }
+  .flashcard .tap-hint { font-size: 15px; color: #b7c2c9; margin-top: 4px; }
+  .nav-row { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 16px; }
+  .navbtn {
+    width: 70px; height: 70px; border: none; border-radius: 50%; background: #ffd166;
+    box-shadow: 0 5px 0 #e0a93f; font-size: 32px; cursor: pointer; transition: transform .08s;
+  }
+  .navbtn:active { transform: translateY(4px); box-shadow: 0 1px 0 #e0a93f; }
+  .progress-pill { background:#fff; border-radius:20px; padding:8px 16px; font-weight:700; color:#7a8b94; box-shadow:0 3px 0 #e6ecef; }
+
+  /* ---------- Game ---------- */
+  #game .gtop { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .stars-pill { background:#fff; border-radius:20px; padding:8px 14px; font-size:20px; box-shadow:0 3px 0 #e6ecef; flex:1; text-align:center; letter-spacing:2px; }
+  .listen-area { display:flex; flex-direction:column; align-items:center; gap:6px; margin: 4px 0 14px; }
+  .listen-ele { height: 150px; }
+  .replay-btn {
+    border: none; border-radius: 26px; padding: 12px 22px; background: linear-gradient(160deg,#06d6a0,#04a07a);
+    color:#fff; font-size: 20px; font-weight: 800; box-shadow: 0 5px 0 #038063; cursor: pointer;
+    display:flex; align-items:center; gap:8px; transition: transform .08s;
+  }
+  .replay-btn:active { transform: translateY(4px); box-shadow: 0 1px 0 #038063; }
+  .options { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: auto; }
+  .opt {
+    background:#fff; border: 4px solid #fff; border-radius: 24px; aspect-ratio: 1; cursor: pointer;
+    box-shadow: 0 6px 0 #e1e8ec; display:flex; align-items:center; justify-content:center; padding: 6px;
+    transition: transform .08s; overflow: hidden;
+  }
+  .opt:active { transform: translateY(3px); box-shadow: 0 3px 0 #e1e8ec; }
+  .opt .vis.emoji { font-size: 18vmin; }
+  .opt .numbox .digit { font-size: 16vmin; }
+  .opt .letterbox { font-size: 18vmin; }
+  .opt .colorbox { width: 78%; }
+  .opt .shape-svg { width: 80%; }
+  .opt.correct { border-color: #06d6a0; animation: rightpop .5s ease; }
+  .opt.wrong { animation: shake .4s ease; border-color: #ff8a80; }
+  @keyframes rightpop { 0%{transform:scale(1);} 40%{transform:scale(1.12);} 100%{transform:scale(1);} }
+  @keyframes shake { 0%,100%{transform:translateX(0);} 20%{transform:translateX(-9px);} 40%{transform:translateX(9px);} 60%{transform:translateX(-6px);} 80%{transform:translateX(6px);} }
+
+  /* ---------- Result ---------- */
+  #result .stage { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; text-align:center; }
+  #result .big { font-size: 34px; font-weight: 900; color:#f9a825; }
+  #result .star-line { font-size: 44px; letter-spacing: 4px; }
+  .result-ele { height: 200px; }
+  .cta {
+    border:none; border-radius: 24px; padding: 18px 34px; font-size: 22px; font-weight: 800; color:#fff;
+    background: linear-gradient(160deg,#06d6a0,#04a07a); box-shadow:0 6px 0 #038063; cursor:pointer;
+    display:flex; align-items:center; gap:10px; transition: transform .08s;
+  }
+  .cta:active { transform: translateY(4px); box-shadow:0 2px 0 #038063; }
+
+  /* ---------- Confetti ---------- */
+  #confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 50; }
+  .conf { position: absolute; width: 12px; height: 16px; border-radius: 3px; top: -20px; animation: fall linear forwards; }
+  @keyframes fall { to { transform: translateY(110vh) rotate(720deg); opacity: .9; } }
+
+  /* floating star burst */
+  .burst-star { position: fixed; font-size: 60px; z-index: 60; pointer-events:none; animation: burst .9s ease forwards; }
+  @keyframes burst { 0%{transform:translate(-50%,-50%) scale(.2); opacity:0;} 30%{opacity:1; transform:translate(-50%,-50%) scale(1.3);} 100%{transform:translate(-50%,-160%) scale(1); opacity:0;} }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- HOME -->
+  <section id="home" class="screen active">
+    <div class="ele-wrap hero"><div class="ele-bob" id="homeEle"></div></div>
+    <div class="speech" id="homeSpeech">שלום! אני פילון 🐘<br>בואו נלמד אנגלית ביחד!</div>
+    <div class="topic-grid">
+      <button class="topic-btn t-animals" data-topic="animals"><span class="ic">🐘</span>חיות</button>
+      <button class="topic-btn t-colors"  data-topic="colors"><span class="ic">🎨</span>צבעים וצורות</button>
+      <button class="topic-btn t-numbers" data-topic="numbers"><span class="ic">🔢</span>מספרים</button>
+      <button class="topic-btn t-letters" data-topic="letters"><span class="ic">🔤</span>אותיות</button>
+    </div>
+  </section>
+
+  <!-- MENU -->
+  <section id="menu" class="screen">
+    <div class="topbar">
+      <button class="iconbtn" data-go="home">🏠</button>
+      <h2 id="menuTitle"></h2>
+      <span style="width:52px"></span>
+    </div>
+    <div class="ele-wrap menu-ele"><div class="ele-bob" id="menuEle"></div></div>
+    <button class="mode-btn mode-learn" data-mode="learn"><span class="ic">📖</span>לומדים</button>
+    <button class="mode-btn mode-play"  data-mode="play"><span class="ic">🎮</span>משחקים</button>
+  </section>
+
+  <!-- LEARN -->
+  <section id="learn" class="screen">
+    <div class="topbar">
+      <button class="iconbtn" data-go="menu">↩️</button>
+      <h2 id="learnTitle"></h2>
+      <span class="progress-pill" id="learnProg"></span>
+    </div>
+    <div class="stage">
+      <div class="flashcard" id="flashcard"></div>
+      <div class="nav-row">
+        <button class="navbtn" id="prevBtn">›</button>
+        <button class="navbtn" id="speakBtn" style="background:#06d6a0; box-shadow:0 5px 0 #038063;">🔊</button>
+        <button class="navbtn" id="nextBtn">‹</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- GAME -->
+  <section id="game" class="screen">
+    <div class="topbar gtop">
+      <button class="iconbtn" data-go="menu">↩️</button>
+      <span class="stars-pill" id="starsPill"></span>
+    </div>
+    <div class="listen-area">
+      <div class="ele-wrap listen-ele"><div class="ele-bob" id="gameEle"></div></div>
+      <button class="replay-btn" id="replayBtn">🔊 שמעו שוב</button>
+    </div>
+    <div class="options" id="options"></div>
+  </section>
+
+  <!-- RESULT -->
+  <section id="result" class="screen">
+    <div class="stage">
+      <div class="ele-wrap result-ele"><div class="ele-cheer" id="resultEle"></div></div>
+      <div class="big">כל הכבוד! 🎉</div>
+      <div class="star-line" id="resultStars"></div>
+      <button class="cta" id="againBtn">🎮 עוד פעם</button>
+      <button class="cta" id="resultHome" style="background:linear-gradient(160deg,#ffd166,#f9a825); box-shadow:0 6px 0 #e0a93f;">🏠 לדף הבית</button>
+    </div>
+  </section>
+
+</div>
+<div id="confetti"></div>
+
+<script>
+/* ============== Elephant SVG ============== */
+function elephantSVG() {
+  return `<svg class="ele" viewBox="0 0 200 210" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="44" cy="92" rx="38" ry="46" fill="#9fb6d4"/>
+    <ellipse cx="156" cy="92" rx="38" ry="46" fill="#9fb6d4"/>
+    <ellipse cx="48" cy="96" rx="24" ry="30" fill="#c2d3ea"/>
+    <ellipse cx="152" cy="96" rx="24" ry="30" fill="#c2d3ea"/>
+    <ellipse cx="100" cy="100" rx="60" ry="58" fill="#aac1de"/>
+    <ellipse cx="100" cy="150" rx="44" ry="40" fill="#aac1de"/>
+    <circle cx="62" cy="118" r="12" fill="#f6b8c8" opacity=".75"/>
+    <circle cx="138" cy="118" r="12" fill="#f6b8c8" opacity=".75"/>
+    <g class="eye"><circle cx="78" cy="86" r="15" fill="#fff"/><circle cx="80" cy="89" r="7.5" fill="#2b3a55"/><circle cx="83" cy="86" r="2.5" fill="#fff"/></g>
+    <g class="eye"><circle cx="122" cy="86" r="15" fill="#fff"/><circle cx="124" cy="89" r="7.5" fill="#2b3a55"/><circle cx="127" cy="86" r="2.5" fill="#fff"/></g>
+    <path d="M100 110 q-6 34 4 56 q10 20 -6 34" fill="none" stroke="#aac1de" stroke-width="22" stroke-linecap="round"/>
+    <circle cx="92" cy="202" r="11" fill="#9fb6d4"/>
+    <ellipse cx="92" cy="203" rx="5" ry="3.5" fill="#7e98ba"/>
+    <path d="M150 60 q14 -16 26 -6" fill="none" stroke="#ffd166" stroke-width="6" stroke-linecap="round"/>
+    <circle cx="178" cy="52" r="6" fill="#ffd166"/>
+  </svg>`;
+}
+['homeEle','menuEle','gameEle','resultEle'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.innerHTML = elephantSVG();
+});
+
+/* ============== Speech ============== */
+let enVoice = null;
+function pickVoice() {
+  const voices = window.speechSynthesis ? speechSynthesis.getVoices() : [];
+  enVoice = voices.find(v => /en[-_]GB/i.test(v.lang))
+         || voices.find(v => /en[-_]US/i.test(v.lang))
+         || voices.find(v => /^en/i.test(v.lang)) || null;
+}
+if (window.speechSynthesis) {
+  pickVoice();
+  speechSynthesis.onvoiceschanged = pickVoice;
+}
+function speak(text) {
+  if (!window.speechSynthesis) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-US';
+  if (enVoice) u.voice = enVoice;
+  u.rate = 0.8;
+  u.pitch = 1.15;
+  speechSynthesis.speak(u);
+}
+
+/* ============== Sound (success ding) ============== */
+let actx = null;
+function ding(ok) {
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    const notes = ok ? [523, 659, 784] : [330, 247];
+    notes.forEach((f, i) => {
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = 'sine'; o.frequency.value = f;
+      o.connect(g); g.connect(actx.destination);
+      const t = actx.currentTime + i * 0.1;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.25, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.25);
+      o.start(t); o.stop(t + 0.26);
+    });
+  } catch (e) {}
+}
+
+/* ============== Data ============== */
+const LETTERS = [
+  ['A','Apple','🍎'],['B','Ball','⚽'],['C','Cat','🐱'],['D','Dog','🐶'],
+  ['E','Elephant','🐘'],['F','Fish','🐟'],['G','Grapes','🍇'],['H','Hat','🎩'],
+  ['I','Ice cream','🍦'],['J','Juice','🧃'],['K','Kite','🪁'],['L','Lion','🦁'],
+  ['M','Moon','🌙'],['N','Nest','🪺'],['O','Orange','🍊'],['P','Pig','🐷'],
+  ['Q','Queen','👑'],['R','Rainbow','🌈'],['S','Sun','☀️'],['T','Tree','🌳'],
+  ['U','Umbrella','☂️'],['V','Violin','🎻'],['W','Watermelon','🍉'],['X','Xylophone','🎵'],
+  ['Y','Yo-yo','🪀'],['Z','Zebra','🦓']
+];
+
+const TOPICS = {
+  animals: { title: 'חיות 🐘', items: [
+    {type:'emoji', en:'elephant', emoji:'🐘', he:'פיל'},
+    {type:'emoji', en:'dog', emoji:'🐶', he:'כלב'},
+    {type:'emoji', en:'cat', emoji:'🐱', he:'חתול'},
+    {type:'emoji', en:'lion', emoji:'🦁', he:'אריה'},
+    {type:'emoji', en:'monkey', emoji:'🐵', he:'קוף'},
+    {type:'emoji', en:'fish', emoji:'🐟', he:'דג'},
+    {type:'emoji', en:'bird', emoji:'🐦', he:'ציפור'},
+    {type:'emoji', en:'cow', emoji:'🐮', he:'פרה'},
+    {type:'emoji', en:'frog', emoji:'🐸', he:'צפרדע'},
+    {type:'emoji', en:'bee', emoji:'🐝', he:'דבורה'},
+  ]},
+  colors: { title: 'צבעים וצורות 🎨', items: [
+    {type:'color', en:'red', color:'#e53935', he:'אדום'},
+    {type:'color', en:'blue', color:'#1e88e5', he:'כחול'},
+    {type:'color', en:'green', color:'#43a047', he:'ירוק'},
+    {type:'color', en:'yellow', color:'#fdd835', he:'צהוב'},
+    {type:'color', en:'orange', color:'#fb8c00', he:'כתום'},
+    {type:'color', en:'purple', color:'#8e24aa', he:'סגול'},
+    {type:'color', en:'pink', color:'#ec407a', he:'ורוד'},
+    {type:'color', en:'brown', color:'#8d6e63', he:'חום'},
+    {type:'shape', en:'circle', shape:'circle', he:'עיגול'},
+    {type:'shape', en:'square', shape:'square', he:'ריבוע'},
+    {type:'shape', en:'triangle', shape:'triangle', he:'משולש'},
+    {type:'shape', en:'star', shape:'star', he:'כוכב'},
+    {type:'shape', en:'heart', shape:'heart', he:'לב'},
+  ]},
+  numbers: { title: 'מספרים 🔢', items: [
+    {type:'number', en:'one', num:1, he:'אחת'},
+    {type:'number', en:'two', num:2, he:'שתיים'},
+    {type:'number', en:'three', num:3, he:'שלוש'},
+    {type:'number', en:'four', num:4, he:'ארבע'},
+    {type:'number', en:'five', num:5, he:'חמש'},
+    {type:'number', en:'six', num:6, he:'שש'},
+    {type:'number', en:'seven', num:7, he:'שבע'},
+    {type:'number', en:'eight', num:8, he:'שמונה'},
+    {type:'number', en:'nine', num:9, he:'תשע'},
+    {type:'number', en:'ten', num:10, he:'עשר'},
+  ]},
+  letters: { title: 'אותיות 🔤', items: LETTERS.map(([l,w,e]) => ({
+    type:'letter', letter:l, en:l, word:w, emoji:e, he:'',
+    say: l + '. ' + w
+  })) }
+};
+
+/* ============== Visual rendering ============== */
+function shapeSVG(shape) {
+  const c = {circle:'#26a6d6', square:'#5cb544', triangle:'#fb8c00', star:'#f9a825', heart:'#ec407a'}[shape];
+  const inner = {
+    circle: `<circle cx="50" cy="50" r="42" fill="${c}"/>`,
+    square: `<rect x="10" y="10" width="80" height="80" rx="10" fill="${c}"/>`,
+    triangle: `<polygon points="50,10 92,88 8,88" fill="${c}"/>`,
+    star: `<polygon points="50,6 61,38 95,38 67,58 78,92 50,71 22,92 33,58 5,38 39,38" fill="${c}"/>`,
+    heart: `<path d="M50 88 C10 58 12 22 38 22 C50 22 50 34 50 34 C50 34 50 22 62 22 C88 22 90 58 50 88 Z" fill="${c}"/>`
+  }[shape];
+  return `<svg class="shape-svg" viewBox="0 0 100 100">${inner}</svg>`;
+}
+function visualHTML(item) {
+  switch (item.type) {
+    case 'emoji':  return `<div class="vis emoji">${item.emoji}</div>`;
+    case 'color':  return `<div class="vis"><div class="colorbox" style="background:${item.color}"></div></div>`;
+    case 'shape':  return `<div class="vis">${shapeSVG(item.shape)}</div>`;
+    case 'number': {
+      let dots = '';
+      for (let i = 0; i < item.num; i++) dots += '<span class="dot"></span>';
+      return `<div class="vis numbox"><div class="digit">${item.num}</div><div class="dots">${dots}</div></div>`;
+    }
+    case 'letter': return `<div class="vis letterbox">${item.letter}</div>`;
+  }
+  return '';
+}
+function sayText(item) { return item.say || item.en; }
+
+/* ============== Navigation ============== */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+document.querySelectorAll('[data-go]').forEach(b =>
+  b.addEventListener('click', () => { speechSynthesis && speechSynthesis.cancel(); showScreen(b.dataset.go); })
+);
+
+let currentTopic = null;
+
+document.querySelectorAll('.topic-btn').forEach(b =>
+  b.addEventListener('click', () => {
+    currentTopic = b.dataset.topic;
+    document.getElementById('menuTitle').textContent = TOPICS[currentTopic].title;
+    showScreen('menu');
+    speak(TOPICS[currentTopic].items[0].en);
+  })
+);
+
+document.querySelectorAll('.mode-btn').forEach(b =>
+  b.addEventListener('click', () => {
+    if (b.dataset.mode === 'learn') startLearn();
+    else startGame();
+  })
+);
+
+/* ============== Learn mode ============== */
+let learnIndex = 0;
+function startLearn() {
+  learnIndex = 0;
+  document.getElementById('learnTitle').textContent = TOPICS[currentTopic].title;
+  showScreen('learn');
+  renderFlashcard();
+}
+function renderFlashcard() {
+  const items = TOPICS[currentTopic].items;
+  const item = items[learnIndex];
+  let extra = '';
+  if (item.type === 'letter') {
+    extra = `<div class="vis emoji" style="font-size:90px">${item.emoji}</div>
+             <div class="word">${item.letter}</div>
+             <div class="sub">${item.word}</div>`;
+  } else {
+    extra = `<div class="word">${item.en}</div>` + (item.he ? `<div class="he">${item.he}</div>` : '');
+  }
+  const visArea = item.type === 'letter'
+    ? '' : `<div class="vis-area">${visualHTML(item)}</div>`;
+  document.getElementById('flashcard').innerHTML =
+    `${visArea}${extra}<div class="tap-hint">👆 לחצו לשמוע</div>`;
+  document.getElementById('learnProg').textContent = (learnIndex + 1) + ' / ' + items.length;
+  speak(sayText(item));
+}
+document.getElementById('flashcard').addEventListener('click', () =>
+  speak(sayText(TOPICS[currentTopic].items[learnIndex])));
+document.getElementById('speakBtn').addEventListener('click', () =>
+  speak(sayText(TOPICS[currentTopic].items[learnIndex])));
+document.getElementById('nextBtn').addEventListener('click', () => {
+  const n = TOPICS[currentTopic].items.length;
+  learnIndex = (learnIndex + 1) % n; renderFlashcard();
+});
+document.getElementById('prevBtn').addEventListener('click', () => {
+  const n = TOPICS[currentTopic].items.length;
+  learnIndex = (learnIndex - 1 + n) % n; renderFlashcard();
+});
+
+/* ============== Game mode ============== */
+const ROUND = 5;
+let queue = [], qIndex = 0, stars = 0, target = null, locked = false;
+
+function shuffle(a) { a = a.slice(); for (let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+
+function startGame() {
+  const items = TOPICS[currentTopic].items;
+  queue = shuffle(items).slice(0, ROUND);
+  qIndex = 0; stars = 0;
+  showScreen('game');
+  nextQuestion();
+}
+function updateStars() {
+  let s = '';
+  for (let i = 0; i < ROUND; i++) s += i < stars ? '⭐' : '☆';
+  document.getElementById('starsPill').textContent = s;
+}
+function nextQuestion() {
+  if (qIndex >= queue.length) return endGame();
+  locked = false;
+  updateStars();
+  target = queue[qIndex];
+  const items = TOPICS[currentTopic].items;
+  const distractors = shuffle(items.filter(it => it.en !== target.en)).slice(0, 2);
+  const opts = shuffle([target, ...distractors]);
+  const box = document.getElementById('options');
+  box.innerHTML = '';
+  opts.forEach(it => {
+    const d = document.createElement('div');
+    d.className = 'opt';
+    d.innerHTML = visualHTML(it.type === 'letter' ? it : it);
+    d.addEventListener('click', () => chooseOption(d, it));
+    box.appendChild(d);
+  });
+  setTimeout(() => speak(sayText(target)), 350);
+}
+function chooseOption(el, item) {
+  if (locked) return;
+  if (item.en === target.en) {
+    locked = true;
+    el.classList.add('correct');
+    ding(true);
+    burstStar(el);
+    confetti();
+    cheerEle('gameEle');
+    speak(sayText(target));
+    stars++;
+    updateStars();
+    setTimeout(() => { qIndex++; nextQuestion(); }, 1500);
+  } else {
+    el.classList.add('wrong');
+    ding(false);
+    setTimeout(() => el.classList.remove('wrong'), 400);
+    speak('Try again');
+  }
+}
+function endGame() {
+  document.getElementById('resultEle').innerHTML = elephantSVG();
+  let s = '';
+  for (let i = 0; i < ROUND; i++) s += '⭐';
+  document.getElementById('resultStars').textContent = s;
+  showScreen('result');
+  confetti(); confetti();
+  ding(true);
+  speak('Great job! You did it!');
+}
+document.getElementById('replayBtn').addEventListener('click', () => speak(sayText(target)));
+document.getElementById('againBtn').addEventListener('click', startGame);
+document.getElementById('resultHome').addEventListener('click', () => showScreen('home'));
+
+/* ============== Feedback FX ============== */
+function cheerEle(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.remove('ele-bob'); el.classList.add('ele-cheer');
+  setTimeout(() => { el.classList.remove('ele-cheer'); el.classList.add('ele-bob'); }, 600);
+}
+function burstStar(el) {
+  const r = el.getBoundingClientRect();
+  const s = document.createElement('div');
+  s.className = 'burst-star'; s.textContent = '⭐';
+  s.style.left = (r.left + r.width / 2) + 'px';
+  s.style.top = (r.top + r.height / 2) + 'px';
+  document.body.appendChild(s);
+  setTimeout(() => s.remove(), 900);
+}
+function confetti() {
+  const box = document.getElementById('confetti');
+  const colors = ['#ff7043','#26a6d6','#5cb544','#f9a825','#ec407a','#9c5bd6'];
+  for (let i = 0; i < 28; i++) {
+    const c = document.createElement('div');
+    c.className = 'conf';
+    c.style.left = Math.random() * 100 + 'vw';
+    c.style.background = colors[Math.floor(Math.random() * colors.length)];
+    c.style.animationDuration = (1.6 + Math.random() * 1.2) + 's';
+    c.style.transform = 'rotate(' + (Math.random()*360) + 'deg)';
+    box.appendChild(c);
+    setTimeout(() => c.remove(), 3000);
+  }
+}
+
+/* greet on first interaction (unlocks audio) */
+let greeted = false;
+function greet() {
+  if (greeted) return;
+  greeted = true;
+  speak('Hello! Let us learn English!');
+}
+document.body.addEventListener('pointerdown', greet, { once: true });
+</script>
+</body>
+</html>
