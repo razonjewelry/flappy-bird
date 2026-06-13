@@ -76,8 +76,10 @@
   .topic-btn .ic { font-size: 52px; line-height: 1; }
   .t-animals { background: linear-gradient(160deg,#ff9a76,#ff7043); }
   .t-colors  { background: linear-gradient(160deg,#7ed4f0,#26a6d6); }
+  .t-shapes  { background: linear-gradient(160deg,#ff9ec4,#e84d7a); }
   .t-numbers { background: linear-gradient(160deg,#9ad36a,#5cb544); }
   .t-letters { background: linear-gradient(160deg,#c79bf0,#9c5bd6); }
+  .topic-btn.span2 { grid-column: 1 / -1; }
 
   /* ---------- Menu ---------- */
   #menu .menu-ele { height: 200px; flex: 0 0 auto; }
@@ -92,7 +94,7 @@
   .mode-btn .ic { font-size: 40px; }
 
   /* ---------- Visuals (shared) ---------- */
-  .vis { display: flex; align-items: center; justify-content: center; }
+  .vis { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
   .vis.emoji { font-size: 33vmin; max-font-size: 170px; line-height: 1; }
   .colorbox { width: 70%; aspect-ratio: 1; border-radius: 28px; box-shadow: inset 0 -10px 0 rgba(0,0,0,.12), 0 6px 14px rgba(0,0,0,.15); }
   .shape-svg { width: 70%; height: auto; }
@@ -126,17 +128,18 @@
   .progress-pill { background:#fff; border-radius:20px; padding:8px 16px; font-weight:700; color:#7a8b94; box-shadow:0 3px 0 #e6ecef; }
 
   /* ---------- Game ---------- */
-  #game .gtop { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  #game { position: relative; justify-content: center; }
+  #game .gtop { position: absolute; top: 0; left: 0; right: 0; display: flex; align-items: center; gap: 10px; }
   .stars-pill { background:#fff; border-radius:20px; padding:8px 14px; font-size:20px; box-shadow:0 3px 0 #e6ecef; flex:1; text-align:center; letter-spacing:2px; }
-  .listen-area { display:flex; flex-direction:column; align-items:center; gap:6px; margin: 4px 0 14px; }
-  .listen-ele { height: 150px; }
+  .listen-area { position: absolute; top: 56px; left: 0; right: 0; display:flex; flex-direction:column; align-items:center; gap:6px; }
+  .listen-ele { height: 120px; }
   .replay-btn {
     border: none; border-radius: 26px; padding: 12px 22px; background: linear-gradient(160deg,#06d6a0,#04a07a);
     color:#fff; font-size: 20px; font-weight: 800; box-shadow: 0 5px 0 #038063; cursor: pointer;
     display:flex; align-items:center; gap:8px; transition: transform .08s;
   }
   .replay-btn:active { transform: translateY(4px); box-shadow: 0 1px 0 #038063; }
-  .options { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: auto; }
+  .options { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 8px; }
   .opt {
     background:#fff; border: 4px solid #fff; border-radius: 24px; aspect-ratio: 1; cursor: pointer;
     box-shadow: 0 6px 0 #e1e8ec; display:flex; align-items:center; justify-content:center; padding: 6px;
@@ -181,12 +184,13 @@
   <!-- HOME -->
   <section id="home" class="screen active">
     <div class="ele-wrap hero"><div class="ele-bob" id="homeEle"></div></div>
-    <div class="speech" id="homeSpeech">שלום! אני פילון 🐘<br>בואו נלמד אנגלית ביחד!</div>
+    <div class="speech" id="homeSpeech">Hello Eliya! 🐘 How are you?<br>Let's start to learn English!</div>
     <div class="topic-grid">
       <button class="topic-btn t-animals" data-topic="animals"><span class="ic">🐘</span>חיות</button>
-      <button class="topic-btn t-colors"  data-topic="colors"><span class="ic">🎨</span>צבעים וצורות</button>
+      <button class="topic-btn t-colors"  data-topic="colors"><span class="ic">🎨</span>צבעים</button>
+      <button class="topic-btn t-shapes"  data-topic="shapes"><span class="ic">🔷</span>צורות</button>
       <button class="topic-btn t-numbers" data-topic="numbers"><span class="ic">🔢</span>מספרים</button>
-      <button class="topic-btn t-letters" data-topic="letters"><span class="ic">🔤</span>אותיות</button>
+      <button class="topic-btn t-letters span2" data-topic="letters"><span class="ic">🔤</span>אותיות</button>
     </div>
   </section>
 
@@ -284,14 +288,15 @@ if (window.speechSynthesis) {
   pickVoice();
   speechSynthesis.onvoiceschanged = pickVoice;
 }
-function speak(text) {
+function speak(text, opts) {
   if (!window.speechSynthesis) return;
+  opts = opts || {};
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
   u.lang = 'en-US';
   if (enVoice) u.voice = enVoice;
-  u.rate = 0.8;
-  u.pitch = 1.15;
+  u.rate = opts.rate || 0.8;
+  u.pitch = opts.pitch || 1.15;
   speechSynthesis.speak(u);
 }
 
@@ -337,8 +342,28 @@ const TOPICS = {
     {type:'emoji', en:'cow', emoji:'🐮', he:'פרה'},
     {type:'emoji', en:'frog', emoji:'🐸', he:'צפרדע'},
     {type:'emoji', en:'bee', emoji:'🐝', he:'דבורה'},
+    {type:'emoji', en:'horse', emoji:'🐴', he:'סוס'},
+    {type:'emoji', en:'pig', emoji:'🐷', he:'חזיר'},
+    {type:'emoji', en:'rabbit', emoji:'🐰', he:'ארנב'},
+    {type:'emoji', en:'bear', emoji:'🐻', he:'דוב'},
+    {type:'emoji', en:'panda', emoji:'🐼', he:'פנדה'},
+    {type:'emoji', en:'tiger', emoji:'🐯', he:'נמר'},
+    {type:'emoji', en:'chicken', emoji:'🐔', he:'תרנגולת'},
+    {type:'emoji', en:'penguin', emoji:'🐧', he:'פינגווין'},
+    {type:'emoji', en:'duck', emoji:'🦆', he:'ברווז'},
+    {type:'emoji', en:'owl', emoji:'🦉', he:'ינשוף'},
+    {type:'emoji', en:'fox', emoji:'🦊', he:'שועל'},
+    {type:'emoji', en:'wolf', emoji:'🐺', he:'זאב'},
+    {type:'emoji', en:'sheep', emoji:'🐑', he:'כבשה'},
+    {type:'emoji', en:'goat', emoji:'🐐', he:'עז'},
+    {type:'emoji', en:'mouse', emoji:'🐭', he:'עכבר'},
+    {type:'emoji', en:'snake', emoji:'🐍', he:'נחש'},
+    {type:'emoji', en:'turtle', emoji:'🐢', he:'צב'},
+    {type:'emoji', en:'butterfly', emoji:'🦋', he:'פרפר'},
+    {type:'emoji', en:'giraffe', emoji:'🦒', he:'ג׳ירפה'},
+    {type:'emoji', en:'zebra', emoji:'🦓', he:'זברה'},
   ]},
-  colors: { title: 'צבעים וצורות 🎨', items: [
+  colors: { title: 'צבעים 🎨', items: [
     {type:'color', en:'red', color:'#e53935', he:'אדום'},
     {type:'color', en:'blue', color:'#1e88e5', he:'כחול'},
     {type:'color', en:'green', color:'#43a047', he:'ירוק'},
@@ -347,6 +372,8 @@ const TOPICS = {
     {type:'color', en:'purple', color:'#8e24aa', he:'סגול'},
     {type:'color', en:'pink', color:'#ec407a', he:'ורוד'},
     {type:'color', en:'brown', color:'#8d6e63', he:'חום'},
+  ]},
+  shapes: { title: 'צורות 🔷', items: [
     {type:'shape', en:'circle', shape:'circle', he:'עיגול'},
     {type:'shape', en:'square', shape:'square', he:'ריבוע'},
     {type:'shape', en:'triangle', shape:'triangle', he:'משולש'},
@@ -365,15 +392,14 @@ const TOPICS = {
     {type:'number', en:'nine', num:9, he:'תשע'},
     {type:'number', en:'ten', num:10, he:'עשר'},
   ]},
-  letters: { title: 'אותיות 🔤', items: LETTERS.map(([l,w,e]) => ({
-    type:'letter', letter:l, en:l, word:w, emoji:e, he:'',
-    say: l + '. ' + w
+  letters: { title: 'אותיות 🔤', items: LETTERS.map(([l]) => ({
+    type:'letter', letter:l, en:l, he:''
   })) }
 };
 
 /* ============== Visual rendering ============== */
 function shapeSVG(shape) {
-  const c = {circle:'#26a6d6', square:'#5cb544', triangle:'#fb8c00', star:'#f9a825', heart:'#ec407a'}[shape];
+  const c = '#222';
   const inner = {
     circle: `<circle cx="50" cy="50" r="42" fill="${c}"/>`,
     square: `<rect x="10" y="10" width="80" height="80" rx="10" fill="${c}"/>`,
@@ -438,15 +464,10 @@ function renderFlashcard() {
   const items = TOPICS[currentTopic].items;
   const item = items[learnIndex];
   let extra = '';
-  if (item.type === 'letter') {
-    extra = `<div class="vis emoji" style="font-size:90px">${item.emoji}</div>
-             <div class="word">${item.letter}</div>
-             <div class="sub">${item.word}</div>`;
-  } else {
+  if (item.type !== 'letter') {
     extra = `<div class="word">${item.en}</div>` + (item.he ? `<div class="he">${item.he}</div>` : '');
   }
-  const visArea = item.type === 'letter'
-    ? '' : `<div class="vis-area">${visualHTML(item)}</div>`;
+  const visArea = `<div class="vis-area">${visualHTML(item)}</div>`;
   document.getElementById('flashcard').innerHTML =
     `${visArea}${extra}<div class="tap-hint">👆 לחצו לשמוע</div>`;
   document.getElementById('learnProg').textContent = (learnIndex + 1) + ' / ' + items.length;
@@ -572,7 +593,8 @@ let greeted = false;
 function greet() {
   if (greeted) return;
   greeted = true;
-  speak('Hello! Let us learn English!');
+  cheerEle('homeEle');
+  speak("Hello Eliya! How are you? Let's start to learn English!", { rate: 0.92, pitch: 1.4 });
 }
 document.body.addEventListener('pointerdown', greet, { once: true });
 </script>
