@@ -76,8 +76,10 @@
   .topic-btn .ic { font-size: 52px; line-height: 1; }
   .t-animals { background: linear-gradient(160deg,#ff9a76,#ff7043); }
   .t-colors  { background: linear-gradient(160deg,#7ed4f0,#26a6d6); }
+  .t-shapes  { background: linear-gradient(160deg,#ff9ec4,#e84d7a); }
   .t-numbers { background: linear-gradient(160deg,#9ad36a,#5cb544); }
   .t-letters { background: linear-gradient(160deg,#c79bf0,#9c5bd6); }
+  .topic-btn.span2 { grid-column: 1 / -1; }
 
   /* ---------- Menu ---------- */
   #menu .menu-ele { height: 200px; flex: 0 0 auto; }
@@ -181,12 +183,13 @@
   <!-- HOME -->
   <section id="home" class="screen active">
     <div class="ele-wrap hero"><div class="ele-bob" id="homeEle"></div></div>
-    <div class="speech" id="homeSpeech">שלום! אני פילון 🐘<br>בואו נלמד אנגלית ביחד!</div>
+    <div class="speech" id="homeSpeech">Hello Eliya! 🐘<br>How are you?</div>
     <div class="topic-grid">
       <button class="topic-btn t-animals" data-topic="animals"><span class="ic">🐘</span>חיות</button>
-      <button class="topic-btn t-colors"  data-topic="colors"><span class="ic">🎨</span>צבעים וצורות</button>
+      <button class="topic-btn t-colors"  data-topic="colors"><span class="ic">🎨</span>צבעים</button>
+      <button class="topic-btn t-shapes"  data-topic="shapes"><span class="ic">🔷</span>צורות</button>
       <button class="topic-btn t-numbers" data-topic="numbers"><span class="ic">🔢</span>מספרים</button>
-      <button class="topic-btn t-letters" data-topic="letters"><span class="ic">🔤</span>אותיות</button>
+      <button class="topic-btn t-letters span2" data-topic="letters"><span class="ic">🔤</span>אותיות</button>
     </div>
   </section>
 
@@ -337,8 +340,28 @@ const TOPICS = {
     {type:'emoji', en:'cow', emoji:'🐮', he:'פרה'},
     {type:'emoji', en:'frog', emoji:'🐸', he:'צפרדע'},
     {type:'emoji', en:'bee', emoji:'🐝', he:'דבורה'},
+    {type:'emoji', en:'horse', emoji:'🐴', he:'סוס'},
+    {type:'emoji', en:'pig', emoji:'🐷', he:'חזיר'},
+    {type:'emoji', en:'rabbit', emoji:'🐰', he:'ארנב'},
+    {type:'emoji', en:'bear', emoji:'🐻', he:'דוב'},
+    {type:'emoji', en:'panda', emoji:'🐼', he:'פנדה'},
+    {type:'emoji', en:'tiger', emoji:'🐯', he:'נמר'},
+    {type:'emoji', en:'chicken', emoji:'🐔', he:'תרנגולת'},
+    {type:'emoji', en:'penguin', emoji:'🐧', he:'פינגווין'},
+    {type:'emoji', en:'duck', emoji:'🦆', he:'ברווז'},
+    {type:'emoji', en:'owl', emoji:'🦉', he:'ינשוף'},
+    {type:'emoji', en:'fox', emoji:'🦊', he:'שועל'},
+    {type:'emoji', en:'wolf', emoji:'🐺', he:'זאב'},
+    {type:'emoji', en:'sheep', emoji:'🐑', he:'כבשה'},
+    {type:'emoji', en:'goat', emoji:'🐐', he:'עז'},
+    {type:'emoji', en:'mouse', emoji:'🐭', he:'עכבר'},
+    {type:'emoji', en:'snake', emoji:'🐍', he:'נחש'},
+    {type:'emoji', en:'turtle', emoji:'🐢', he:'צב'},
+    {type:'emoji', en:'butterfly', emoji:'🦋', he:'פרפר'},
+    {type:'emoji', en:'giraffe', emoji:'🦒', he:'ג׳ירפה'},
+    {type:'emoji', en:'zebra', emoji:'🦓', he:'זברה'},
   ]},
-  colors: { title: 'צבעים וצורות 🎨', items: [
+  colors: { title: 'צבעים 🎨', items: [
     {type:'color', en:'red', color:'#e53935', he:'אדום'},
     {type:'color', en:'blue', color:'#1e88e5', he:'כחול'},
     {type:'color', en:'green', color:'#43a047', he:'ירוק'},
@@ -347,6 +370,8 @@ const TOPICS = {
     {type:'color', en:'purple', color:'#8e24aa', he:'סגול'},
     {type:'color', en:'pink', color:'#ec407a', he:'ורוד'},
     {type:'color', en:'brown', color:'#8d6e63', he:'חום'},
+  ]},
+  shapes: { title: 'צורות 🔷', items: [
     {type:'shape', en:'circle', shape:'circle', he:'עיגול'},
     {type:'shape', en:'square', shape:'square', he:'ריבוע'},
     {type:'shape', en:'triangle', shape:'triangle', he:'משולש'},
@@ -365,9 +390,8 @@ const TOPICS = {
     {type:'number', en:'nine', num:9, he:'תשע'},
     {type:'number', en:'ten', num:10, he:'עשר'},
   ]},
-  letters: { title: 'אותיות 🔤', items: LETTERS.map(([l,w,e]) => ({
-    type:'letter', letter:l, en:l, word:w, emoji:e, he:'',
-    say: l + '. ' + w
+  letters: { title: 'אותיות 🔤', items: LETTERS.map(([l]) => ({
+    type:'letter', letter:l, en:l, he:''
   })) }
 };
 
@@ -438,15 +462,10 @@ function renderFlashcard() {
   const items = TOPICS[currentTopic].items;
   const item = items[learnIndex];
   let extra = '';
-  if (item.type === 'letter') {
-    extra = `<div class="vis emoji" style="font-size:90px">${item.emoji}</div>
-             <div class="word">${item.letter}</div>
-             <div class="sub">${item.word}</div>`;
-  } else {
+  if (item.type !== 'letter') {
     extra = `<div class="word">${item.en}</div>` + (item.he ? `<div class="he">${item.he}</div>` : '');
   }
-  const visArea = item.type === 'letter'
-    ? '' : `<div class="vis-area">${visualHTML(item)}</div>`;
+  const visArea = `<div class="vis-area">${visualHTML(item)}</div>`;
   document.getElementById('flashcard').innerHTML =
     `${visArea}${extra}<div class="tap-hint">👆 לחצו לשמוע</div>`;
   document.getElementById('learnProg').textContent = (learnIndex + 1) + ' / ' + items.length;
@@ -572,7 +591,7 @@ let greeted = false;
 function greet() {
   if (greeted) return;
   greeted = true;
-  speak('Hello! Let us learn English!');
+  speak('Hello Eliya! How are you?');
 }
 document.body.addEventListener('pointerdown', greet, { once: true });
 </script>
