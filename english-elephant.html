@@ -94,7 +94,7 @@
   .mode-btn .ic { font-size: 40px; }
 
   /* ---------- Visuals (shared) ---------- */
-  .vis { display: flex; align-items: center; justify-content: center; }
+  .vis { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
   .vis.emoji { font-size: 33vmin; max-font-size: 170px; line-height: 1; }
   .colorbox { width: 70%; aspect-ratio: 1; border-radius: 28px; box-shadow: inset 0 -10px 0 rgba(0,0,0,.12), 0 6px 14px rgba(0,0,0,.15); }
   .shape-svg { width: 70%; height: auto; }
@@ -183,7 +183,7 @@
   <!-- HOME -->
   <section id="home" class="screen active">
     <div class="ele-wrap hero"><div class="ele-bob" id="homeEle"></div></div>
-    <div class="speech" id="homeSpeech">Hello Eliya! 🐘<br>How are you?</div>
+    <div class="speech" id="homeSpeech">Hello Eliya! 🐘 How are you?<br>Let's start to learn English!</div>
     <div class="topic-grid">
       <button class="topic-btn t-animals" data-topic="animals"><span class="ic">🐘</span>חיות</button>
       <button class="topic-btn t-colors"  data-topic="colors"><span class="ic">🎨</span>צבעים</button>
@@ -287,14 +287,15 @@ if (window.speechSynthesis) {
   pickVoice();
   speechSynthesis.onvoiceschanged = pickVoice;
 }
-function speak(text) {
+function speak(text, opts) {
   if (!window.speechSynthesis) return;
+  opts = opts || {};
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
   u.lang = 'en-US';
   if (enVoice) u.voice = enVoice;
-  u.rate = 0.8;
-  u.pitch = 1.15;
+  u.rate = opts.rate || 0.8;
+  u.pitch = opts.pitch || 1.15;
   speechSynthesis.speak(u);
 }
 
@@ -397,7 +398,7 @@ const TOPICS = {
 
 /* ============== Visual rendering ============== */
 function shapeSVG(shape) {
-  const c = {circle:'#26a6d6', square:'#5cb544', triangle:'#fb8c00', star:'#f9a825', heart:'#ec407a'}[shape];
+  const c = '#222';
   const inner = {
     circle: `<circle cx="50" cy="50" r="42" fill="${c}"/>`,
     square: `<rect x="10" y="10" width="80" height="80" rx="10" fill="${c}"/>`,
@@ -591,7 +592,8 @@ let greeted = false;
 function greet() {
   if (greeted) return;
   greeted = true;
-  speak('Hello Eliya! How are you?');
+  cheerEle('homeEle');
+  speak("Hello Eliya! How are you? Let's start to learn English!", { rate: 0.92, pitch: 1.4 });
 }
 document.body.addEventListener('pointerdown', greet, { once: true });
 </script>
