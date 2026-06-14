@@ -236,9 +236,24 @@
     .flashcard .emoji { font-size: 78px; }
     .q-target { font-size: 32px; }
   }
+
+  /* "Open in Safari" notice — visible only when JS does NOT run */
+  #noJsWarn {
+    background: #fff3cd; color: #7a5b00; border: 2px solid #e9b949;
+    border-radius: 16px; padding: 16px 18px; margin: 0 auto 16px;
+    max-width: 640px; font-size: 19px; font-weight: 700; line-height: 1.5; text-align: center;
+  }
 </style>
 </head>
 <body>
+
+<!-- Shown ONLY if JavaScript is not running (e.g. the file was opened inside
+     WhatsApp / a file preview instead of a real browser). JS hides it on load. -->
+<div id="noJsWarn">
+  ⚠️ כדי שהמשחק יעבוד צריך לפתוח אותו בדפדפן <b>Safari</b>.<br>
+  לחצו על כפתור השיתוף ⬆️ ואז על <b>"פתח ב-Safari"</b> (Open in Safari).
+</div>
+
 <div id="app">
 
   <!-- ============ WELCOME ============ -->
@@ -248,7 +263,7 @@
       <h1>שלום סיגל!</h1>
       <div class="name-en">SIGAL</div>
       <p>כמה כיף שאת כאן 💛<br>בואי נלמד אנגלית ביחד — לאט, בנעימים, ובלי שום לחץ.</p>
-      <div class="audio-note">🔊 כדאי להגביר את הקול במכשיר — נשמע יחד איך אומרים את המילים.</div>
+      <div class="audio-note">🔊 כדאי להגביר את הקול במכשיר — נשמע יחד איך אומרים את המילים.<br><span style="font-size:15px">באייפון: ודאו שמתג ההשתקה בצד <b>לא</b> דולק (אין כתום) 🔇</span></div>
     </div>
     <button class="btn btn-coral btn-block" id="startBtn"><span class="ic">🌟</span>בואי נתחיל</button>
   </section>
@@ -668,13 +683,17 @@ if (window.speechSynthesis) {
 function speak(text, opts) {
   if (!window.speechSynthesis) return;
   opts = opts || {};
-  speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = 'en-US';
-  if (enVoice) u.voice = enVoice;
-  u.rate = opts.rate != null ? opts.rate : 0.7;   // slow & clear for a beginner
-  u.pitch = opts.pitch != null ? opts.pitch : 1.0;
-  speechSynthesis.speak(u);
+  try {
+    if (!enVoice) pickVoice();                       // iOS often loads voices late
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'en-US';
+    if (enVoice) u.voice = enVoice;
+    u.rate = opts.rate != null ? opts.rate : 0.7;    // slow & clear for a beginner
+    u.pitch = opts.pitch != null ? opts.pitch : 1.0;
+    speechSynthesis.speak(u);
+    speechSynthesis.resume();                         // iOS sometimes leaves the queue paused
+  } catch (e) {}
 }
 function stopSpeak() { if (window.speechSynthesis) speechSynthesis.cancel(); }
 
@@ -1056,6 +1075,8 @@ function endTest() {
 }
 
 /* init */
+// JS is running, so hide the "open in Safari" notice.
+(function(){ var w = document.getElementById('noJsWarn'); if (w) w.style.display = 'none'; })();
 renderMap();
 </script>
 </body>
