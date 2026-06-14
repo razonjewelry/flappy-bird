@@ -237,6 +237,11 @@
     .q-target { font-size: 32px; }
   }
 
+  #soundTestMsg {
+    min-height: 26px; font-size: 18px; font-weight: 700; text-align: center;
+    color: var(--teal-dark); margin-bottom: 10px;
+  }
+
   /* "Open in Safari" notice — visible only when JS does NOT run */
   #noJsWarn {
     background: #fff3cd; color: #7a5b00; border: 2px solid #e9b949;
@@ -265,6 +270,8 @@
       <p>כמה כיף שאת כאן 💛<br>בואי נלמד אנגלית ביחד — לאט, בנעימים, ובלי שום לחץ.</p>
       <div class="audio-note">🔊 כדאי להגביר את הקול במכשיר — נשמע יחד איך אומרים את המילים.<br><span style="font-size:15px">באייפון: ודאו שמתג ההשתקה בצד <b>לא</b> דולק (אין כתום) 🔇</span></div>
     </div>
+    <button class="btn btn-ghost btn-block" id="soundTestBtn" style="margin-bottom:10px"><span class="ic">🔊</span>קודם נבדוק שיש קול</button>
+    <div id="soundTestMsg"></div>
     <button class="btn btn-coral btn-block" id="startBtn"><span class="ic">🌟</span>בואי נתחיל</button>
   </section>
 
@@ -785,6 +792,23 @@ function unlockAudio() {
     if (actx.state === 'suspended') actx.resume();
   } catch (e) {}
 }
+// Unlock audio on the very first touch/click anywhere — robust across phones.
+function primeAudioOnce() {
+  unlockAudio();
+  try { if (window.speechSynthesis) pickVoice(); } catch (e) {}
+}
+document.addEventListener('pointerdown', primeAudioOnce, { once: true });
+document.addEventListener('touchend', primeAudioOnce, { once: true });
+
+// Sound check: lets the user confirm sound works before starting.
+document.getElementById('soundTestBtn').addEventListener('click', () => {
+  unlockAudio();
+  ding(true);
+  speak('Hello Sigal', { rate: 0.8 });
+  const msg = document.getElementById('soundTestMsg');
+  msg.textContent = '🎵 שמעתם צליל ומילה באנגלית? מצוין! אם לא — העלו את ווליום המדיה ונסו שוב';
+});
+
 document.getElementById('startBtn').addEventListener('click', () => {
   unlockAudio();
   if (!greeted) {
