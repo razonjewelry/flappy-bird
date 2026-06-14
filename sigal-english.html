@@ -252,6 +252,24 @@
 </head>
 <body>
 
+<!-- Diagnostic: surface any uncaught JS error on screen (helps debug on
+     phones we can't inspect). Runs first, in its own script, so it can also
+     catch parse errors in the main script below. -->
+<script>
+window.addEventListener('error', function (e) {
+  try {
+    var d = document.getElementById('errBox');
+    if (!d) {
+      d = document.createElement('div');
+      d.id = 'errBox';
+      d.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#b00020;color:#fff;padding:10px;font-size:13px;z-index:99999;direction:ltr;text-align:left;white-space:pre-wrap';
+      (document.body || document.documentElement).appendChild(d);
+    }
+    d.textContent = 'JS error: ' + (e.message || '') + (e.filename ? (' @' + e.lineno + ':' + e.colno) : '');
+  } catch (_) {}
+});
+</script>
+
 <!-- Shown ONLY if JavaScript is not running (e.g. the file was opened inside
      WhatsApp / a file preview instead of a real browser). JS hides it on load. -->
 <div id="noJsWarn">
