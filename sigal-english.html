@@ -241,6 +241,13 @@
     min-height: 26px; font-size: 18px; font-weight: 700; text-align: center;
     color: var(--teal-dark); margin-bottom: 10px;
   }
+  #verTag { text-align: center; font-size: 14px; color: #9aa7ad; margin-top: 14px; }
+  #mapMsg {
+    font-size: 18px; font-weight: 700; text-align: center; color: var(--coral-dark);
+    background: #fdeee8; border-radius: 14px; margin-bottom: 14px; padding: 0;
+    max-height: 0; overflow: hidden; transition: max-height .25s, padding .25s;
+  }
+  #mapMsg.show { max-height: 120px; padding: 12px 14px; }
 
   /* "Open in Safari" notice — visible only when JS does NOT run */
   #noJsWarn {
@@ -291,6 +298,7 @@ window.addEventListener('error', function (e) {
     <button class="btn btn-ghost btn-block" id="soundTestBtn" style="margin-bottom:10px"><span class="ic">🔊</span>קודם נבדוק שיש קול</button>
     <div id="soundTestMsg"></div>
     <button class="btn btn-coral btn-block" id="startBtn"><span class="ic">🌟</span>בואי נתחיל</button>
+    <div id="verTag">גרסה: 30 שלבים · v30</div>
   </section>
 
   <!-- ============ LEVEL MAP ============ -->
@@ -301,6 +309,7 @@ window.addEventListener('error', function (e) {
       <button class="iconbtn" data-go="welcome" title="דף הבית">🏠</button>
     </div>
     <div class="intro-line">בחרי שלב כדי להתחיל. כל שלב נפתח אחרי שמסיימים את הקודם 🙂</div>
+    <div id="mapMsg"></div>
     <div class="levels" id="levelList"></div>
   </section>
 
@@ -1216,6 +1225,8 @@ document.getElementById('startBtn').addEventListener('click', () => {
 function renderMap() {
   const list = document.getElementById('levelList');
   list.innerHTML = '';
+  const mm = document.getElementById('mapMsg');
+  if (mm) { mm.classList.remove('show'); mm.textContent = ''; }
   LEVELS.forEach(lv => {
     const unlocked = lv.id <= progress.unlocked;
     const done = (progress.best[lv.id] || 0) >= PASS_RATIO * 100;
@@ -1234,7 +1245,11 @@ function renderMap() {
     } else {
       card.setAttribute('aria-disabled', 'true');
       card.addEventListener('click', () => {
-        // gentle nudge — the level is locked, so just shake the card
+        // Explain WHY it's locked and what to do — clearer than a silent shake.
+        const msg = document.getElementById('mapMsg');
+        msg.textContent = `שלב ${lv.id} עדיין נעול 🔒 — קודם צריך לעבור את המבחן של שלב ${lv.id - 1} 🙂`;
+        msg.classList.add('show');
+        // gentle nudge animation too
         card.animate(
           [{ transform: 'translateX(0)' }, { transform: 'translateX(-6px)' }, { transform: 'translateX(6px)' }, { transform: 'translateX(0)' }],
           { duration: 300 }
