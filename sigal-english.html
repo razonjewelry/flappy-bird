@@ -680,11 +680,18 @@ const STORE_KEY = 'sigal_progress';
    { unlocked: highest unlocked level id, best: { levelId: percent } }
    ============================================================ */
 function loadProgress() {
+  let p = { unlocked: 1, best: {} };
   try {
-    const p = JSON.parse(localStorage.getItem(STORE_KEY));
-    if (p && typeof p.unlocked === 'number') return { unlocked: p.unlocked, best: p.best || {} };
+    const saved = JSON.parse(localStorage.getItem(STORE_KEY));
+    if (saved && typeof saved.unlocked === 'number') p = { unlocked: saved.unlocked, best: saved.best || {} };
   } catch (e) {}
-  return { unlocked: 1, best: {} };
+  // Safety/migration: unlock through (highest already-passed level + 1).
+  // Fixes old saves from when there were only 5 levels, so newly added
+  // levels (e.g. level 6) open automatically for users who finished before.
+  let highestPassed = 0;
+  LEVELS.forEach(lv => { if ((p.best[lv.id] || 0) >= PASS_RATIO * 100) highestPassed = Math.max(highestPassed, lv.id); });
+  p.unlocked = Math.max(p.unlocked, Math.min(highestPassed + 1, LEVELS.length));
+  return p;
 }
 function saveProgress(p) {
   try { localStorage.setItem(STORE_KEY, JSON.stringify(p)); } catch (e) {}
