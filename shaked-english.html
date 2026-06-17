@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>אנגלית בשבילך, שקד ⭐</title>
+<style>
+  /* ============================================================
+     "English for Shaked" — calm, friendly Hebrew-guided app
+     Single file. No dependencies. dir=rtl, lang=he.
+     ============================================================ */
+
+  :root {
+    --teal:        #2a9d8f;
+    --teal-dark:   #218075;
+    --teal-soft:   #d7f0ec;
+    --cream:       #fbf7ef;
+    --ink:         #2f3e46;
+    --ink-soft:    #5b6b73;
+    --coral:       #ef8354;
+    --coral-dark:  #d96a3c;
+    --gold:        #e9b949;
+    --gold-dark:   #c99a2e;
+    --good:        #2a9d8f;
+    --soft-shadow: 0 6px 18px rgba(47,62,70,.10);
+    --radius:      22px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { min-height: 100%; }
+  body {
+    font-family: "Segoe UI", "Assistant", "Varela Round", Arial, sans-serif;
+    background: linear-gradient(170deg, #f6efe3 0%, var(--cream) 45%, #eef7f5 100%);
+    color: var(--ink);
+    font-size: 20px;
+    line-height: 1.45;
+    display: flex;
+    justify-content: center;
+    padding: 18px;
+    min-height: 100vh;
+  }
+
+  #app {
+    width: 100%;
+    max-width: 640px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ---------- Screens ---------- */
+  .screen { display: none; flex-direction: column; animation: fade .35s ease; }
+  .screen.active { display: flex; }
+  @keyframes fade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+  /* ---------- Top bar ---------- */
+  .topbar { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+  .topbar h2 { font-size: 28px; color: var(--teal-dark); flex: 1; text-align: center; font-weight: 800; }
+  .iconbtn {
+    width: 60px; height: 60px; border: none; border-radius: 18px; flex-shrink: 0;
+    background: #fff; box-shadow: var(--soft-shadow); font-size: 26px; cursor: pointer;
+    transition: transform .1s, box-shadow .1s; color: var(--ink);
+  }
+  .iconbtn:hover { transform: translateY(-2px); }
+  .iconbtn:active { transform: translateY(1px); }
+  .pill {
+    background: #fff; border-radius: 16px; padding: 12px 18px; font-weight: 800;
+    color: var(--teal-dark); box-shadow: var(--soft-shadow); font-size: 19px; white-space: nowrap;
+  }
+
+  /* ---------- Buttons (shared) ---------- */
+  .btn {
+    border: none; border-radius: var(--radius); cursor: pointer; font-weight: 800;
+    color: #fff; min-height: 64px; padding: 16px 26px; font-size: 23px;
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    box-shadow: 0 6px 0 rgba(0,0,0,.14); transition: transform .1s, box-shadow .1s;
+    font-family: inherit;
+  }
+  .btn:hover { filter: brightness(1.03); }
+  .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,.14); }
+  .btn:focus-visible { outline: 4px solid #ffce6e; outline-offset: 3px; }
+  .btn-teal  { background: linear-gradient(160deg, #34b3a3, var(--teal)); }
+  .btn-coral { background: linear-gradient(160deg, #f59264, var(--coral)); }
+  .btn-gold  { background: linear-gradient(160deg, #f1c45f, var(--gold)); color: #5a4410; }
+  .btn-ghost { background: #fff; color: var(--teal-dark); box-shadow: var(--soft-shadow); }
+  .btn-block { width: 100%; }
+  .btn .ic { font-size: 30px; }
+
+  /* ---------- Welcome ---------- */
+  #welcome { align-items: center; text-align: center; padding-top: 22px; }
+  .flower { font-size: 80px; animation: sway 4s ease-in-out infinite; }
+  @keyframes sway { 0%,100% { transform: rotate(-6deg); } 50% { transform: rotate(6deg); } }
+  .welcome-card {
+    background: #fff; border-radius: 30px; box-shadow: var(--soft-shadow);
+    padding: 34px 26px; margin: 18px 0 26px; width: 100%;
+  }
+  .welcome-card h1 { font-size: 38px; color: var(--teal-dark); margin-bottom: 6px; }
+  .welcome-card .name-en { font-size: 20px; color: var(--coral); letter-spacing: 3px; font-weight: 800; }
+  .welcome-card p { font-size: 22px; color: var(--ink-soft); margin-top: 16px; }
+  .audio-note { font-size: 17px; color: var(--ink-soft); margin-top: 14px; opacity: .9; }
+
+  /* ---------- Level map ---------- */
+  .intro-line { font-size: 21px; color: var(--ink-soft); text-align: center; margin-bottom: 18px; }
+  .levels { display: flex; flex-direction: column; gap: 16px; }
+  .level-card {
+    background: #fff; border-radius: var(--radius); box-shadow: var(--soft-shadow);
+    padding: 20px 20px; display: flex; align-items: center; gap: 18px; cursor: pointer;
+    border: 3px solid transparent; transition: transform .1s, border-color .15s; text-align: right;
+    width: 100%; font-family: inherit; color: var(--ink);
+  }
+  .level-card:hover { transform: translateY(-2px); }
+  .level-card:active { transform: translateY(1px); }
+  .level-card:focus-visible { outline: 4px solid #ffce6e; outline-offset: 2px; }
+  .level-card .num {
+    width: 64px; height: 64px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 30px; font-weight: 900; color: #fff; background: var(--teal);
+  }
+  .level-card .meta { flex: 1; min-width: 0; }
+  .level-card .meta .ttl { font-size: 23px; font-weight: 800; color: var(--ink); }
+  .level-card .meta .thm { font-size: 18px; color: var(--coral); font-weight: 700; }
+  .level-card .meta .dsc { font-size: 17px; color: var(--ink-soft); margin-top: 2px; }
+  .level-card .state { font-size: 30px; flex-shrink: 0; }
+  .level-card.locked { opacity: .62; cursor: not-allowed; }
+  .level-card.locked .num { background: #b9c4c9; }
+  .level-card.done { border-color: var(--teal); }
+  .level-card.done .num { background: var(--gold); color: #5a4410; }
+
+  /* ---------- Level menu ---------- */
+  .menu-head {
+    background: #fff; border-radius: var(--radius); box-shadow: var(--soft-shadow);
+    padding: 22px; text-align: center; margin-bottom: 20px;
+  }
+  .menu-head .thm { font-size: 22px; color: var(--coral); font-weight: 800; }
+  .menu-head .dsc { font-size: 20px; color: var(--ink-soft); margin-top: 8px; }
+  .menu-head .best { font-size: 17px; color: var(--teal-dark); margin-top: 12px; font-weight: 700; }
+  .menu-btns { display: flex; flex-direction: column; gap: 16px; }
+  .menu-sub { font-size: 16px; font-weight: 600; opacity: .92; }
+  .menu-btn-wrap { display: flex; flex-direction: column; gap: 6px; }
+  .menu-btn-wrap .hint { font-size: 16px; color: var(--ink-soft); text-align: center; }
+
+  /* ---------- Learning flashcards ---------- */
+  .stage { flex: 1; display: flex; flex-direction: column; align-items: center; }
+  .flashcard {
+    background: #fff; border-radius: 28px; box-shadow: var(--soft-shadow);
+    width: 100%; padding: 30px 24px; display: flex; flex-direction: column;
+    align-items: center; gap: 10px; animation: pop .3s ease; cursor: pointer;
+  }
+  @keyframes pop { from { transform: scale(.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .flashcard .emoji { font-size: 96px; line-height: 1; }
+  .flashcard .en { font-size: 42px; font-weight: 900; color: var(--teal-dark); text-align: center; }
+  .flashcard .say { font-size: 21px; color: var(--coral); font-weight: 700; }
+  .flashcard .he { font-size: 26px; color: var(--ink); font-weight: 700; }
+  .flashcard .tap { font-size: 16px; color: #9aa7ad; margin-top: 4px; }
+
+  .nav-row { display: flex; align-items: center; gap: 14px; margin-top: 22px; width: 100%; }
+  .nav-row .navbtn {
+    width: 70px; height: 70px; border: none; border-radius: 50%; flex-shrink: 0;
+    background: #fff; box-shadow: var(--soft-shadow); font-size: 32px; cursor: pointer;
+    color: var(--teal-dark); transition: transform .1s;
+  }
+  .nav-row .navbtn:active { transform: translateY(2px); }
+  .nav-row .navbtn:disabled { opacity: .4; cursor: default; }
+  .nav-row .speak {
+    flex: 1; min-height: 70px; border: none; border-radius: var(--radius);
+    background: linear-gradient(160deg, #34b3a3, var(--teal)); color: #fff;
+    font-size: 22px; font-weight: 800; cursor: pointer; box-shadow: 0 5px 0 var(--teal-dark);
+    display: flex; align-items: center; justify-content: center; gap: 10px; font-family: inherit;
+  }
+  .nav-row .speak:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--teal-dark); }
+  .learn-done-row { margin-top: 18px; }
+
+  /* ---------- Test ---------- */
+  .q-card {
+    background: #fff; border-radius: 28px; box-shadow: var(--soft-shadow);
+    padding: 26px 22px; text-align: center; margin-bottom: 18px; animation: pop .3s ease;
+  }
+  .q-prompt { font-size: 21px; color: var(--ink-soft); }
+  .q-target { font-size: 40px; font-weight: 900; color: var(--teal-dark); margin: 10px 0; }
+  .q-target.he-target { color: var(--coral); }
+  .q-emoji { font-size: 72px; }
+  .q-replay {
+    margin-top: 10px; border: none; border-radius: 16px; padding: 12px 22px; cursor: pointer;
+    background: var(--teal-soft); color: var(--teal-dark); font-weight: 800; font-size: 19px;
+    display: inline-flex; align-items: center; gap: 8px; font-family: inherit;
+  }
+  .q-replay:active { transform: translateY(2px); }
+  .options { display: flex; flex-direction: column; gap: 14px; }
+  .opt {
+    background: #fff; border: 3px solid #e7edef; border-radius: var(--radius);
+    box-shadow: var(--soft-shadow); padding: 18px 20px; cursor: pointer; font-size: 26px;
+    font-weight: 800; color: var(--ink); text-align: center; transition: transform .1s, border-color .15s, background .15s;
+    font-family: inherit; min-height: 64px; display: flex; align-items: center; justify-content: center; gap: 10px;
+  }
+  .opt .opt-emoji { font-size: 34px; }
+  .opt:hover { transform: translateY(-2px); }
+  .opt:active { transform: translateY(1px); }
+  .opt:focus-visible { outline: 4px solid #ffce6e; outline-offset: 2px; }
+  .opt.correct { border-color: var(--good); background: #e6f6f3; animation: rightpop .5s ease; }
+  .opt.wrong { border-color: #f0a08a; background: #fdeee8; animation: shake .4s ease; }
+  .opt.disabled { pointer-events: none; opacity: .96; }
+  @keyframes rightpop { 0%{transform:scale(1);} 40%{transform:scale(1.05);} 100%{transform:scale(1);} }
+  @keyframes shake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-8px);} 75%{transform:translateX(8px);} }
+
+  .feedback {
+    min-height: 40px; text-align: center; font-size: 22px; font-weight: 800;
+    margin-top: 16px; transition: opacity .2s;
+  }
+  .feedback.good { color: var(--teal-dark); }
+  .feedback.bad { color: var(--coral-dark); }
+  .test-prog { display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 16px; }
+  .dot { width: 14px; height: 14px; border-radius: 50%; background: #cdd9da; }
+  .dot.cur { background: var(--coral); transform: scale(1.25); }
+  .dot.ok { background: var(--teal); }
+
+  /* ---------- Result ---------- */
+  #result .stage { gap: 16px; text-align: center; padding-top: 14px; }
+  .result-emoji { font-size: 96px; animation: sway 3s ease-in-out infinite; }
+  #result .big { font-size: 34px; font-weight: 900; color: var(--teal-dark); }
+  #result .big .en { display: block; font-size: 26px; color: var(--coral); margin-top: 4px; }
+  #result .stars { font-size: 46px; letter-spacing: 6px; }
+  #result .score { font-size: 24px; font-weight: 800; color: var(--ink); }
+  #result .msg { font-size: 21px; color: var(--ink-soft); max-width: 460px; }
+  .result-btns { display: flex; flex-direction: column; gap: 14px; width: 100%; max-width: 420px; margin-top: 8px; }
+
+  /* ---------- Confetti & burst ---------- */
+  #confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 50; }
+  .conf { position: absolute; width: 12px; height: 16px; border-radius: 3px; top: -20px; animation: fall linear forwards; }
+  @keyframes fall { to { transform: translateY(110vh) rotate(720deg); opacity: .85; } }
+  .burst { position: fixed; font-size: 56px; z-index: 60; pointer-events: none; transform: translate(-50%, -50%); animation: burst .9s ease forwards; }
+  @keyframes burst { 0%{transform:translate(-50%,-50%) scale(.3); opacity:0;} 30%{opacity:1; transform:translate(-50%,-50%) scale(1.2);} 100%{transform:translate(-50%,-150%) scale(1); opacity:0;} }
+
+  @media (max-width: 480px) {
+    body { font-size: 19px; padding: 12px; }
+    .welcome-card h1 { font-size: 32px; }
+    .flashcard .en { font-size: 34px; }
+    .flashcard .emoji { font-size: 78px; }
+    .q-target { font-size: 32px; }
+  }
+
+  #soundTestMsg {
+    min-height: 26px; font-size: 18px; font-weight: 700; text-align: center;
+    color: var(--teal-dark); margin-bottom: 10px;
+  }
+
+  /* "Open in Safari" notice — visible only when JS does NOT run */
+  #noJsWarn {
+    background: #fff3cd; color: #7a5b00; border: 2px solid #e9b949;
+    border-radius: 16px; padding: 16px 18px; margin: 0 auto 16px;
+    max-width: 640px; font-size: 19px; font-weight: 700; line-height: 1.5; text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<!-- Diagnostic: surface any uncaught JS error on screen (helps debug on
+     phones we can't inspect). Runs first, in its own script, so it can also
+     catch parse errors in the main script below. -->
+<script>
+window.addEventListener('error', function (e) {
+  try {
+    var d = document.getElementById('errBox');
+    if (!d) {
+      d = document.createElement('div');
+      d.id = 'errBox';
+      d.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#b00020;color:#fff;padding:10px;font-size:13px;z-index:99999;direction:ltr;text-align:left;white-space:pre-wrap';
+      (document.body || document.documentElement).appendChild(d);
+    }
+    d.textContent = 'JS error: ' + (e.message || '') + (e.filename ? (' @' + e.lineno + ':' + e.colno) : '');
+  } catch (_) {}
+});
+</script>
+
+<!-- Shown ONLY if JavaScript is not running (e.g. the file was opened inside
+     WhatsApp / a file preview instead of a real browser). JS hides it on load. -->
+<div id="noJsWarn">
+  ⚠️ כדי שהמשחק יעבוד צריך לפתוח אותו בדפדפן <b>Safari</b>.<br>
+  לחצו על כפתור השיתוף ⬆️ ואז על <b>"פתח ב-Safari"</b> (Open in Safari).
+</div>
+
+<div id="app">
+
+  <!-- ============ WELCOME ============ -->
+  <section id="welcome" class="screen active">
+    <div class="flower">⭐</div>
+    <div class="welcome-card">
+      <h1>שלום שקד!</h1>
+      <div class="name-en">SHAKED</div>
+      <p>כמה כיף שאתה כאן 💛<br>בוא נלמד אנגלית ביחד — לאט, בנעימים, ובלי שום לחץ.</p>
+      <div class="audio-note">🔊 כדאי להגביר את הקול במכשיר — נשמע יחד איך אומרים את המילים.<br><span style="font-size:15px">באייפון: ודאו שמתג ההשתקה בצד <b>לא</b> דולק (אין כתום) 🔇</span></div>
+    </div>
+    <button class="btn btn-ghost btn-block" id="soundTestBtn" style="margin-bottom:10px"><span class="ic">🔊</span>קודם נבדוק שיש קול</button>
+    <div id="soundTestMsg"></div>
+    <button class="btn btn-coral btn-block" id="startBtn"><span class="ic">🌟</span>בוא נתחיל</button>
+  </section>
+
+  <!-- ============ LEVEL MAP ============ -->
+  <section id="map" class="screen">
+    <div class="topbar">
+      <span style="width:60px"></span>
+      <h2>המסע שלך באנגלית</h2>
+      <button class="iconbtn" data-go="welcome" title="דף הבית">🏠</button>
+    </div>
+    <div class="intro-line">בחר שלב כדי להתחיל. כל שלב נפתח אחרי שמסיימים את הקודם 🙂</div>
+    <div class="levels" id="levelList"></div>
+  </section>
+
+  <!-- ============ LEVEL MENU ============ -->
+  <section id="menu" class="screen">
+    <div class="topbar">
+      <button class="iconbtn" data-go="map" title="חזרה">↩️</button>
+      <h2 id="menuTitle"></h2>
+      <button class="iconbtn" data-go="welcome" title="דף הבית">🏠</button>
+    </div>
+    <div class="menu-head">
+      <div class="thm" id="menuTheme"></div>
+      <div class="dsc" id="menuDesc"></div>
+      <div class="best" id="menuBest"></div>
+    </div>
+    <div class="menu-btns">
+      <div class="menu-btn-wrap">
+        <button class="btn btn-teal btn-block" id="goLearn">
+          <span class="ic">📖</span><span>ללמוד<span class="menu-sub"> · כרטיסיות</span></span>
+        </button>
+        <div class="hint">קודם נכיר את המילים יחד, בלי מבחן 🌼</div>
+      </div>
+      <div class="menu-btn-wrap">
+        <button class="btn btn-coral btn-block" id="goTest">
+          <span class="ic">✏️</span><span>מבחן קטן<span class="menu-sub"> · נראה מה זכרת</span></span>
+        </button>
+        <div class="hint">כשתרגיש מוכן — עונים על כמה שאלות ופותחים את השלב הבא 💪</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ LEARNING ============ -->
+  <section id="learn" class="screen">
+    <div class="topbar">
+      <button class="iconbtn" data-go="menu" title="חזרה">↩️</button>
+      <h2>לומדים מילים</h2>
+      <span class="pill" id="learnProg"></span>
+    </div>
+    <div class="stage">
+      <div class="flashcard" id="flashcard"></div>
+      <div class="nav-row">
+        <button class="navbtn" id="prevBtn" title="הקודם">›</button>
+        <button class="speak" id="speakBtn">🔊 שמעו שוב</button>
+        <button class="navbtn" id="nextBtn" title="הבא">‹</button>
+      </div>
+      <div class="learn-done-row" style="width:100%">
+        <button class="btn btn-gold btn-block" id="learnToTest"><span class="ic">✏️</span>אני מוכן למבחן</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TEST ============ -->
+  <section id="test" class="screen">
+    <div class="topbar">
+      <button class="iconbtn" data-go="menu" title="חזרה">↩️</button>
+      <h2>מבחן קטן</h2>
+      <span class="pill" id="testScore"></span>
+    </div>
+    <div class="test-prog" id="testProg"></div>
+    <div class="q-card" id="qCard"></div>
+    <div class="options" id="options"></div>
+    <div class="feedback" id="feedback"></div>
+  </section>
+
+  <!-- ============ RESULT ============ -->
+  <section id="result" class="screen">
+    <div class="stage">
+      <div class="result-emoji" id="resultEmoji">🌟</div>
+      <div class="big" id="resultBig"></div>
+      <div class="stars" id="resultStars"></div>
+      <div class="score" id="resultScore"></div>
+      <div class="msg" id="resultMsg"></div>
+      <div class="result-btns" id="resultBtns"></div>
+    </div>
+  </section>
+
+</div>
+<div id="confetti"></div>
+
+<script>
+/* ============================================================
+   DATA — 5 progressive levels. Easy to edit / extend.
+   item: { en, he, emoji, say? }   say = what the voice reads (defaults to en)
+   ============================================================ */
+const LEVELS = [
+  {
+    id: 1,
+    title: 'שלב 1 · מילים ראשונות',
+    theme: 'משפחה וברכות · Family & Greetings',
+    desc: 'המילים הכי בסיסיות וחשובות — אנשים שאוהבים וברכות יומיומיות.',
+    mode: 'word',
+    items: [
+      { en: 'Hello',     he: 'שלום / היי',     emoji: '👋' },
+      { en: 'Mother',    he: 'אמא',            emoji: '👩' },
+      { en: 'Father',    he: 'אבא',            emoji: '👨' },
+      { en: 'Family',    he: 'משפחה',          emoji: '👨‍👩‍👧' },
+      { en: 'Yes',       he: 'כן',             emoji: '✅' },
+      { en: 'No',        he: 'לא',             emoji: '❌' },
+      { en: 'Thank you', he: 'תודה',           emoji: '🙏' },
+      { en: 'Water',     he: 'מים',            emoji: '💧' },
+      { en: 'Apple',     he: 'תפוח',           emoji: '🍎' },
+      { en: 'Good',      he: 'טוב',            emoji: '👍' },
+    ]
+  },
+  {
+    id: 2,
+    title: 'שלב 2 · צמדי מילים',
+    theme: 'תיאורים · Adjectives & Pairs',
+    desc: 'עכשיו מחברים שתי מילים יחד — גודל, צבע ומצב.',
+    mode: 'word',
+    items: [
+      { en: 'Big house',     he: 'בית גדול',     emoji: '🏠' },
+      { en: 'Small dog',     he: 'כלב קטן',      emoji: '🐕' },
+      { en: 'Red apple',     he: 'תפוח אדום',    emoji: '🍎' },
+      { en: 'Hot water',     he: 'מים חמים',     emoji: '🔥' },
+      { en: 'Cold water',    he: 'מים קרים',     emoji: '🧊' },
+      { en: 'Good morning',  he: 'בוקר טוב',     emoji: '🌅' },
+      { en: 'Good night',    he: 'לילה טוב',     emoji: '🌙' },
+      { en: 'Happy day',     he: 'יום שמח',      emoji: '😊' },
+      { en: 'Old book',      he: 'ספר ישן',      emoji: '📖' },
+      { en: 'New car',       he: 'מכונית חדשה',  emoji: '🚗' },
+    ]
+  },
+  {
+    id: 3,
+    title: 'שלב 3 · משפטים קצרים',
+    theme: 'משפטים · Short Sentences',
+    desc: 'משפטים שלמים וקצרים שאפשר להגיד כל יום.',
+    mode: 'sentence',
+    items: [
+      { en: 'I love you',        he: 'אני אוהב אותך',       emoji: '❤️' },
+      { en: 'This is a book',    he: 'זה ספר',              emoji: '📕' },
+      { en: 'I am happy',        he: 'אני שמח',             emoji: '😄' },
+      { en: 'I am tired',        he: 'אני עייף',            emoji: '😴' },
+      { en: 'I am hungry',       he: 'אני רעב',             emoji: '🍽️' },
+      { en: 'What is your name', he: 'מה השם שלך?',         emoji: '🙋' },
+      { en: 'My name is Shaked', he: 'קוראים לי שקד',       emoji: '⭐' },
+      { en: 'Where is the door', he: 'איפה הדלת?',          emoji: '🚪' },
+    ]
+  },
+  {
+    id: 4,
+    title: 'שלב 4 · שיחה',
+    theme: 'אוצר מילים ושיחה · Conversation',
+    desc: 'ביטויים מתקדמים יותר לשיחה אמיתית עם אנשים.',
+    mode: 'sentence',
+    items: [
+      { en: 'How are you?',        he: 'מה שלומך?',            emoji: '🤝' },
+      { en: 'I am fine, thank you',he: 'אני בסדר, תודה',       emoji: '😊' },
+      { en: 'Nice to meet you',    he: 'נעים להכיר',           emoji: '👋' },
+      { en: 'Excuse me',           he: 'סליחה / תסלח לי',      emoji: '🙇' },
+      { en: 'How much is it?',     he: 'כמה זה עולה?',         emoji: '💰' },
+      { en: 'I would like coffee', he: 'אני רוצה קפה',         emoji: '☕' },
+      { en: 'See you later',       he: 'נתראה אחר כך',         emoji: '👋' },
+      { en: 'Have a nice day',     he: 'שיהיה לך יום נעים',    emoji: '🌞' },
+    ]
+  },
+  {
+    id: 5,
+    title: 'שלב 5 · חזרה ודיאלוג',
+    theme: 'חזרה ושיחות · Review & Dialogues',
+    desc: 'חזרה על הכל ושיחה קטנה שלמה — אתה כבר יודע המון!',
+    mode: 'sentence',
+    items: [
+      { en: 'Hello, how are you?',      he: 'שלום, מה שלומך?',       emoji: '👋' },
+      { en: 'I am fine, thank you',     he: 'אני בסדר, תודה',        emoji: '😊' },
+      { en: 'What would you like?',     he: 'מה תרצה?',              emoji: '🛍️' },
+      { en: 'I would like an apple',    he: 'אני רוצה תפוח',         emoji: '🍎' },
+      { en: 'How much is it?',          he: 'כמה זה עולה?',          emoji: '💰' },
+      { en: 'Thank you very much',      he: 'תודה רבה',              emoji: '🙏' },
+      { en: 'Have a nice day',          he: 'שיהיה לך יום נעים',     emoji: '🌞' },
+      { en: 'Goodbye, see you soon',    he: 'להתראות, נתראה בקרוב',  emoji: '👋' },
+    ]
+  },
+  {
+    id: 6,
+    title: 'שלב 6 · אוצר מילים יומיומי',
+    theme: 'מילים לכל יום · Everyday Vocabulary',
+    desc: 'הרבה מילים חדשות ושימושיות — אוכל, בית, גוף ובגדים. שלב גדול!',
+    mode: 'word',
+    items: [
+      { en: 'Bread',     he: 'לחם',       emoji: '🍞' },
+      { en: 'Milk',      he: 'חלב',       emoji: '🥛' },
+      { en: 'Egg',       he: 'ביצה',      emoji: '🥚' },
+      { en: 'Cheese',    he: 'גבינה',     emoji: '🧀' },
+      { en: 'Rice',      he: 'אורז',      emoji: '🍚' },
+      { en: 'Chicken',   he: 'עוף',       emoji: '🍗' },
+      { en: 'Soup',      he: 'מרק',       emoji: '🍲' },
+      { en: 'Salad',     he: 'סלט',       emoji: '🥗' },
+      { en: 'Coffee',    he: 'קפה',       emoji: '☕' },
+      { en: 'Tea',       he: 'תה',        emoji: '🍵' },
+      { en: 'Bed',       he: 'מיטה',      emoji: '🛏️' },
+      { en: 'Door',      he: 'דלת',       emoji: '🚪' },
+      { en: 'Window',    he: 'חלון',      emoji: '🪟' },
+      { en: 'Chair',     he: 'כיסא',      emoji: '🪑' },
+      { en: 'Key',       he: 'מפתח',      emoji: '🔑' },
+      { en: 'Lamp',      he: 'מנורה',     emoji: '💡' },
+      { en: 'Clock',     he: 'שעון',      emoji: '🕐' },
+      { en: 'Phone',     he: 'טלפון',     emoji: '📱' },
+      { en: 'Book',      he: 'ספר',       emoji: '📖' },
+      { en: 'Bath',      he: 'אמבטיה',    emoji: '🛁' },
+      { en: 'Hand',      he: 'יד',        emoji: '✋' },
+      { en: 'Eye',       he: 'עין',       emoji: '👁️' },
+      { en: 'Ear',       he: 'אוזן',      emoji: '👂' },
+      { en: 'Foot',      he: 'רגל',       emoji: '🦶' },
+      { en: 'Hair',      he: 'שיער',      emoji: '💇' },
+      { en: 'Shirt',     he: 'חולצה',     emoji: '👕' },
+      { en: 'Shoes',     he: 'נעליים',    emoji: '👟' },
+      { en: 'Hat',       he: 'כובע',      emoji: '🎩' },
+      { en: 'Dress',     he: 'שמלה',      emoji: '👗' },
+      { en: 'Coat',      he: 'מעיל',      emoji: '🧥' },
+    ]
+  },
+  {
+    id: 7,
+    title: 'שלב 7 · פעלים ופעולות',
+    theme: 'מילות פעולה · Verbs & Actions',
+    desc: 'הפעלים החשובים — מה שעושים כל יום. עכשיו נלמד לפעול באנגלית!',
+    mode: 'word',
+    items: [
+      { en: 'Eat',     he: 'לאכול',     emoji: '🍽️' },
+      { en: 'Drink',   he: 'לשתות',     emoji: '🥤' },
+      { en: 'Sleep',   he: 'לישון',     emoji: '😴' },
+      { en: 'Walk',    he: 'ללכת',      emoji: '🚶' },
+      { en: 'Run',     he: 'לרוץ',      emoji: '🏃' },
+      { en: 'Sit',     he: 'לשבת',      emoji: '🪑' },
+      { en: 'Stand',   he: 'לעמוד',     emoji: '🧍' },
+      { en: 'Read',    he: 'לקרוא',     emoji: '📖' },
+      { en: 'Write',   he: 'לכתוב',     emoji: '✍️' },
+      { en: 'Speak',   he: 'לדבר',      emoji: '🗣️' },
+      { en: 'Listen',  he: 'להקשיב',    emoji: '👂' },
+      { en: 'Look',    he: 'להסתכל',    emoji: '👀' },
+      { en: 'Open',    he: 'לפתוח',     emoji: '🔓' },
+      { en: 'Close',   he: 'לסגור',     emoji: '🔒' },
+      { en: 'Give',    he: 'לתת',       emoji: '🎁' },
+      { en: 'Take',    he: 'לקחת',      emoji: '🤲' },
+      { en: 'Buy',     he: 'לקנות',     emoji: '🛒' },
+      { en: 'Cook',    he: 'לבשל',      emoji: '🍳' },
+      { en: 'Wash',    he: 'לרחוץ',     emoji: '🧼' },
+      { en: 'Work',    he: 'לעבוד',     emoji: '💼' },
+      { en: 'Play',    he: 'לשחק',      emoji: '🎮' },
+      { en: 'Sing',    he: 'לשיר',      emoji: '🎤' },
+      { en: 'Dance',   he: 'לרקוד',     emoji: '💃' },
+      { en: 'Drive',   he: 'לנהוג',     emoji: '🚗' },
+      { en: 'Help',    he: 'לעזור',     emoji: '🤝' },
+      { en: 'Love',    he: 'לאהוב',     emoji: '❤️' },
+      { en: 'Smile',   he: 'לחייך',     emoji: '😊' },
+      { en: 'Cry',     he: 'לבכות',     emoji: '😢' },
+      { en: 'Wait',    he: 'לחכות',     emoji: '⏳' },
+      { en: 'Come',    he: 'לבוא',      emoji: '🙋' },
+    ]
+  },
+  {
+    id: 8,
+    title: 'שלב 8 · זמן, מקומות ושאלות',
+    theme: 'זמן ומקום · Time, Places & Questions',
+    desc: 'מילים לזמן, למקומות ולשאלות — כדי להבין ולשאול כל דבר.',
+    mode: 'word',
+    items: [
+      { en: 'Today',     he: 'היום',         emoji: '📅' },
+      { en: 'Tomorrow',  he: 'מחר',          emoji: '➡️' },
+      { en: 'Yesterday', he: 'אתמול',        emoji: '⬅️' },
+      { en: 'Morning',   he: 'בוקר',         emoji: '🌅' },
+      { en: 'Night',     he: 'לילה',         emoji: '🌙' },
+      { en: 'Day',       he: 'יום',          emoji: '☀️' },
+      { en: 'Week',      he: 'שבוע',         emoji: '🗓️' },
+      { en: 'Hour',      he: 'שעה',          emoji: '⏰' },
+      { en: 'Minute',    he: 'דקה',          emoji: '⏱️' },
+      { en: 'Now',       he: 'עכשיו',        emoji: '⌛' },
+      { en: 'Home',      he: 'בית',          emoji: '🏠' },
+      { en: 'School',    he: 'בית ספר',      emoji: '🏫' },
+      { en: 'Hospital',  he: 'בית חולים',    emoji: '🏥' },
+      { en: 'Store',     he: 'חנות',         emoji: '🏪' },
+      { en: 'Bank',      he: 'בנק',          emoji: '🏦' },
+      { en: 'Park',      he: 'פארק',         emoji: '🏞️' },
+      { en: 'Street',    he: 'רחוב',         emoji: '🛣️' },
+      { en: 'City',      he: 'עיר',          emoji: '🏙️' },
+      { en: 'Beach',     he: 'חוף',          emoji: '🏖️' },
+      { en: 'Airport',   he: 'שדה תעופה',    emoji: '✈️' },
+      { en: 'What',      he: 'מה',           emoji: '❓' },
+      { en: 'Where',     he: 'איפה',         emoji: '📍' },
+      { en: 'When',      he: 'מתי',          emoji: '🕐' },
+      { en: 'Who',       he: 'מי',           emoji: '🙋' },
+      { en: 'Why',       he: 'למה',          emoji: '🤔' },
+      { en: 'How',       he: 'איך',          emoji: '💭' },
+      { en: 'Here',      he: 'כאן',          emoji: '📌' },
+      { en: 'There',     he: 'שם',           emoji: '👉' },
+      { en: 'Money',     he: 'כסף',          emoji: '💰' },
+      { en: 'People',    he: 'אנשים',        emoji: '👥' },
+    ]
+  },
+  {
+    id: 9,
+    title: 'שלב 9 · משפטים ארוכים',
+    theme: 'משפטים שלמים · Longer Sentences',
+    desc: 'משפטים ארוכים ושלמים מהחיים. שלב מאתגר — אתה מוכן לזה!',
+    mode: 'sentence',
+    items: [
+      { en: 'I am going home',          he: 'אני הולך הביתה',           emoji: '🏠' },
+      { en: 'I want to drink water',    he: 'אני רוצה לשתות מים',       emoji: '💧' },
+      { en: 'She is my friend',         he: 'היא החברה שלי',            emoji: '👭' },
+      { en: 'We are eating dinner',     he: 'אנחנו אוכלים ארוחת ערב',   emoji: '🍽️' },
+      { en: 'He is reading a book',     he: 'הוא קורא ספר',             emoji: '📖' },
+      { en: 'The weather is nice today',he: 'מזג האוויר נעים היום',     emoji: '☀️' },
+      { en: 'I am very happy today',    he: 'אני מאוד שמח היום',        emoji: '😄' },
+      { en: 'Please help me',           he: 'בבקשה תעזור לי',           emoji: '🙏' },
+      { en: 'I do not understand',      he: 'אני לא מבין',              emoji: '🤔' },
+      { en: 'Can you help me?',         he: 'אתה יכול לעזור לי?',       emoji: '🆘' },
+      { en: 'I am learning English',    he: 'אני לומד אנגלית',          emoji: '📚' },
+      { en: 'Where is the bathroom?',   he: 'איפה השירותים?',           emoji: '🚻' },
+      { en: 'How much does it cost?',   he: 'כמה זה עולה?',             emoji: '💰' },
+      { en: 'I would like some coffee', he: 'אני רוצה קצת קפה',         emoji: '☕' },
+      { en: 'What time is it?',         he: 'מה השעה?',                 emoji: '🕐' },
+      { en: 'I am going to the store',  he: 'אני הולך לחנות',           emoji: '🏪' },
+      { en: 'My family is very big',    he: 'המשפחה שלי גדולה מאוד',    emoji: '👨‍👩‍👧‍👦' },
+      { en: 'I love my children',       he: 'אני אוהב את הילדים שלי',   emoji: '👶' },
+      { en: 'The food is delicious',    he: 'האוכל טעים',               emoji: '😋' },
+      { en: 'I am a little tired',      he: 'אני קצת עייף',             emoji: '😴' },
+      { en: 'See you tomorrow',         he: 'נתראה מחר',                emoji: '👋' },
+      { en: 'Have a good trip',         he: 'נסיעה טובה',               emoji: '✈️' },
+      { en: 'I will call you later',    he: 'אני אתקשר אליך אחר כך',    emoji: '📞' },
+      { en: 'Do you speak English?',    he: 'אתה מדבר אנגלית?',         emoji: '🗣️' },
+      { en: 'I live in Israel',         he: 'אני גר בישראל',            emoji: '🇮🇱' },
+      { en: 'It is very hot today',     he: 'חם מאוד היום',             emoji: '🔥' },
+      { en: 'I need to go now',         he: 'אני צריך ללכת עכשיו',      emoji: '🚶' },
+      { en: 'Thank you for your help',  he: 'תודה על העזרה',            emoji: '🙏' },
+      { en: 'I am proud of you',        he: 'אני גאה בך',               emoji: '🌟' },
+      { en: 'Everything is okay',       he: 'הכל בסדר',                 emoji: '👍' },
+    ]
+  },
+  {
+    id: 10,
+    title: 'שלב 10 · שיחות אמיתיות',
+    theme: 'שיחה חופשית · Real Conversations',
+    desc: 'השלב האחרון! שיחות אמיתיות מהחיים. כשתסיים — אתה דובר אנגלית! 🏆',
+    mode: 'sentence',
+    items: [
+      { en: 'Hello, how can I help you?',       he: 'שלום, איך אפשר לעזור?',       emoji: '🤝' },
+      { en: 'I am looking for a gift',          he: 'אני מחפש מתנה',               emoji: '🎁' },
+      { en: 'Can I pay with a card?',           he: 'אפשר לשלם בכרטיס?',           emoji: '💳' },
+      { en: 'Of course, no problem',            he: 'בטח, אין בעיה',               emoji: '👍' },
+      { en: 'Could you say that again?',        he: 'אפשר להגיד שוב?',             emoji: '🔁' },
+      { en: 'I am sorry, I am late',            he: 'אני מצטער, אני מאחר',         emoji: '⏰' },
+      { en: 'Nice to see you again',            he: 'נחמד לראות אותך שוב',         emoji: '😊' },
+      { en: 'How was your day?',                he: 'איך היה היום שלך?',           emoji: '🌤️' },
+      { en: 'It was a wonderful day',           he: 'היה יום נפלא',                emoji: '🌟' },
+      { en: 'What do you recommend?',           he: 'מה אתה ממליץ?',               emoji: '🤔' },
+      { en: 'I will take this one',             he: 'אני אקח את זה',               emoji: '✅' },
+      { en: 'Where can I find it?',             he: 'איפה אפשר למצוא את זה?',      emoji: '🔎' },
+      { en: 'Turn right at the corner',         he: 'תפנה ימינה בפינה',            emoji: '➡️' },
+      { en: 'It is on the second floor',        he: 'זה בקומה השנייה',             emoji: '🏢' },
+      { en: 'Enjoy your meal',                  he: 'בתיאבון',                     emoji: '🍽️' },
+      { en: 'The same to you',                  he: 'גם לך',                       emoji: '🙂' },
+      { en: 'May I ask a question?',            he: 'אפשר לשאול שאלה?',            emoji: '❓' },
+      { en: 'I think you are right',            he: 'אני חושב שאתה צודק',          emoji: '💭' },
+      { en: 'Let me think about it',            he: 'תן לי לחשוב על זה',           emoji: '🤔' },
+      { en: 'That sounds great',                he: 'זה נשמע נהדר',                emoji: '🎉' },
+      { en: 'I am happy to help',               he: 'אני שמח לעזור',               emoji: '🤲' },
+      { en: 'Take care of yourself',            he: 'תשמור על עצמך',              emoji: '💛' },
+      { en: 'Call me if you need anything',     he: 'תתקשר אם אתה צריך משהו',      emoji: '📞' },
+      { en: 'I had a great time',               he: 'נהניתי מאוד',                 emoji: '😄' },
+      { en: 'Welcome to our home',              he: 'ברוך הבא לביתנו',             emoji: '🏡' },
+      { en: 'Make yourself at home',            he: 'תרגיש בבית',                  emoji: '🛋️' },
+      { en: 'Would you like something to drink?',he: 'תרצה משהו לשתות?',           emoji: '🥤' },
+      { en: 'It was nice talking to you',       he: 'היה נעים לדבר איתך',          emoji: '💬' },
+      { en: 'I hope to see you soon',           he: 'אני מקווה לראות אותך בקרוב',  emoji: '🙏' },
+      { en: 'Goodbye and good luck',            he: 'להתראות ובהצלחה',            emoji: '🍀' },
+    ]
+  }
+];
+
+const PASS_RATIO = 0.6;          // gentle 60% to unlock next level
+const STORE_KEY = 'shaked_progress';
+
+/* ============================================================
+   PROGRESS (localStorage)
+   { unlocked: highest unlocked level id, best: { levelId: percent } }
+   ============================================================ */
+function loadProgress() {
+  let p = { unlocked: 1, best: {} };
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORE_KEY));
+    if (saved && typeof saved.unlocked === 'number') p = { unlocked: saved.unlocked, best: saved.best || {} };
+  } catch (e) {}
+  // Safety/migration: unlock through (highest already-passed level + 1).
+  // Fixes old saves from when there were only 5 levels, so newly added
+  // levels (e.g. level 6) open automatically for users who finished before.
+  let highestPassed = 0;
+  LEVELS.forEach(lv => { if ((p.best[lv.id] || 0) >= PASS_RATIO * 100) highestPassed = Math.max(highestPassed, lv.id); });
+  p.unlocked = Math.max(p.unlocked, Math.min(highestPassed + 1, LEVELS.length));
+  return p;
+}
+function saveProgress(p) {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(p)); } catch (e) {}
+}
+let progress = loadProgress();
+
+/* ============================================================
+   SPEECH — slow & clear English
+   ============================================================ */
+let enVoice = null;
+function pickVoice() {
+  const voices = window.speechSynthesis ? speechSynthesis.getVoices() : [];
+  const en = voices.filter(v => /^en/i.test(v.lang));
+  // Prefer LOCAL (offline) voices. Edge lists "online/natural" voices that
+  // can stay silent — local Microsoft/Google voices work reliably.
+  enVoice = en.find(v => v.localService && /en[-_]US/i.test(v.lang))
+         || en.find(v => v.localService && /en[-_]GB/i.test(v.lang))
+         || en.find(v => v.localService)
+         || en.find(v => /en[-_]US/i.test(v.lang))
+         || en.find(v => /en[-_]GB/i.test(v.lang))
+         || en[0] || null;
+}
+if (window.speechSynthesis) {
+  pickVoice();
+  speechSynthesis.onvoiceschanged = pickVoice;
+}
+function speak(text, opts) {
+  if (!window.speechSynthesis) return;
+  opts = opts || {};
+  try {
+    if (!enVoice) pickVoice();                       // iOS often loads voices late
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'en-US';
+    if (enVoice) u.voice = enVoice;
+    u.rate = opts.rate != null ? opts.rate : 0.7;    // slow & clear for a beginner
+    u.pitch = opts.pitch != null ? opts.pitch : 1.0;
+    speechSynthesis.speak(u);
+    speechSynthesis.resume();                         // iOS sometimes leaves the queue paused
+  } catch (e) {}
+}
+function stopSpeak() { if (window.speechSynthesis) speechSynthesis.cancel(); }
+
+/* ============================================================
+   SOUND — success / gentle-retry chime (Web Audio)
+   ============================================================ */
+let actx = null;
+function ding(ok) {
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+    const notes = ok ? [523.25, 659.25, 783.99] : [392.0, 329.63];
+    notes.forEach((f, i) => {
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = 'sine'; o.frequency.value = f;
+      o.connect(g); g.connect(actx.destination);
+      const t = actx.currentTime + i * 0.11;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.25, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.28);
+      o.start(t); o.stop(t + 0.3);
+    });
+  } catch (e) {}
+}
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+function shuffle(a) {
+  a = a.slice();
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+function showScreen(id) {
+  stopSpeak();
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function levelById(id) { return LEVELS.find(l => l.id === id); }
+
+/* ============================================================
+   CONFETTI & burst
+   ============================================================ */
+const CONF_COLORS = ['#ef8354', '#2a9d8f', '#e9b949', '#5aa9e6', '#e07a9b', '#7dcfb6'];
+function confetti(count) {
+  const box = document.getElementById('confetti');
+  count = count || 30;
+  for (let i = 0; i < count; i++) {
+    const c = document.createElement('div');
+    c.className = 'conf';
+    c.style.left = Math.random() * 100 + 'vw';
+    c.style.background = CONF_COLORS[Math.floor(Math.random() * CONF_COLORS.length)];
+    c.style.animationDuration = (1.6 + Math.random() * 1.3) + 's';
+    c.style.transform = 'rotate(' + (Math.random() * 360) + 'deg)';
+    box.appendChild(c);
+    setTimeout(() => c.remove(), 3200);
+  }
+}
+function burstAt(el, symbol) {
+  const r = el.getBoundingClientRect();
+  const s = document.createElement('div');
+  s.className = 'burst';
+  s.textContent = symbol || '🌟';
+  s.style.left = (r.left + r.width / 2) + 'px';
+  s.style.top = (r.top + r.height / 2) + 'px';
+  document.body.appendChild(s);
+  setTimeout(() => s.remove(), 900);
+}
+
+/* ============================================================
+   NAV wiring
+   ============================================================ */
+document.querySelectorAll('[data-go]').forEach(b =>
+  b.addEventListener('click', () => {
+    if (b.dataset.go === 'map') renderMap();
+    showScreen(b.dataset.go);
+  })
+);
+
+/* ============================================================
+   WELCOME
+   ============================================================ */
+let greeted = false;
+function unlockAudio() {
+  // create/resume audio context on a user gesture
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+  } catch (e) {}
+}
+// Unlock audio on the very first touch/click anywhere — robust across phones.
+function primeAudioOnce() {
+  unlockAudio();
+  try { if (window.speechSynthesis) pickVoice(); } catch (e) {}
+}
+document.addEventListener('pointerdown', primeAudioOnce, { once: true });
+document.addEventListener('touchend', primeAudioOnce, { once: true });
+
+// Sound check: lets the user confirm sound works before starting.
+document.getElementById('soundTestBtn').addEventListener('click', () => {
+  unlockAudio();
+  ding(true);
+  speak('Hello Shaked', { rate: 0.8 });
+  const msg = document.getElementById('soundTestMsg');
+  msg.textContent = '🎵 שמעתם צליל ומילה באנגלית? מצוין! אם לא — העלו את ווליום המדיה ונסו שוב';
+});
+
+document.getElementById('startBtn').addEventListener('click', () => {
+  unlockAudio();
+  if (!greeted) {
+    greeted = true;
+    speak("Hello Shaked! Let's learn English together.", { rate: 0.78 });
+  }
+  renderMap();
+  showScreen('map');
+});
+
+/* ============================================================
+   LEVEL MAP
+   ============================================================ */
+function renderMap() {
+  const list = document.getElementById('levelList');
+  list.innerHTML = '';
+  LEVELS.forEach(lv => {
+    const unlocked = lv.id <= progress.unlocked;
+    const done = (progress.best[lv.id] || 0) >= PASS_RATIO * 100;
+    const card = document.createElement('button');
+    card.className = 'level-card' + (unlocked ? '' : ' locked') + (done ? ' done' : '');
+    card.innerHTML =
+      `<div class="num">${lv.id}</div>
+       <div class="meta">
+         <div class="ttl">${lv.title}</div>
+         <div class="thm">${lv.theme}</div>
+         <div class="dsc">${lv.desc}</div>
+       </div>
+       <div class="state">${!unlocked ? '🔒' : (done ? '✓' : '➜')}</div>`;
+    if (unlocked) {
+      card.addEventListener('click', () => openLevel(lv.id));
+    } else {
+      card.setAttribute('aria-disabled', 'true');
+      card.addEventListener('click', () => {
+        // gentle nudge — the level is locked, so just shake the card
+        card.animate(
+          [{ transform: 'translateX(0)' }, { transform: 'translateX(-6px)' }, { transform: 'translateX(6px)' }, { transform: 'translateX(0)' }],
+          { duration: 300 }
+        );
+      });
+    }
+    list.appendChild(card);
+  });
+}
+
+/* ============================================================
+   LEVEL MENU
+   ============================================================ */
+let currentLevel = null;
+function openLevel(id) {
+  currentLevel = levelById(id);
+  document.getElementById('menuTitle').textContent = currentLevel.title;
+  document.getElementById('menuTheme').textContent = currentLevel.theme;
+  document.getElementById('menuDesc').textContent = currentLevel.desc;
+  const best = progress.best[id] || 0;
+  document.getElementById('menuBest').textContent =
+    best > 0 ? `הציון הכי טוב שלך בשלב הזה: ${best}% 🌟` : 'עוד לא עשית את המבחן בשלב הזה — אין שום לחץ 🌼';
+  showScreen('menu');
+}
+document.getElementById('goLearn').addEventListener('click', startLearn);
+document.getElementById('goTest').addEventListener('click', startTest);
+
+/* ============================================================
+   LEARNING MODE
+   ============================================================ */
+let learnIdx = 0;
+function startLearn() {
+  learnIdx = 0;
+  renderFlashcard();
+  showScreen('learn');
+  // speak after the screen settles
+  setTimeout(() => speak(sayOf(currentLevel.items[0])), 300);
+}
+function sayOf(item) { return item.say || item.en; }
+function renderFlashcard() {
+  const items = currentLevel.items;
+  const item = items[learnIdx];
+  document.getElementById('flashcard').innerHTML =
+    `<div class="emoji">${item.emoji}</div>
+     <div class="en">${item.en}</div>
+     <div class="he">${item.he}</div>
+     <div class="tap">👆 לחץ על הכרטיס כדי לשמוע שוב</div>`;
+  document.getElementById('learnProg').textContent = (learnIdx + 1) + ' / ' + items.length;
+  document.getElementById('prevBtn').disabled = learnIdx === 0;
+  document.getElementById('nextBtn').disabled = learnIdx === items.length - 1;
+}
+document.getElementById('flashcard').addEventListener('click', () => speak(sayOf(currentLevel.items[learnIdx])));
+document.getElementById('speakBtn').addEventListener('click', () => speak(sayOf(currentLevel.items[learnIdx])));
+document.getElementById('nextBtn').addEventListener('click', () => {
+  if (learnIdx < currentLevel.items.length - 1) { learnIdx++; renderFlashcard(); speak(sayOf(currentLevel.items[learnIdx])); }
+});
+document.getElementById('prevBtn').addEventListener('click', () => {
+  if (learnIdx > 0) { learnIdx--; renderFlashcard(); speak(sayOf(currentLevel.items[learnIdx])); }
+});
+document.getElementById('learnToTest').addEventListener('click', startTest);
+
+/* ============================================================
+   TEST MODE
+   For 'word' levels: hear English -> pick the Hebrew meaning.
+   For 'sentence' levels: read Hebrew -> pick the English phrase.
+   ============================================================ */
+const PRAISE = ['כל הכבוד שקד! 🎉', 'מצוין! 🌟', 'יפהפה! 💛', 'אתה אלוף! 👏', 'נכון מאוד! ✨'];
+const ENCOURAGE = ['לא נורא שקד, ננסה שוב 💛', 'כמעט! בוא ננסה עוד פעם 🌼', 'זה בסדר גמור, אתה לומד ✨'];
+
+let testQueue = [], testIdx = 0, testCorrect = 0, testLocked = false, curQuestion = null;
+
+/* Difficulty rises with the level:
+   - more questions per test
+   - more answer options to choose from (harder to guess) */
+function questionCount(lv) {
+  let want;
+  if (lv.id <= 3)      want = 6;
+  else if (lv.id <= 5) want = 8;
+  else if (lv.id <= 8) want = 10;
+  else                 want = 12;   // advanced 30-item levels (9-10)
+  return Math.min(want, lv.items.length);
+}
+function optionCount(lv) {
+  return lv.id <= 2 ? 3 : 4;        // 4 options from level 3 onward
+}
+
+function startTest() {
+  const items = currentLevel.items;
+  testQueue = shuffle(items).slice(0, questionCount(currentLevel));
+  testIdx = 0; testCorrect = 0;
+  showScreen('test');
+  renderQuestion();
+}
+function updateTestHeader() {
+  document.getElementById('testScore').textContent = `${testCorrect} / ${testQueue.length}`;
+  const prog = document.getElementById('testProg');
+  prog.innerHTML = '';
+  testQueue.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i < testIdx ? ' ok' : (i === testIdx ? ' cur' : ''));
+    prog.appendChild(d);
+  });
+}
+function renderQuestion() {
+  if (testIdx >= testQueue.length) return endTest();
+  testLocked = false;
+  updateTestHeader();
+  document.getElementById('feedback').textContent = '';
+  document.getElementById('feedback').className = 'feedback';
+
+  const item = testQueue[testIdx];
+  curQuestion = item;
+  const items = currentLevel.items;
+  const isSentence = currentLevel.mode === 'sentence';
+
+  // Build the question card
+  const qCard = document.getElementById('qCard');
+  if (isSentence) {
+    // Read Hebrew, pick English
+    qCard.innerHTML =
+      `<div class="q-prompt">איך אומרים את זה באנגלית?</div>
+       <div class="q-target he-target">${item.he}</div>
+       <div class="q-emoji">${item.emoji}</div>`;
+  } else {
+    // Hear English, pick Hebrew
+    qCard.innerHTML =
+      `<div class="q-prompt">הקשב למילה — מה הפירוש בעברית?</div>
+       <div class="q-target">${item.en}</div>
+       <button class="q-replay" id="qReplay">🔊 שמעו שוב</button>`;
+  }
+
+  // Options
+  const distractors = shuffle(items.filter(it => it.en !== item.en)).slice(0, optionCount(currentLevel) - 1);
+  const opts = shuffle([item, ...distractors]);
+  const box = document.getElementById('options');
+  box.innerHTML = '';
+  opts.forEach(it => {
+    const b = document.createElement('button');
+    b.className = 'opt';
+    if (isSentence) {
+      b.innerHTML = `<span>${it.en}</span>`;
+    } else {
+      b.innerHTML = `<span class="opt-emoji">${it.emoji}</span><span>${it.he}</span>`;
+    }
+    b.addEventListener('click', () => chooseAnswer(b, it));
+    box.appendChild(b);
+  });
+
+  // Speak the prompt
+  if (!isSentence) {
+    const rep = document.getElementById('qReplay');
+    if (rep) rep.addEventListener('click', () => speak(sayOf(item)));
+    setTimeout(() => speak(sayOf(item)), 350);
+  } else {
+    // for sentence levels, still let her hear the correct English once she's looking
+    // (we don't reveal the answer aloud before she chooses)
+  }
+}
+function chooseAnswer(el, item) {
+  if (testLocked) return;
+  const fb = document.getElementById('feedback');
+  if (item.en === curQuestion.en) {
+    testLocked = true;
+    el.classList.add('correct');
+    document.querySelectorAll('.opt').forEach(o => o.classList.add('disabled'));
+    ding(true);
+    confetti();
+    burstAt(el, '🌟');
+    testCorrect++;
+    updateTestHeader();
+    fb.textContent = PRAISE[Math.floor(Math.random() * PRAISE.length)];
+    fb.className = 'feedback good';
+    speak(sayOf(curQuestion));         // hear the correct English word/phrase
+    setTimeout(() => { testIdx++; renderQuestion(); }, 1700);
+  } else {
+    el.classList.add('wrong');
+    ding(false);
+    fb.textContent = ENCOURAGE[Math.floor(Math.random() * ENCOURAGE.length)];
+    fb.className = 'feedback bad';
+    setTimeout(() => el.classList.remove('wrong'), 500);
+  }
+}
+
+/* ============================================================
+   RESULT
+   ============================================================ */
+function endTest() {
+  const total = testQueue.length;
+  const pct = Math.round((testCorrect / total) * 100);
+  const passed = (testCorrect / total) >= PASS_RATIO;
+
+  // persist best score + unlock
+  if (pct > (progress.best[currentLevel.id] || 0)) progress.best[currentLevel.id] = pct;
+  if (passed && currentLevel.id === progress.unlocked && progress.unlocked < LEVELS.length) {
+    progress.unlocked = currentLevel.id + 1;
+  }
+  saveProgress(progress);
+
+  // stars: up to 5 based on percent
+  const starCount = Math.max(1, Math.round((pct / 100) * 5));
+  let stars = '';
+  for (let i = 0; i < 5; i++) stars += i < starCount ? '⭐' : '☆';
+
+  document.getElementById('resultEmoji').textContent = passed ? '🎉' : '🌼';
+  document.getElementById('resultBig').innerHTML = passed
+    ? `כל הכבוד שקד!<span class="en">You did it!</span>`
+    : `יופי של ניסיון, שקד!<span class="en">Good try!</span>`;
+  document.getElementById('resultStars').textContent = stars;
+  document.getElementById('resultScore').textContent = `ענית נכון על ${testCorrect} מתוך ${total} (${pct}%)`;
+
+  const nextLv = levelById(currentLevel.id + 1);
+  let msg;
+  if (passed && nextLv) {
+    msg = `מעולה! פתחת את ${nextLv.title} 🔓 אתה מתקדם נהדר!`;
+  } else if (passed && !nextLv) {
+    msg = `סיימת את כל השלבים! אתה אלוף אמיתי באנגלית 🏆 אפשר לחזור ולתרגל מתי שבא לך.`;
+  } else {
+    msg = `צריך רק קצת יותר מחצי כדי לעבור. בוא נחזור על הכרטיסיות וננסה שוב — אתה ממש קרוב 💛`;
+  }
+  document.getElementById('resultMsg').textContent = msg;
+
+  // buttons
+  const btns = document.getElementById('resultBtns');
+  btns.innerHTML = '';
+  if (passed && nextLv) {
+    const nb = document.createElement('button');
+    nb.className = 'btn btn-teal btn-block';
+    nb.innerHTML = `<span class="ic">➜</span>לשלב הבא`;
+    nb.addEventListener('click', () => openLevel(nextLv.id));
+    btns.appendChild(nb);
+  }
+  const lb = document.createElement('button');
+  lb.className = 'btn btn-gold btn-block';
+  lb.innerHTML = `<span class="ic">📖</span>לחזור על המילים`;
+  lb.addEventListener('click', startLearn);
+  btns.appendChild(lb);
+
+  const ab = document.createElement('button');
+  ab.className = 'btn btn-coral btn-block';
+  ab.innerHTML = `<span class="ic">🔁</span>מבחן שוב`;
+  ab.addEventListener('click', startTest);
+  btns.appendChild(ab);
+
+  const hb = document.createElement('button');
+  hb.className = 'btn btn-ghost btn-block';
+  hb.innerHTML = `<span class="ic">🗺️</span>לכל השלבים`;
+  hb.addEventListener('click', () => { renderMap(); showScreen('map'); });
+  btns.appendChild(hb);
+
+  showScreen('result');
+  if (passed) { confetti(60); ding(true); speak("Well done Shaked! You did it!", { rate: 0.8 }); }
+  else { speak("Good try Shaked!", { rate: 0.8 }); }
+}
+
+/* init */
+// JS is running, so hide the "open in Safari" notice.
+(function(){ var w = document.getElementById('noJsWarn'); if (w) w.style.display = 'none'; })();
+renderMap();
+</script>
+</body>
+</html>
