@@ -4,6 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>אנגלית בשבילך, סיגל 🌸</title>
+
+<!-- PWA: lets the page be installed to the home screen as a real app -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#2a9d8f">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="אנגלית לסיגל">
 <style>
   /* ============================================================
      "English for Sigal" — calm, senior-friendly Hebrew-guided app
@@ -2289,6 +2299,14 @@ function endTest() {
 /* init */
 // JS is running, so hide the "open in Safari" notice.
 (function(){ var w = document.getElementById('noJsWarn'); if (w) w.style.display = 'none'; })();
+
+// Register the service worker so the app works offline and feels native.
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+  });
+}
+
 renderMap();
 </script>
 </body>
