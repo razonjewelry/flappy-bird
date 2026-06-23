@@ -12,7 +12,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#218075"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.razon.sigalenglish"
@@ -23,10 +25,18 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#218075"
       },
-      "permissions": ["INTERNET"]
+      "permissions": [
+        "INTERNET"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "327778c1-04cb-49cd-8ac2-30182f0c7f95"
+      }
+    },
+    "owner": "orrazon"
   }
 }
