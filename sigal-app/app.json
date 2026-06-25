@@ -37,6 +37,16 @@
         "projectId": "327778c1-04cb-49cd-8ac2-30182f0c7f95"
       }
     },
-    "owner": "orrazon"
+    "owner": "orrazon",
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "kotlinVersion": "1.9.25"
+          }
+        }
+      ]
+    ]
   }
 }
