@@ -1877,9 +1877,24 @@ if (window.speechSynthesis) {
   pickVoice();
   speechSynthesis.onvoiceschanged = pickVoice;
 }
+function inNativeApp() {
+  return !!(window.ReactNativeWebView && window.ReactNativeWebView.postMessage);
+}
 function speak(text, opts) {
-  if (!window.speechSynthesis) return;
   opts = opts || {};
+  // Inside the native app the browser's speechSynthesis is unavailable, so
+  // send the word to the app, which reads it aloud with native text-to-speech.
+  if (inNativeApp()) {
+    try {
+      window.ReactNativeWebView.postMessage(JSON.stringify({
+        type: 'speak',
+        text: text,
+        rate: opts.rate != null ? opts.rate : 0.7
+      }));
+    } catch (e) {}
+    return;
+  }
+  if (!window.speechSynthesis) return;
   try {
     if (!enVoice) pickVoice();                       // iOS often loads voices late
     speechSynthesis.cancel();
@@ -1892,7 +1907,13 @@ function speak(text, opts) {
     speechSynthesis.resume();                         // iOS sometimes leaves the queue paused
   } catch (e) {}
 }
-function stopSpeak() { if (window.speechSynthesis) speechSynthesis.cancel(); }
+function stopSpeak() {
+  if (inNativeApp()) {
+    try { window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'stopSpeak' })); } catch (e) {}
+    return;
+  }
+  if (window.speechSynthesis) speechSynthesis.cancel();
+}
 
 /* ============================================================
    SOUND — success / gentle-retry chime (Web Audio)

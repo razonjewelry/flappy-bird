@@ -4,6 +4,7 @@ import {
   BackHandler, Platform, StatusBar, Text,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
+import * as Speech from 'expo-speech';
 
 // The live game. Loading it (instead of bundling) means new levels I add
 // later appear automatically without rebuilding the app.
@@ -28,6 +29,24 @@ export default function App() {
     return () => sub.remove();
   }, []);
 
+  // The game posts words here; we read them aloud with native text-to-speech
+  // (the WebView doesn't support the browser's speechSynthesis).
+  const onMessage = (event) => {
+    try {
+      const data = JSON.parse(event.nativeEvent.data);
+      if (data.type === 'speak' && data.text) {
+        Speech.stop();
+        Speech.speak(String(data.text), {
+          language: 'en-US',
+          rate: typeof data.rate === 'number' ? data.rate : 0.7,
+          pitch: 1.0,
+        });
+      } else if (data.type === 'stopSpeak') {
+        Speech.stop();
+      }
+    } catch (e) {}
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#fbf7ef" />
@@ -40,6 +59,7 @@ export default function App() {
         allowsInlineMediaPlayback
         mediaPlaybackRequiresUserAction={false}
         startInLoadingState
+        onMessage={onMessage}
         onLoadEnd={() => setLoading(false)}
         onNavigationStateChange={(s) => { canGoBack.current = s.canGoBack; }}
         style={styles.web}
