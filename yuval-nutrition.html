@@ -901,6 +901,7 @@ function toggleFast(){
     saveNow(); toast("⏳ הצום התחיל — בהצלחה!");
     if(S.reminders.fast) scheduleFastEnd();
   }
+  nativeSync(); // עדכון תזכורת סיום הצום בשכבת ה-APK
   renderFast();
 }
 function updateFastUI(){
@@ -995,7 +996,17 @@ function wipeAll(){
 
 /* ---------- התראות ---------- */
 let notifTimers=[];
+// כשרצים בתוך מעטפת ה-APK (WebView) — שולחים את התזכורות לשכבה הנייטיב
+// כדי שיעבדו גם כשהאפליקציה סגורה. בדפדפן רגיל נשתמש ב-Web Notifications.
+const IS_NATIVE = !!(window.ReactNativeWebView);
+function nativeSync(){
+  if(!IS_NATIVE) return;
+  let active=false, endInMs=0;
+  if(S.fasting){ active=true; endInMs=S.fasting.hours*3600*1000-(Date.now()-S.fasting.start); }
+  try{ window.ReactNativeWebView.postMessage(JSON.stringify({type:'sync', reminders:S.reminders||{}, fast:{active, endInMs}})); }catch(e){}
+}
 function enableNotif(){
+  if(IS_NATIVE){ nativeSync(); toast("🔔 ההתראות מסונכרנות עם הטלפון"); return; }
   if(!("Notification" in window)){ toast("הדפדפן לא תומך בהתראות"); return; }
   Notification.requestPermission().then(p=>{
     if(p==="granted"){ toast("🔔 ההתראות הופעלו"); setupReminders(); notify("מעולה!","ההתראות של יובל פעילות 🌸"); }
@@ -1006,6 +1017,7 @@ function notify(title,body){
   try{ if("Notification" in window && Notification.permission==="granted") new Notification(title,{body}); }catch(e){}
 }
 function setupReminders(){
+  nativeSync(); // תזכורות רקע במעטפת ה-APK
   notifTimers.forEach(t=>clearInterval(t)); notifTimers=[];
   const r=S.reminders||{};
   if(!("Notification" in window) || Notification.permission!=="granted") return;
