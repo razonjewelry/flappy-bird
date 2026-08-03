@@ -166,11 +166,28 @@ h1,h2,h3,h4{margin:0;font-weight:700}
 
 /* ===== Bottom nav ===== */
 .nav{position:fixed;bottom:0;left:0;right:0;z-index:50;background:rgba(255,255,255,.96);backdrop-filter:blur(10px);border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:8px 4px calc(8px + env(safe-area-inset-bottom));max-width:560px;margin:0 auto}
-.nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--muted);padding:4px;transition:.15s}
-.nav button .ic{font-size:22px}
-.nav button .lb{font-size:11px;font-weight:600}
+.nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--muted);padding:3px 1px;transition:.15s}
+.nav button .ic{font-size:20px}
+.nav button .lb{font-size:10px;font-weight:600}
 .nav button.on{color:var(--blush-deep)}
 .nav button.on .ic{transform:translateY(-1px)}
+
+/* ===== Menu budget & tips ===== */
+.budget{background:var(--sage-soft);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:14px}
+.budget .bt{display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin-bottom:8px;color:var(--sage-deep)}
+.budget.over{background:#fdeaea}
+.budget.over .bt{color:var(--blush-deep)}
+.budget .bar span{background:var(--sage-deep)}
+.budget.over .bar span{background:var(--blush-deep)}
+.plan-total{font-size:12px;color:var(--muted);font-weight:600}
+.tip{font-size:13.5px;color:var(--ink);line-height:1.7}
+.tip b{color:var(--sage-deep)}
+.pill{display:inline-block;background:var(--blush-soft);color:var(--blush-deep);border-radius:12px;padding:4px 11px;font-size:12px;font-weight:700;margin:3px 3px 0}
+/* ===== Workouts ===== */
+.wk-ex{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;background:var(--cream);border-radius:12px;margin-bottom:6px}
+.wk-ex .wn{font-size:14px;font-weight:600}
+.wk-ex .wd{font-size:12px;color:var(--sage-deep);font-weight:700;white-space:nowrap}
+.wk-desc{font-size:12.5px;color:var(--muted);margin-bottom:10px;line-height:1.5}
 
 /* ===== Onboarding ===== */
 .onboard{position:fixed;inset:0;background:var(--cream);z-index:100;overflow-y:auto;padding:0}
@@ -289,9 +306,10 @@ h1,h2,h3,h4{margin:0;font-weight:700}
   </div>
 
   <div class="card">
-    <h3><span class="ic">⚖️</span> מעקב משקל</h3>
+    <h3 class="spread"><span><span class="ic">⚖️</span> שקילה שבועית</span><span id="weighStatus" style="font-size:12px;font-weight:700"></span></h3>
+    <div class="mini-note" id="weighNote" style="margin:0 0 8px;text-align:right"></div>
     <div class="weight-in">
-      <input id="weightIn" type="number" inputmode="decimal" placeholder="המשקל היום (ק״ג)">
+      <input id="weightIn" type="number" inputmode="decimal" placeholder="המשקל שלך (ק״ג)">
       <button class="btn sage sm" onclick="logWeight()">שמרי</button>
     </div>
     <svg class="spark" id="weightSpark" viewBox="0 0 300 56" preserveAspectRatio="none"></svg>
@@ -304,18 +322,45 @@ h1,h2,h3,h4{margin:0;font-weight:700}
   <div id="mealsWrap"></div>
 </section>
 
-<!-- ===== PLAN ===== -->
+<!-- ===== MENU (weekly menu builder) ===== -->
 <section id="v-plan" class="view hidden">
   <div class="card">
-    <h3><span class="ic">🗓️</span> תכנון שבועי</h3>
+    <h3><span class="ic">🗓️</span> תפריט שבועי</h3>
     <div class="daytabs" id="dayTabs"></div>
+    <div id="planBudget"></div>
     <div id="planMeals"></div>
+  </div>
+  <div class="card">
+    <h3><span class="ic">💡</span> ההמלצות שלי</h3>
+    <div class="tip" id="planHint" style="margin-bottom:10px"></div>
+    <div class="tip">
+      חלוקה מומלצת ליום: <b>בוקר ~25%</b> · <b>צהריים ~35%</b> · <b>ערב ~30%</b> · <b>נשנושים ~10%</b>.<br>
+      בכל ארוחה כדאי לשלב <b>חלבון</b> (עוף/דג/ביצה/קוטג׳) + <b>ירק</b> + פחמימה מלאה. חלבון וסיבים משביעים והכי עוזרים בירידה במשקל.
+    </div>
+    <div style="margin-top:8px">
+      <span class="pill">🥚 בוקר: חביתה + סלט + פרוסת לחם מלא</span>
+      <span class="pill">🍗 צהריים: חזה עוף + אורז + ירקות</span>
+      <span class="pill">🥗 ערב: סלט גדול + טונה/גבינה</span>
+      <span class="pill">🍎 נשנוש: פרי / יוגורט / פריכיות</span>
+    </div>
   </div>
   <div class="card">
     <h3 class="spread"><span><span class="ic">🛒</span> רשימת קניות</span>
       <button class="btn gray sm" onclick="clearBought()">נקי מסומנים</button></h3>
     <div id="shopList"></div>
   </div>
+</section>
+
+<!-- ===== WORKOUTS ===== -->
+<section id="v-workout" class="view hidden">
+  <div class="card" style="background:linear-gradient(135deg,var(--sage) 0%,var(--sage-deep) 100%);color:#fff">
+    <h3 style="color:#fff"><span class="ic">🏋️</span> אימונים בבית</h3>
+    <div style="font-size:13.5px;line-height:1.6;opacity:.95">
+      תנועה + גירעון קלורי = ירידה במשקל 💪<br>
+      3–4 אימונים בשבוע של 15–20 דקות מספיקים בהחלט. בחרי אימון, סמני "בוצע" ותראי את ההתקדמות.
+    </div>
+  </div>
+  <div id="workoutList"></div>
 </section>
 
 <!-- ===== FASTING ===== -->
@@ -382,12 +427,6 @@ h1,h2,h3,h4{margin:0;font-weight:700}
   </div>
 
   <div class="card">
-    <h3><span class="ic">🥗</span> המזונות שלי</h3>
-    <button class="btn sage-ghost" onclick="openCustomFood()">➕ הוספת מזון חדש</button>
-    <div id="customList" style="margin-top:12px"></div>
-  </div>
-
-  <div class="card">
     <h3><span class="ic">⚙️</span> כללי</h3>
     <button class="btn gray" onclick="resetToday()">איפוס היום הנוכחי</button>
     <button class="btn gray" style="margin-top:10px" onclick="wipeAll()">מחיקת כל הנתונים</button>
@@ -403,7 +442,8 @@ h1,h2,h3,h4{margin:0;font-weight:700}
 <nav class="nav">
   <button data-v="home" class="on" onclick="nav('home')"><span class="ic">🏠</span><span class="lb">בית</span></button>
   <button data-v="log" onclick="nav('log')"><span class="ic">📖</span><span class="lb">יומן</span></button>
-  <button data-v="plan" onclick="nav('plan')"><span class="ic">🗓️</span><span class="lb">תכנון</span></button>
+  <button data-v="plan" onclick="nav('plan')"><span class="ic">🗓️</span><span class="lb">תפריט</span></button>
+  <button data-v="workout" onclick="nav('workout')"><span class="ic">🏋️</span><span class="lb">אימונים</span></button>
   <button data-v="fast" onclick="nav('fast')"><span class="ic">⏳</span><span class="lb">צום</span></button>
   <button data-v="set" onclick="nav('set')"><span class="ic">⚙️</span><span class="lb">הגדרות</span></button>
 </nav>
@@ -481,7 +521,20 @@ const FOODS = [
   // חטיפים ומתוקים
   {n:"במבה", cal:526, p:13, c:50, f:31, cat:"חטיפים", serv:25},
   {n:"שוקולד מריר", cal:546, p:4.9, c:61, f:31, cat:"חטיפים", serv:25},
+  {n:"שוקולד חלב", cal:535, p:7, c:59, f:30, cat:"חטיפים", serv:25},
+  {n:"בייגלה מלוח", cal:400, p:10, c:76, f:6, cat:"חטיפים", serv:30},
+  {n:"פריכיות אורז", cal:387, p:8, c:81, f:3, cat:"חטיפים", serv:18},
+  {n:"פופקורן", cal:387, p:12, c:78, f:4, cat:"חטיפים", serv:15},
+  {n:"קרקרים מלוחים", cal:420, p:9, c:70, f:13, cat:"חטיפים", serv:20},
+  {n:"חטיף דגנים (גרנולה)", cal:450, p:8, c:64, f:18, cat:"חטיפים", serv:30},
+  {n:"ופל", cal:500, p:6, c:64, f:24, cat:"חטיפים", serv:25},
+  {n:"מעדן חלב (פודינג)", cal:120, p:3, c:18, f:4, cat:"מקרר", serv:100},
+  {n:"משמש מיובש", cal:241, p:3.4, c:63, f:0.5, cat:"פירות", serv:30},
   {n:"דבש", cal:304, p:0.3, c:82, f:0, cat:"יבשים", serv:20},
+  // מנות מוכנות ומשקאות
+  {n:"שווארמה בפיתה", cal:215, p:11, c:18, f:10, cat:"מנות מוכנות", serv:330},
+  {n:"פיתה קוסמין (קלה)", cal:230, p:10, c:40, f:1.5, cat:"מאפים", serv:55},
+  {n:"נס קפה עם חלב", cal:18, p:1, c:1.6, f:0.8, cat:"משקאות", serv:200},
 ];
 
 const MEALS = [
@@ -548,7 +601,7 @@ function computeGoal(p){
 let curView="home", curDay=new Date().getDay();
 function nav(v){
   curView=v;
-  ["home","log","plan","fast","set"].forEach(x=>{
+  ["home","log","plan","workout","fast","set"].forEach(x=>{
     document.getElementById("v-"+x).classList.toggle("hidden", x!==v);
   });
   document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("on", b.dataset.v===v));
@@ -556,6 +609,7 @@ function nav(v){
   if(v==="home") renderHome();
   if(v==="log") renderMeals();
   if(v==="plan") renderPlan();
+  if(v==="workout") renderWorkout();
   if(v==="fast") renderFast();
   if(v==="set") renderSettings();
 }
@@ -623,13 +677,41 @@ function logWeight(){
   dayLog().weight=v;
   document.getElementById("weightIn").value="";
   save(); renderWeight();
-  toast("⚖️ המשקל נשמר");
+  toast("⚖️ נשקלת השבוע — כל הכבוד!");
 }
 function weightSeries(){
   const keys=Object.keys(S.logs).filter(k=>S.logs[k].weight!=null).sort();
   return keys.map(k=>({d:k, w:S.logs[k].weight}));
 }
+// יום ראשון האחרון (תחילת השבוע הנוכחי)
+function lastSundayDate(){ const d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-d.getDay()); return d; }
+// המשקל האחרון שנרשם מתחילת השבוע הנוכחי (או null)
+function weeklyWeight(){
+  const s=lastSundayDate().getTime(); let latest=null;
+  Object.keys(S.logs).forEach(k=>{
+    const w=S.logs[k].weight; if(w==null) return;
+    const p=k.split("-").map(Number), t=new Date(p[0],p[1]-1,p[2]).getTime();
+    if(t>=s) latest=w;
+  });
+  return latest;
+}
 function renderWeight(){
+  // סטטוס שקילה שבועית
+  const ww=weeklyWeight();
+  const st=document.getElementById("weighStatus");
+  const note=document.getElementById("weighNote");
+  if(st){
+    if(ww!=null){ st.textContent="✓ נשקלת השבוע"; st.style.color="var(--sage-deep)"; }
+    else{ st.textContent="טרם נשקלת השבוע"; st.style.color="var(--blush-deep)"; }
+  }
+  if(note){
+    const isSun=new Date().getDay()===0;
+    if(isSun && ww==null){ note.textContent="היום יום השקילה! 🗓️ עלי על המשקל ורשמי"; }
+    else{
+      const nx=lastSundayDate(); nx.setDate(nx.getDate()+7);
+      note.textContent="שוקלים פעם בשבוע, כל יום ראשון · הבא: "+nx.getDate()+"/"+(nx.getMonth()+1);
+    }
+  }
   const s=weightSeries();
   const svg=document.getElementById("weightSpark");
   const trend=document.getElementById("weightTrend");
@@ -681,21 +763,23 @@ function delFood(meal,idx){
   save(); renderMeals();
 }
 
-/* ---------- בורר מזון ---------- */
-let pickerMeal=null;
-function openFoodPicker(meal){
-  pickerMeal=meal;
-  const foods=allFoods();
+/* ---------- בורר מזון (משותף ליומן ולתפריט) ---------- */
+let pickerMeal=null, pickerTarget="log";
+function foodPickerModal(title){
   const mount=document.getElementById("modalMount");
   mount.innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeModal()">
     <div class="modal">
-      <div class="mtop"><h3>הוספה ל${MEALS.find(m=>m.k===meal).n}</h3><button class="mclose" onclick="closeModal()">×</button></div>
+      <div class="mtop"><h3>${title}</h3><button class="mclose" onclick="closeModal()">×</button></div>
       <div class="mbody">
         <input class="search" id="foodSearch" placeholder="🔍 חיפוש מזון..." oninput="filterFoods()">
         <div id="foodResults"></div>
       </div></div></div>`;
   filterFoods();
   setTimeout(()=>document.getElementById("foodSearch").focus(),200);
+}
+function openFoodPicker(meal){
+  pickerTarget="log"; pickerMeal=meal;
+  foodPickerModal("הוספה ל"+MEALS.find(m=>m.k===meal).n);
 }
 function filterFoods(){
   const q=(document.getElementById("foodSearch").value||"").trim();
@@ -704,7 +788,7 @@ function filterFoods(){
     const i=allFoods().indexOf(f);
     return `<div class="food-row"><div><div class="fn">${esc(f.n)}</div><div class="fm">${f.cal} קל׳ ל-100 ג׳ · מנה ${f.serv} ג׳</div></div>
       <button class="pick" onclick="openPortion(${i})">בחרי</button></div>`;
-  }).join("") : `<div class="empty">לא נמצא מזון. אפשר להוסיף מזון חדש בהגדרות.</div>`;
+  }).join("") : `<div class="empty">לא נמצא מזון בשם הזה</div>`;
 }
 function openPortion(foodIdx){
   const f=allFoods()[foodIdx];
@@ -713,18 +797,20 @@ function openPortion(foodIdx){
     <div class="modal">
       <div class="mtop"><h3>${esc(f.n)}</h3><button class="mclose" onclick="closeModal()">×</button></div>
       <div class="mbody">
-        <div class="field"><label>כמות (גרם)</label>
-          <input class="search" id="portionG" type="number" inputmode="decimal" value="${f.serv}" oninput="updPortion(${foodIdx})" style="margin-bottom:10px"></div>
-        <div class="chipset" style="margin-bottom:14px">
-          <button class="chip" onclick="setPortion(${foodIdx},${f.serv})">מנה (${f.serv}ג׳)</button>
-          <button class="chip" onclick="setPortion(${foodIdx},100)">100 ג׳</button>
-          <button class="chip" onclick="setPortion(${foodIdx},50)">50 ג׳</button>
+        <div class="section-label" style="margin:0 0 6px">כמה אכלת? בחרי מנה 👇</div>
+        <div class="chipset" style="margin-bottom:12px">
+          <button class="chip" onclick="setPortion(${foodIdx},${Math.round(f.serv*0.5)})">חצי מנה</button>
+          <button class="chip" onclick="setPortion(${foodIdx},${f.serv})">מנה</button>
+          <button class="chip" onclick="setPortion(${foodIdx},${Math.round(f.serv*1.5)})">מנה וחצי</button>
+          <button class="chip" onclick="setPortion(${foodIdx},${f.serv*2})">2 מנות</button>
         </div>
-        <div class="result-box" style="background:var(--blush-soft);margin:0 0 14px">
+        <div class="field"><label>או כמות מדויקת (גרם / מ״ל)</label>
+          <input class="search" id="portionG" type="number" inputmode="decimal" value="${f.serv}" oninput="updPortion(${foodIdx})" style="margin-bottom:6px"></div>
+        <div class="result-box" style="background:var(--blush-soft);margin:8px 0 14px">
           <div class="rn" id="pvCal" style="color:var(--blush-deep)">0</div>
           <div class="rl" style="color:var(--blush-deep)">קלוריות · <span id="pvMacro"></span></div>
         </div>
-        <button class="btn" onclick="confirmFood(${foodIdx})">הוסיפי ליומן</button>
+        <button class="btn" onclick="confirmFood(${foodIdx})">הוסיפי</button>
       </div></div></div>`;
   updPortion(foodIdx);
 }
@@ -743,113 +829,85 @@ function confirmFood(i){
   const f=allFoods()[i], g=parseFloat(document.getElementById("portionG").value)||0;
   if(g<=0){ toast("הזיני כמות"); return; }
   const v=calcPortion(f,g);
-  dayLog().meals[pickerMeal].push({n:f.n, grams:g, cal:v.cal, p:v.p, c:v.c, f:v.f});
-  save(); closeModal(); renderMeals();
-  toast("✅ "+f.n+" נוסף");
+  const item={n:f.n, grams:Math.round(g), cal:v.cal, p:v.p, c:v.c, f:v.f, cat:f.cat};
+  if(pickerTarget==="plan"){
+    if(!S.weekPlan[curDay]) S.weekPlan[curDay]={breakfast:[],lunch:[],dinner:[],snacks:[]};
+    if(!S.weekPlan[curDay][pickerMeal]) S.weekPlan[curDay][pickerMeal]=[];
+    S.weekPlan[curDay][pickerMeal].push(item);
+    save(); closeModal(); renderPlan();
+    toast("🗓️ "+f.n+" נוסף לתפריט");
+  }else{
+    dayLog().meals[pickerMeal].push(item);
+    save(); closeModal(); renderMeals();
+    toast("✅ "+f.n+" נוסף");
+  }
 }
 
-/* ---------- מזון מותאם ---------- */
-function openCustomFood(){
-  const mount=document.getElementById("modalMount");
-  mount.innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeModal()">
-    <div class="modal">
-      <div class="mtop"><h3>מזון חדש (ערכים ל-100 ג׳)</h3><button class="mclose" onclick="closeModal()">×</button></div>
-      <div class="mbody">
-        <div class="field"><label>שם המזון</label><input id="cfName" placeholder="לדוגמה: עוגת בננה של אמא"></div>
-        <div class="grid2">
-          <div class="field"><label>קלוריות</label><input id="cfCal" type="number" inputmode="numeric"></div>
-          <div class="field"><label>חלבון (ג׳)</label><input id="cfP" type="number" inputmode="decimal"></div>
-          <div class="field"><label>פחמימות (ג׳)</label><input id="cfC" type="number" inputmode="decimal"></div>
-          <div class="field"><label>שומן (ג׳)</label><input id="cfF" type="number" inputmode="decimal"></div>
-        </div>
-        <div class="field"><label>מנה טיפוסית (גרם)</label><input id="cfServ" type="number" inputmode="numeric" value="100"></div>
-        <button class="btn sage" onclick="saveCustomFood()">שמרי מזון</button>
-      </div></div></div>`;
+/* ---------- תפריט שבועי + קניות ---------- */
+function planTotals(day){
+  const plan=S.weekPlan[day]||{}; let t={cal:0,p:0,c:0,f:0};
+  MEALS.forEach(m=>(plan[m.k]||[]).forEach(it=>{t.cal+=it.cal||0;t.p+=it.p||0;t.c+=it.c||0;t.f+=it.f||0;}));
+  return t;
 }
-function saveCustomFood(){
-  const n=(document.getElementById("cfName").value||"").trim();
-  const cal=parseFloat(document.getElementById("cfCal").value);
-  if(!n||isNaN(cal)){ toast("נדרש שם וקלוריות"); return; }
-  S.customFoods.push({
-    n, cal:Math.round(cal),
-    p:+(parseFloat(document.getElementById("cfP").value)||0),
-    c:+(parseFloat(document.getElementById("cfC").value)||0),
-    f:+(parseFloat(document.getElementById("cfF").value)||0),
-    cat:"מותאם אישית",
-    serv:parseInt(document.getElementById("cfServ").value)||100,
-    custom:true
-  });
-  save(); closeModal(); renderSettings();
-  toast("🥗 המזון נוסף לרשימה שלך");
-}
-function delCustomFood(idx){
-  S.customFoods.splice(idx,1); save(); renderSettings();
-}
-
-/* ---------- תכנון שבועי + קניות ---------- */
 function renderPlan(){
-  // day tabs
   const today=new Date().getDay();
   document.getElementById("dayTabs").innerHTML = DAYS.map((d,i)=>
     `<button class="daytab ${i===curDay?'on':''}" onclick="selDay(${i})">${d}${i===today?'<div class="dn">היום</div>':'<div class="dn">&nbsp;</div>'}</button>`
   ).join("");
   const plan = S.weekPlan[curDay]||{breakfast:[],lunch:[],dinner:[],snacks:[]};
+  const g=S.goal||{cal:2000};
+  const t=planTotals(curDay);
+  const planned=Math.round(t.cal), target=g.cal, left=target-planned;
+  const pct=target?Math.min(100,Math.round(planned/target*100)):0;
+  const over=planned>target*1.05;
+  // תקציב קלורי יומי
+  document.getElementById("planBudget").innerHTML=
+    `<div class="budget ${over?'over':''}">
+       <div class="bt"><span>יעד היום: ${target} קל׳</span><span>${over?('חריגה '+Math.abs(left)+' קל׳'):('נותרו '+Math.max(0,left)+' קל׳')}</span></div>
+       <div class="bar"><span style="width:${pct}%"></span></div>
+       <div class="plan-total" style="margin-top:7px">מתוכנן: ${planned} קל׳ · ${Math.round(t.p)}ח ${Math.round(t.c)}פ ${Math.round(t.f)}ש</div>
+     </div>`;
+  // ארוחות
   let html="";
   MEALS.forEach(m=>{
     const items=plan[m.k]||[];
+    const mcal=Math.round(items.reduce((s,i)=>s+(i.cal||0),0));
     html+=`<div class="plan-meal"><div class="mhead"><div class="mt">${m.e} ${m.n}</div>
-      <button class="add-mini" onclick="openPlanPicker('${m.k}')">+</button></div>`;
+      <div class="row"><span class="mcal">${mcal} קל׳</span><button class="add-mini" onclick="openPlanPicker('${m.k}')">+</button></div></div>`;
     if(!items.length) html+=`<div class="empty">—</div>`;
     items.forEach((it,idx)=>{
-      html+=`<div class="fitem"><div class="fn">${esc(it.n)}</div>
-        <button class="del" onclick="delPlan('${m.k}',${idx})">🗑️</button></div>`;
+      html+=`<div class="fitem"><div><div class="fn">${esc(it.n)}</div><div class="fq">${it.grams} ג׳</div></div>
+        <div class="row"><span class="fc">${it.cal} קל׳</span><button class="del" onclick="delPlan('${m.k}',${idx})">🗑️</button></div></div>`;
     });
     html+=`</div>`;
   });
   document.getElementById("planMeals").innerHTML=html;
+  // המלצה דינמית לפי מצב היום
+  const hint=document.getElementById("planHint");
+  if(hint){
+    if(planned===0) hint.innerHTML=`הקישי <b>+</b> ליד כל ארוחה והרכיבי לך יום. אני אעדכן לך כמה קלוריות נשארו מתוך היעד.`;
+    else if(over) hint.innerHTML=`חרגת מהיעד ב-<b>${Math.abs(left)} קל׳</b>. אפשר להקטין מנה, או להחליף פחמימה בירק/פרי קליל יותר.`;
+    else if(left>target*0.25) hint.innerHTML=`נותרו לך עוד <b>${left} קל׳</b> להשלים היום — שווה להוסיף חלבון (ביצה/יוגורט/עוף) שישביע אותך.`;
+    else hint.innerHTML=`יופי! היום מאוזן — <b>${planned}</b> מתוך <b>${target}</b> קל׳. 🎯`;
+  }
   renderShop();
 }
 function selDay(i){ curDay=i; renderPlan(); }
 function openPlanPicker(meal){
-  const mount=document.getElementById("modalMount");
-  const foods=allFoods();
-  mount.innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeModal()">
-    <div class="modal">
-      <div class="mtop"><h3>לתכנון ${DAYS[curDay]} · ${MEALS.find(m=>m.k===meal).n}</h3><button class="mclose" onclick="closeModal()">×</button></div>
-      <div class="mbody">
-        <input class="search" id="planSearch" placeholder="🔍 חיפוש מזון..." oninput="filterPlanFoods('${meal}')">
-        <div id="planResults"></div>
-      </div></div></div>`;
-  filterPlanFoods(meal);
-  setTimeout(()=>document.getElementById("planSearch").focus(),200);
-}
-function filterPlanFoods(meal){
-  const q=(document.getElementById("planSearch").value||"").trim();
-  const foods=allFoods().filter(f=>!q||f.n.includes(q));
-  document.getElementById("planResults").innerHTML = foods.length? foods.map(f=>
-    `<div class="food-row"><div><div class="fn">${esc(f.n)}</div><div class="fm">${f.cat}</div></div>
-      <button class="pick" onclick="addPlan('${meal}','${esc(f.n).replace(/'/g,"\\'")}')">הוסיפי</button></div>`
-  ).join("") : `<div class="empty">לא נמצא מזון</div>`;
-}
-function addPlan(meal,name){
-  if(!S.weekPlan[curDay]) S.weekPlan[curDay]={breakfast:[],lunch:[],dinner:[],snacks:[]};
-  if(!S.weekPlan[curDay][meal]) S.weekPlan[curDay][meal]=[];
-  const f=allFoods().find(x=>x.n===name);
-  S.weekPlan[curDay][meal].push({n:name, cat:f?f.cat:"אחר"});
-  save(); closeModal(); renderPlan();
-  toast("🗓️ נוסף לתכנון");
+  pickerTarget="plan"; pickerMeal=meal;
+  foodPickerModal("לתפריט "+DAYS[curDay]+" · "+MEALS.find(m=>m.k===meal).n);
 }
 function delPlan(meal,idx){
   S.weekPlan[curDay][meal].splice(idx,1); save(); renderPlan();
 }
 function shoppingItems(){
-  // איחוד כל הפריטים מכל השבוע לפי שם + ספירה
+  // איחוד כל הפריטים מכל השבוע לפי שם + סכימת גרמים
   const map={};
   Object.keys(S.weekPlan).forEach(day=>{
     MEALS.forEach(m=>{
       (S.weekPlan[day][m.k]||[]).forEach(it=>{
-        if(!map[it.n]) map[it.n]={n:it.n, cat:it.cat||"אחר", count:0};
-        map[it.n].count++;
+        if(!map[it.n]) map[it.n]={n:it.n, cat:it.cat||"אחר", grams:0, count:0};
+        map[it.n].grams+=(it.grams||0); map[it.n].count++;
       });
     });
   });
@@ -858,15 +916,16 @@ function shoppingItems(){
 function renderShop(){
   const items=shoppingItems();
   const wrap=document.getElementById("shopList");
-  if(!items.length){ wrap.innerHTML=`<div class="empty">שבצי מזונות בתכנון השבועי והם יופיעו כאן אוטומטית</div>`; return; }
+  if(!items.length){ wrap.innerHTML=`<div class="empty">שבצי מזונות בתפריט השבועי והם יופיעו כאן אוטומטית</div>`; return; }
   let html="", lastCat=null;
   items.forEach(it=>{
     if(it.cat!==lastCat){ html+=`<div class="section-label" style="margin-top:8px">${it.cat}</div>`; lastCat=it.cat; }
     const done=!!S.shoppingChecked[it.n];
+    const q=it.grams? Math.round(it.grams)+" ג׳" : "×"+it.count;
     html+=`<div class="shop-item ${done?'done':''}" onclick="toggleShop('${esc(it.n).replace(/'/g,"\\'")}')">
       <div class="cb">${done?'✓':''}</div>
       <div class="sn">${esc(it.n)}</div>
-      <div class="sq">×${it.count}</div></div>`;
+      <div class="sq">${q}</div></div>`;
   });
   wrap.innerHTML=html;
 }
@@ -946,6 +1005,68 @@ function fmtDur(ms){
 // tick כל שנייה כשמסך הצום פעיל
 setInterval(()=>{ if(curView==="fast" && S.fasting) updateFastUI(); }, 1000);
 
+/* ---------- אימונים בבית ---------- */
+const WORKOUTS = [
+  {k:"full", e:"🏋️", n:"גוף מלא (מתחילות)", d:"אימון קצר לכל הגוף — מושלם ל-2-3 פעמים בשבוע.", ex:[
+    {n:"סקוואט (כפיפות ברכיים)", d:"3×12"},
+    {n:"שכיבות סמיכה על הברכיים", d:"3×8"},
+    {n:"מכרעים (לאנג׳) לכל רגל", d:"3×10"},
+    {n:"פלאנק (קרש)", d:"3×20 שנ׳"},
+    {n:"גשר ישבן", d:"3×15"},
+  ]},
+  {k:"core", e:"🔥", n:"בטן וליבה", d:"חיזוק שרירי הבטן והגב התחתון.", ex:[
+    {n:"פלאנק", d:"3×30 שנ׳"},
+    {n:"כפיפות בטן", d:"3×15"},
+    {n:"הרמת רגליים בשכיבה", d:"3×12"},
+    {n:"סופרמן (הרמת גב)", d:"3×12"},
+    {n:"פלאנק צד לכל צד", d:"2×20 שנ׳"},
+  ]},
+  {k:"legs", e:"🍑", n:"רגליים וישבן", d:"חיטוב ומיצוק פלג גוף תחתון.", ex:[
+    {n:"סקוואט", d:"3×15"},
+    {n:"מכרעים לאחור לכל רגל", d:"3×12"},
+    {n:"גשר ישבן", d:"3×20"},
+    {n:"סקוואט קיר (החזקה)", d:"3×30 שנ׳"},
+    {n:"בעיטות ישבן (דונקי קיק)", d:"3×15"},
+  ]},
+  {k:"cardio", e:"❤️", n:"קרדיו לשריפת שומן", d:"מעלה דופק ושורף קלוריות — נהדר לירידה במשקל.", ex:[
+    {n:"קפיצות פיסוק (ג׳מפינג ג׳קס)", d:"4×30 שנ׳"},
+    {n:"ריצה במקום", d:"4×40 שנ׳"},
+    {n:"ברפי", d:"3×8"},
+    {n:"הרים מטפסים (מאונטן קליימברס)", d:"3×30 שנ׳"},
+    {n:"סקיפינג (דילוגים במקום)", d:"3×30 שנ׳"},
+  ]},
+  {k:"stretch", e:"🧘", n:"מתיחות והרפיה", d:"לסיום אימון או ליום מנוחה — משחרר ומרגיע.", ex:[
+    {n:"מתיחת חתול-פרה", d:"1 דק׳"},
+    {n:"מתיחת ירך אחורית", d:"30 שנ׳ לרגל"},
+    {n:"מתיחת גב תחתון (ברכיים לחזה)", d:"40 שנ׳"},
+    {n:"מתיחת ארבע ראשי", d:"30 שנ׳ לרגל"},
+    {n:"נשימות עמוקות", d:"2 דק׳"},
+  ]},
+];
+function renderWorkout(){
+  const l=dayLog();
+  const done=l.workouts||{};
+  const html = WORKOUTS.map(w=>{
+    const isDone=!!done[w.k];
+    return `<div class="card">
+      <h3 class="spread"><span><span class="ic">${w.e}</span> ${w.n}</span>
+        ${isDone?'<span class="wk-badge">✓ בוצע היום</span>':''}</h3>
+      <div class="wk-desc">${w.d}</div>
+      ${w.ex.map(x=>`<div class="wk-ex"><span class="wn">${esc(x.n)}</span><span class="wd">${x.d}</span></div>`).join("")}
+      <button class="btn ${isDone?'gray':'sage'}" style="margin-top:10px" onclick="toggleWorkout('${w.k}')">
+        ${isDone?'בטלי סימון':'✓ סמני שבוצע היום'}</button>
+    </div>`;
+  }).join("");
+  document.getElementById("workoutList").innerHTML=html;
+}
+function toggleWorkout(k){
+  const l=dayLog();
+  if(!l.workouts) l.workouts={};
+  l.workouts[k]=!l.workouts[k];
+  save(); renderWorkout();
+  toast(l.workouts[k]?"💪 כל הכבוד! אימון סומן":"הסימון בוטל");
+}
+
 /* ---------- הגדרות ---------- */
 function renderSettings(){
   const g=S.goal||{cal:2000,prot:120,carb:200,fat:65,water:2500};
@@ -959,12 +1080,6 @@ function renderSettings(){
   document.getElementById("remWaterHrs").value=r.waterHrs||2;
   document.getElementById("remMeals").checked=!!r.meals;
   document.getElementById("remFast").checked=!!r.fast;
-  // custom foods list
-  const cl=document.getElementById("customList");
-  if(!S.customFoods.length){ cl.innerHTML=`<div class="empty">עוד לא הוספת מזונות משלך</div>`; }
-  else cl.innerHTML=S.customFoods.map((f,i)=>
-    `<div class="fitem"><div><div class="fn">${esc(f.n)}</div><div class="fq">${f.cal} קל׳ ל-100 ג׳</div></div>
-      <button class="del" onclick="delCustomFood(${i})">🗑️</button></div>`).join("");
 }
 function saveGoals(){
   S.goal={
