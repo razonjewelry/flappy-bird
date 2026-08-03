@@ -1,6 +1,7 @@
-/* Service worker — cache the app shell so it opens offline.
+/* Service worker — network-first (so updates always load when online),
+   with cache fallback so the app still opens offline.
    OCR (Tesseract from CDN) still needs network on first use; paste mode works offline. */
-const CACHE = 'rz-leads-v1';
+const CACHE = 'rz-leads-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -24,12 +25,12 @@ self.addEventListener('activate', (e) => {
   );
 });
 
+// Network-first: try the network, update the cache, fall back to cache offline.
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;
   e.respondWith(
-    caches.match(req).then((hit) => hit || fetch(req).then((res) => {
-      // שמור בקאש רק בקשות same-origin (לא ה-CDN), לגיבוי אופליין.
+    fetch(req).then((res) => {
       try {
         const u = new URL(req.url);
         if (u.origin === self.location.origin) {
@@ -38,6 +39,6 @@ self.addEventListener('fetch', (e) => {
         }
       } catch (_) { /* ignore */ }
       return res;
-    }).catch(() => caches.match('./index.html')))
+    }).catch(() => caches.match(req).then((hit) => hit || caches.match('./index.html')))
   );
 });
