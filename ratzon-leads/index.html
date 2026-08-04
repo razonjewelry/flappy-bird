@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#0f0f12">
+<title>לידים → וואטסאפ · רצון תכשיטים</title>
+<!-- PWA -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="לידים וואטסאפ">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="apple-touch-icon" href="icon-180.png">
+<style>
+  :root{
+    --bg:#0f0f12; --surface:#17171c; --surface-2:#1e1e25; --line:#2a2a33;
+    --txt:#f3f1ec; --muted:#9a97a3; --gold:#c9a24b; --gold-soft:#e6c877;
+    --accent:#c9a24b; --good:#4caf7d; --bad:#e0685f; --wa:#25d366;
+    --radius:16px; --shadow:0 8px 30px rgba(0,0,0,.35);
+  }
+  :root.light{
+    --bg:#f4f2ee; --surface:#ffffff; --surface-2:#f7f5f0; --line:#e6e1d8;
+    --txt:#1c1a17; --muted:#7a756b; --gold:#a8842f; --gold-soft:#b8933a;
+    --accent:#a8842f; --shadow:0 8px 30px rgba(120,100,60,.12);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'Heebo','Segoe UI',system-ui,-apple-system,sans-serif;
+    background:var(--bg); color:var(--txt); line-height:1.5;
+    font-size:16px; transition:background .3s,color .3s; padding-bottom:40px;
+  }
+  .wrap{max-width:720px; margin:0 auto; padding:16px}
+
+  header{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:8px 0 18px}
+  .brand{display:flex; align-items:center; gap:10px}
+  .brand .logo{width:40px;height:40px;border-radius:12px;
+    background:linear-gradient(135deg,var(--gold),var(--gold-soft));
+    display:grid;place-items:center;font-size:20px;box-shadow:var(--shadow)}
+  .brand h1{font-size:18px; margin:0; font-weight:700; letter-spacing:.2px}
+  .brand p{font-size:12px; margin:0; color:var(--muted)}
+  .theme-btn{background:var(--surface); border:1px solid var(--line); color:var(--txt);
+    width:42px;height:42px;border-radius:12px;font-size:18px;cursor:pointer;transition:.2s}
+  .theme-btn:active{transform:scale(.92)}
+
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    padding:18px; margin-bottom:16px; box-shadow:var(--shadow)}
+  .card h2{font-size:15px; margin:0 0 14px; display:flex; align-items:center; gap:8px; font-weight:700}
+  .card h2 .ic{color:var(--gold)}
+
+  .field{display:flex; flex-direction:column; gap:6px; margin-bottom:12px}
+  label{font-size:12.5px; color:var(--muted); font-weight:500}
+  input,select,textarea{
+    width:100%; background:var(--surface-2); border:1px solid var(--line);
+    color:var(--txt); border-radius:12px; padding:12px 13px; font-size:16px;
+    font-family:inherit; transition:border .15s,box-shadow .15s; outline:none;
+  }
+  select{cursor:pointer}
+  input:focus,select:focus,textarea:focus{border-color:var(--gold); box-shadow:0 0 0 3px rgba(201,162,75,.15)}
+  textarea{resize:vertical; min-height:90px; line-height:1.6}
+  .hint{font-size:11.5px; color:var(--muted); margin-top:4px}
+
+  .seg{display:flex; background:var(--surface-2); border:1px solid var(--line);
+    border-radius:12px; padding:4px; gap:4px; margin-bottom:14px}
+  .seg button{flex:1; border:none; background:transparent; color:var(--muted);
+    padding:11px 8px; border-radius:9px; font-size:14px; font-weight:600;
+    cursor:pointer; font-family:inherit; transition:.18s}
+  .seg button.on{background:var(--gold); color:#1a1206; box-shadow:0 2px 8px rgba(201,162,75,.35)}
+
+  .btn{border:none; border-radius:12px; padding:13px 16px; font-size:15px; font-weight:700;
+    cursor:pointer; font-family:inherit; transition:.18s; width:100%; display:flex;
+    align-items:center; justify-content:center; gap:8px}
+  .btn:active{transform:scale(.98)}
+  .btn.gold{background:linear-gradient(135deg,var(--gold),var(--gold-soft)); color:#1a1206}
+  .btn.wa{background:var(--wa); color:#04310f; font-size:17px; padding:16px}
+  .btn.ghost{background:var(--surface-2); color:var(--txt); border:1px solid var(--line)}
+  .btn:disabled{opacity:.45; cursor:not-allowed}
+  .btn-row{display:flex; gap:10px; margin-top:6px}
+
+  .drop{border:2px dashed var(--line); border-radius:14px; padding:26px 16px; text-align:center;
+    cursor:pointer; transition:.18s; background:var(--surface-2)}
+  .drop:hover{border-color:var(--gold)}
+  .drop .big{font-size:30px; margin-bottom:6px}
+  .drop p{margin:4px 0; font-size:13.5px; color:var(--muted)}
+  #preview{max-width:100%; max-height:260px; border-radius:10px; margin-top:12px; display:none; cursor:zoom-in}
+  .lightbox{position:fixed; inset:0; background:rgba(0,0,0,.92); display:flex; align-items:center;
+    justify-content:center; z-index:100; padding:14px; cursor:zoom-out}
+  .lightbox img{max-width:100%; max-height:100%; border-radius:8px}
+
+  .prog{height:8px; background:var(--surface-2); border-radius:6px; overflow:hidden; margin-top:12px; display:none}
+  .prog span{display:block; height:100%; width:0; background:var(--gold); transition:width .2s}
+
+  .status{font-size:13px; padding:10px 12px; border-radius:10px; margin-top:10px; display:none}
+  .status.ok{background:rgba(76,175,125,.12); color:var(--good); border:1px solid rgba(76,175,125,.3); display:block}
+  .status.warn{background:rgba(224,104,95,.12); color:var(--bad); border:1px solid rgba(224,104,95,.3); display:block}
+
+  .phone-preview{font-size:12.5px; color:var(--good); font-variant-numeric:tabular-nums; min-height:16px}
+  .phone-preview.bad{color:var(--bad)}
+
+  details{margin-top:6px}
+  details summary{cursor:pointer; font-size:13px; color:var(--muted); padding:6px 0}
+  .foot{text-align:center; font-size:11.5px; color:var(--muted); margin-top:18px; line-height:1.7}
+  .hidden{display:none !important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="logo">💎</div>
+      <div>
+        <h1>לידים → וואטסאפ</h1>
+        <p>רצון תכשיטים · שליחה ידנית, אפס סיכון</p>
+      </div>
+    </div>
+    <button class="theme-btn" id="themeBtn" title="מצב כהה/בהיר">🌙</button>
+  </header>
+
+  <!-- שלב 1: הזנת הליד -->
+  <div class="card">
+    <h2><span class="ic">①</span> הזנת הליד</h2>
+    <div class="seg">
+      <button id="tabPaste" class="on">📋 הדבקת טקסט</button>
+      <button id="tabPhoto">📷 צילום מסך</button>
+    </div>
+
+    <!-- מצב הדבקה -->
+    <div id="panePaste">
+      <div class="field">
+        <label>הדבק כאן את גוף המייל של הליד</label>
+        <textarea id="pasteBox" placeholder="שם: ...&#10;אימייל: ...&#10;טלפון: ...&#10;קישור לעמוד: ..." style="min-height:130px"></textarea>
+      </div>
+      <button class="btn gold" id="analyzePaste">🔍 נתח ליד</button>
+    </div>
+
+    <!-- מצב צילום מסך -->
+    <div id="panePhoto" class="hidden">
+      <div class="drop" id="drop">
+        <div class="big">🖼️</div>
+        <p><b>בחר צילום מסך מהגלריה</b></p>
+        <p>או צלם עכשיו — שתי האפשרויות ייפתחו</p>
+      </div>
+      <input type="file" id="fileInput" accept="image/*" class="hidden">
+      <img id="preview" alt="תצוגה מקדימה">
+      <div class="hint" id="previewHint" style="display:none; text-align:center">🔍 לחץ על התמונה להגדלה</div>
+      <div class="prog" id="prog"><span id="progBar"></span></div>
+      <div class="status" id="ocrStatus"></div>
+      <details id="ocrRawWrap" style="display:none">
+        <summary>👁️ טקסט שזוהה מהתמונה (להעתקה/תיקון)</summary>
+        <textarea id="ocrRaw" readonly style="min-height:110px; margin-top:8px"></textarea>
+      </details>
+      <p class="hint">💡 שם וטלפון נקלטים טוב מצילום מסך ברור. הקישור למוצר לרוב לא נקלט — הדבק אותו ידנית בשדה למטה.</p>
+    </div>
+  </div>
+
+  <!-- שלב 2: פרטי הליד (ניתן לעריכה) -->
+  <div class="card">
+    <h2><span class="ic">②</span> פרטי הליד <span class="hint" style="margin-inline-start:auto">ניתן לעריכה</span></h2>
+    <div class="status" id="leadStatus"></div>
+    <div class="field">
+      <label>שם</label>
+      <input id="fName" placeholder="שם הלקוח">
+    </div>
+    <div class="field">
+      <label>טלפון</label>
+      <input id="fPhone" placeholder="05X-XXXXXXX" inputmode="tel">
+      <div class="phone-preview" id="phonePreview"></div>
+    </div>
+    <div class="field">
+      <label>קישור למוצר (לא חובה)</label>
+      <input id="fLink" placeholder="https://www.razon.co.il/...">
+    </div>
+  </div>
+
+  <!-- שלב 3: ההודעה -->
+  <div class="card">
+    <h2><span class="ic">③</span> ההודעה ללקוח</h2>
+    <div class="field">
+      <label>בחר נוסח מוכן</label>
+      <select id="presetSel"></select>
+    </div>
+    <div class="field">
+      <textarea id="msgBox" style="min-height:150px"></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn ghost" id="rebuild">↻ בנה מחדש</button>
+      <button class="btn ghost" id="copyMsg">📄 העתק</button>
+    </div>
+
+    <details>
+      <summary>⚙️ עריכת הנוסחים</summary>
+      <div class="field" style="margin-top:10px">
+        <label>עריכת הנוסח הנבחר — <code>{שם}</code> ו-<code>{קישור}</code></label>
+        <textarea id="tmplBox" style="min-height:150px"></textarea>
+        <div class="hint">נשמר אוטומטית במכשיר. <code>{קישור}</code> מופיע רק כשיש קישור למוצר.</div>
+      </div>
+      <div class="btn-row">
+        <button class="btn ghost" id="addPreset">➕ נוסח חדש</button>
+        <button class="btn ghost" id="delPreset">🗑️ מחק נוסח נבחר</button>
+      </div>
+    </details>
+  </div>
+
+  <!-- הגדלת תמונה -->
+  <div id="lightbox" class="lightbox hidden"><img id="lightboxImg" src="" alt=""></div>
+
+  <!-- שלב 4: שליחה -->
+  <button class="btn wa" id="sendWa" disabled>📲 פתח וואטסאפ עם ההודעה</button>
+
+  <div class="foot">
+    ההודעה נפתחת מוכנה בוואטסאפ — <b>אתה</b> לוחץ שלח.<br>
+    שום דבר לא נשלח אוטומטית · אפס סיכון חסימה · הכל נשאר במכשיר שלך.
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script>
+(function(){
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+
+  const DEFAULT_PRESETS = [
+    { name: 'כללי', text:
+`היי {שם} 😊
+קיבלנו את הפנייה שלך מהאתר של רצון תכשיטים 🙏
+{קישור}
+נשמח לעזור ולענות על כל שאלה, ולהתאים לך בדיוק את מה שחיפשת 💍
+מה הכי משך את העין?` },
+    { name: 'מוצר ספציפי', text:
+`היי {שם} 😊
+כאן רצון תכשיטים 🙏
+{קישור}
+יש עליו שאלה? נשמח לעזור, לספר עוד ולהתאים בדיוק בשבילך 💍` },
+    { name: 'פנייה כללית (לא מוצר מסוים)', text:
+`היי {שם} 😊
+ראינו שהשארת פרטים באתר של רצון תכשיטים 🙏
+נשמח לשמוע איך נוכל לעזור — מחפש/ת משהו מסוים, או שנשמח להתאים לך משהו במיוחד? 💍` },
+    { name: 'קצר וחם', text:
+`היי {שם}! 😊
+כאן מרצון תכשיטים — ראינו שהשארת פרטים.
+אשמח לעזור, מה חיפשת? 💍` },
+  ];
+
+  // ---------- ערכת נושא ----------
+  const root = document.documentElement;
+  if (localStorage.getItem('rz_theme') === 'light') root.classList.add('light');
+  const syncThemeIcon = () => $('themeBtn').textContent = root.classList.contains('light') ? '☀️' : '🌙';
+  syncThemeIcon();
+  $('themeBtn').onclick = () => {
+    root.classList.toggle('light');
+    localStorage.setItem('rz_theme', root.classList.contains('light') ? 'light' : 'dark');
+    syncThemeIcon();
+  };
+
+  // ---------- נוסחים מוכנים ----------
+  function loadPresets(){
+    try { const p = JSON.parse(localStorage.getItem('rz_presets') || 'null'); if (Array.isArray(p) && p.length) return p; } catch (_) {}
+    return DEFAULT_PRESETS.map((p) => ({ ...p }));
+  }
+  let presets = loadPresets();
+  let activeIdx = Math.min(Math.max(0, Number(localStorage.getItem('rz_active') || 0) || 0), presets.length - 1);
+  function savePresets(){ localStorage.setItem('rz_presets', JSON.stringify(presets)); localStorage.setItem('rz_active', String(activeIdx)); }
+  function refreshPresetUI(){
+    const sel = $('presetSel'); sel.innerHTML = '';
+    presets.forEach((p, i) => { const o = document.createElement('option'); o.value = String(i); o.textContent = p.name; sel.appendChild(o); });
+    sel.value = String(activeIdx);
+    $('tmplBox').value = presets[activeIdx].text;
+  }
+  $('presetSel').addEventListener('change', () => {
+    activeIdx = Number($('presetSel').value);
+    $('tmplBox').value = presets[activeIdx].text;
+    savePresets(); buildMessage();
+  });
+  $('tmplBox').addEventListener('input', () => { presets[activeIdx].text = $('tmplBox').value; savePresets(); });
+  $('addPreset').addEventListener('click', () => {
+    const name = prompt('שם הנוסח החדש:', 'נוסח חדש');
+    if (!name || !name.trim()) return;
+    presets.push({ name: name.trim(), text: 'היי {שם} 😊\n' });
+    activeIdx = presets.length - 1; savePresets(); refreshPresetUI(); buildMessage();
+  });
+  $('delPreset').addEventListener('click', () => {
+    if (presets.length <= 1) { alert('חייב להישאר לפחות נוסח אחד.'); return; }
+    if (!confirm('למחוק את הנוסח "' + presets[activeIdx].name + '"?')) return;
+    presets.splice(activeIdx, 1); activeIdx = 0; savePresets(); refreshPresetUI(); buildMessage();
+  });
+  refreshPresetUI();
+
+  // ---------- מעבר בין מצבי הזנה ----------
+  $('tabPaste').onclick = () => switchTab('paste');
+  $('tabPhoto').onclick = () => switchTab('photo');
+  function switchTab(which){
+    const paste = which === 'paste';
+    $('tabPaste').classList.toggle('on', paste);
+    $('tabPhoto').classList.toggle('on', !paste);
+    $('panePaste').classList.toggle('hidden', !paste);
+    $('panePhoto').classList.toggle('hidden', paste);
+  }
+
+  // ---------- פרסור ----------
+  function grab(text, label){
+    const m = text.match(new RegExp('^\\s*' + label + '\\s*:\\s*(.+?)\\s*$', 'm'));
+    return m ? m[1].trim() : null;
+  }
+
+  // נרמול טלפון ישראלי -> ספרות בינלאומיות (972XXXXXXXXX) עבור wa.me
+  function normalizePhone(raw){
+    if (!raw) return null;
+    let d = String(raw).replace(/[^\d]/g, '');
+    if (d.startsWith('972')) { /* כבר בינלאומי */ }
+    else if (d.startsWith('0')) d = '972' + d.slice(1);
+    else if (d.length === 9) d = '972' + d;
+    else return null;
+    return /^972\d{9}$/.test(d) ? d : null;
+  }
+
+  // חילוץ שם: תוויות רגילות, ואם ה-OCR פספס נקודתיים — גם "שם מלא רינת גונן".
+  function findName(text){
+    const byLabel = grab(text, 'שם מלא') || grab(text, 'שם');
+    if (byLabel) return byLabel;
+    // ה-OCR לפעמים מפספס נקודתיים או הופך סדר מילים. נחפש שורה שמכילה "שם",
+    // נקלף ממנה את מילות התווית והפיסוק — מה שנשאר בעברית הוא כנראה השם.
+    for (const ln of text.split(/\r?\n/)) {
+      if (!/שם/.test(ln)) continue;
+      if (/(firstname|lastname|email|אימייל)/i.test(ln)) continue;
+      const s = ln
+        .replace(/שם\s*מלא|שם|טלפון|נייד|מלא/g, ' ')
+        .replace(/[^֐-׿'"׳״\s]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+      if (s.length >= 2) return s;
+    }
+    return null;
+  }
+
+  // חילוץ טלפון גמיש: קודם לפי תווית, ואם אין — מחפש מספר נייד ישראלי בכל הטקסט
+  // (עמיד לרווחים/מקפים שה-OCR מוסיף). דורש קידומת 5 כדי לא לתפוס תאריכים/IP/מזהים.
+  function findPhone(text){
+    const byLabel = grab(text, 'טלפון נייד') || grab(text, 'טלפון') || grab(text, 'נייד');
+    if (byLabel && normalizePhone(byLabel)) return byLabel;
+    const runs = (text.match(/[\d][\d\s\-\.]{6,}\d/g) || []).map((s) => s.replace(/[^\d]/g, ''));
+    const hit = runs.find((d) => /^0?5\d{8}$/.test(d) || /^9725\d{8}$/.test(d) || /^\+?9725\d{8}$/.test(d));
+    return hit || byLabel || null;
+  }
+
+  let blocked = false; // true כשזוהה מייל מועדון — חוסם שליחה בטעות.
+
+  // מפרסר טקסט (מהדבקה או מ-OCR) וממלא את השדות
+  function parseAndFill(text){
+    const name = findName(text);
+    const phone = findPhone(text);
+    const link = grab(text, 'קישור לעמוד');
+    // איפוס שדות בכל ניתוח חדש כדי שלא יישארו ערכים מליד קודם.
+    $('fName').value = name || '';
+    $('fPhone').value = phone || '';
+    $('fLink').value = link || '';
+    const kind = classify(text, { name, phone });
+    blocked = (kind === 'club');
+    refreshPhone();
+    buildMessage();
+    setLeadStatus(kind);
+    return { name, phone, link };
+  }
+
+  // מסווג את סוג המייל כדי לתת משוב ברור (ולמנוע שליחה בטעות למועדון).
+  function classify(text, got){
+    if (/(^|\n)\s*(firstname|lastname|cellphone|viplists)\s*:/i.test(text)) return 'club';
+    if (got.name && got.phone) return 'lead';
+    if (got.name || got.phone) return 'partial';
+    return 'none';
+  }
+  function setLeadStatus(kind){
+    const el = $('leadStatus');
+    const map = {
+      club:    ['warn', '🛈 זו הצטרפות למועדון לקוחות — לא ליד. אין צורך לשלוח.'],
+      lead:    ['ok',   '✅ ליד זוהה — בדוק ושלח.'],
+      partial: ['warn', '⚠️ זוהה חלקית — השלם/ערוך את השדות למטה.'],
+      none:    ['warn', '⚠️ לא זוהו פרטים — ודא שהזנת את גוף המייל, או מלא ידנית.'],
+    };
+    const [cls, txt] = map[kind] || map.none;
+    el.className = 'status ' + cls;
+    el.textContent = txt;
+  }
+
+  // ---------- שדות ----------
+  function refreshPhone(){
+    const norm = normalizePhone($('fPhone').value);
+    const el = $('phonePreview');
+    if (!$('fPhone').value.trim()){ el.textContent = ''; el.classList.remove('bad'); }
+    else if (norm){ el.textContent = '✓ יישלח אל: +' + norm; el.classList.remove('bad'); }
+    else { el.textContent = '✗ מספר לא תקין'; el.classList.add('bad'); }
+    updateSendState();
+  }
+
+  function buildMessage(){
+    const name = $('fName').value.trim();
+    const link = $('fLink').value.trim();
+    let tmpl = $('tmplBox').value || DEFAULT_PRESETS[0].text;
+    const linkText = link ? ('לגבי הפריט שראית:\n' + link) : '';
+    let msg = tmpl.replace(/\{שם\}/g, name).replace(/\{קישור\}/g, linkText);
+    msg = msg.replace(/\n{3,}/g, '\n\n').replace(/[ \t]+\n/g, '\n').trim();
+    $('msgBox').value = msg;
+    updateSendState();
+  }
+
+  function updateSendState(){
+    const ok = !blocked && !!normalizePhone($('fPhone').value) && $('msgBox').value.trim().length > 0;
+    $('sendWa').disabled = !ok;
+  }
+
+  // עדכון חי כשעורכים שדות
+  $('fName').addEventListener('input', buildMessage);
+  $('fLink').addEventListener('input', buildMessage);
+  $('fPhone').addEventListener('input', refreshPhone);
+  $('msgBox').addEventListener('input', updateSendState);
+  $('rebuild').onclick = buildMessage;
+
+  // ---------- הדבקה ----------
+  $('analyzePaste').onclick = () => {
+    const text = $('pasteBox').value;
+    if (!text.trim()){ alert('הדבק קודם את גוף המייל'); return; }
+    parseAndFill(text);
+    $('leadStatus').scrollIntoView({ block: 'center', behavior: 'smooth' });
+  };
+
+  // ---------- צילום מסך + OCR ----------
+  $('drop').onclick = () => $('fileInput').click();
+  $('fileInput').onchange = (e) => { if (e.target.files[0]) runOCR(e.target.files[0]); };
+
+  // הגדלת התמונה בלחיצה (כדי לקרוא ולתקן פרטים ידנית)
+  $('preview').addEventListener('click', () => {
+    if (!$('preview').src) return;
+    $('lightboxImg').src = $('preview').src;
+    $('lightbox').classList.remove('hidden');
+  });
+  $('lightbox').addEventListener('click', () => $('lightbox').classList.add('hidden'));
+
+  function loadImage(file){
+    return new Promise((res, rej) => {
+      const i = new Image();
+      i.onload = () => res(i);
+      i.onerror = rej;
+      i.src = URL.createObjectURL(file);
+    });
+  }
+
+  // עיבוד מקדים: הגדלה ל~1600px + שחור-לבן + הגברת ניגודיות — משפר מאוד את ה-OCR.
+  async function preprocess(file){
+    const img = await loadImage(file);
+    const minSide = Math.min(img.width, img.height) || 1;
+    const scale = Math.min(3, Math.max(1, 1600 / minSide));
+    const w = Math.round(img.width * scale), h = Math.round(img.height * scale);
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    const ctx = c.getContext('2d');
+    ctx.drawImage(img, 0, 0, w, h);
+    try {
+      const id = ctx.getImageData(0, 0, w, h), d = id.data;
+      for (let i = 0; i < d.length; i += 4){
+        let g = 0.299 * d[i] + 0.587 * d[i+1] + 0.114 * d[i+2];
+        g = g < 145 ? Math.max(0, g - 35) : Math.min(255, g + 35); // ניגודיות
+        d[i] = d[i+1] = d[i+2] = g;
+      }
+      ctx.putImageData(id, 0, 0);
+    } catch (_) { /* אם getImageData נחסם — נשלח את הקנבס כמו שהוא */ }
+    return c;
+  }
+
+  async function runOCR(file){
+    const img = $('preview'); img.src = URL.createObjectURL(file); img.style.display = 'block';
+    $('previewHint').style.display = 'block';
+    $('prog').style.display = 'block';
+    $('progBar').style.width = '0';
+    setStatus('ok', '🔎 קורא את התמונה... (בפעם הראשונה זה לוקח כמה שניות)');
+    try {
+      const source = await preprocess(file).catch(() => file);
+      const { data } = await Tesseract.recognize(source, 'heb+eng', {
+        logger: (m) => {
+          if (m.status === 'recognizing text') $('progBar').style.width = Math.round(m.progress*100) + '%';
+        }
+      });
+      $('progBar').style.width = '100%';
+      const raw = (data.text || '').trim();
+      $('ocrRaw').value = raw;
+      $('ocrRawWrap').style.display = raw ? 'block' : 'none';
+      const r = parseAndFill(raw);
+      if (!r.name && !r.phone){
+        setStatus('warn', '⚠️ לא זוהו פרטים. פתח "טקסט שזוהה" למטה להעתקה ידנית, או נסה צילום ברור/גדול יותר.');
+      } else {
+        setStatus('', '');
+      }
+    } catch (err){
+      setStatus('warn', '❌ קריאת התמונה נכשלה: ' + err.message);
+    } finally {
+      setTimeout(() => { $('prog').style.display = 'none'; $('progBar').style.width = '0'; }, 800);
+    }
+  }
+  function setStatus(kind, text){
+    const el = $('ocrStatus');
+    el.className = 'status' + (kind ? ' ' + kind : '');
+    el.textContent = text;
+    if (!kind) el.style.display = 'none';
+  }
+
+  // ---------- העתקה ----------
+  $('copyMsg').onclick = async () => {
+    try { await navigator.clipboard.writeText($('msgBox').value); flash($('copyMsg'), '✓ הועתק'); }
+    catch { alert('ההעתקה נכשלה — סמן והעתק ידנית.'); }
+  };
+  function flash(btn, txt){
+    const old = btn.textContent; btn.textContent = txt;
+    setTimeout(() => btn.textContent = old, 1400);
+  }
+
+  // ---------- פתיחת וואטסאפ (wa.me) ----------
+  $('sendWa').onclick = () => {
+    const num = normalizePhone($('fPhone').value);
+    if (!num){ alert('מספר טלפון לא תקין'); return; }
+    const text = encodeURIComponent($('msgBox').value);
+    window.open('https://wa.me/' + num + '?text=' + text, '_blank');
+  };
+
+  // אתחול
+  buildMessage();
+})();
+
+// ---------- PWA: רישום service worker (עבודה אופליין) ----------
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>

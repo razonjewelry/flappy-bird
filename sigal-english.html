@@ -1,0 +1,2334 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>אנגלית בשבילך, סיגל 🌸</title>
+
+<!-- PWA: lets the page be installed to the home screen as a real app -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#2a9d8f">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="אנגלית לסיגל">
+<style>
+  /* ============================================================
+     "English for Sigal" — calm, senior-friendly Hebrew-guided app
+     Single file. No dependencies. dir=rtl, lang=he.
+     ============================================================ */
+
+  :root {
+    --teal:        #2a9d8f;
+    --teal-dark:   #218075;
+    --teal-soft:   #d7f0ec;
+    --cream:       #fbf7ef;
+    --ink:         #2f3e46;
+    --ink-soft:    #5b6b73;
+    --coral:       #ef8354;
+    --coral-dark:  #d96a3c;
+    --gold:        #e9b949;
+    --gold-dark:   #c99a2e;
+    --good:        #2a9d8f;
+    --soft-shadow: 0 6px 18px rgba(47,62,70,.10);
+    --radius:      22px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { min-height: 100%; }
+  body {
+    font-family: "Segoe UI", "Assistant", "Varela Round", Arial, sans-serif;
+    background: linear-gradient(170deg, #f6efe3 0%, var(--cream) 45%, #eef7f5 100%);
+    color: var(--ink);
+    font-size: 20px;
+    line-height: 1.45;
+    display: flex;
+    justify-content: center;
+    padding: 18px;
+    min-height: 100vh;
+  }
+
+  #app {
+    width: 100%;
+    max-width: 640px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ---------- Screens ---------- */
+  .screen { display: none; flex-direction: column; animation: fade .35s ease; }
+  .screen.active { display: flex; }
+  @keyframes fade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+  /* ---------- Top bar ---------- */
+  .topbar { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+  .topbar h2 { font-size: 28px; color: var(--teal-dark); flex: 1; text-align: center; font-weight: 800; }
+  .iconbtn {
+    width: 60px; height: 60px; border: none; border-radius: 18px; flex-shrink: 0;
+    background: #fff; box-shadow: var(--soft-shadow); font-size: 26px; cursor: pointer;
+    transition: transform .1s, box-shadow .1s; color: var(--ink);
+  }
+  .iconbtn:hover { transform: translateY(-2px); }
+  .iconbtn:active { transform: translateY(1px); }
+  .pill {
+    background: #fff; border-radius: 16px; padding: 12px 18px; font-weight: 800;
+    color: var(--teal-dark); box-shadow: var(--soft-shadow); font-size: 19px; white-space: nowrap;
+  }
+
+  /* ---------- Buttons (shared) ---------- */
+  .btn {
+    border: none; border-radius: var(--radius); cursor: pointer; font-weight: 800;
+    color: #fff; min-height: 64px; padding: 16px 26px; font-size: 23px;
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    box-shadow: 0 6px 0 rgba(0,0,0,.14); transition: transform .1s, box-shadow .1s;
+    font-family: inherit;
+  }
+  .btn:hover { filter: brightness(1.03); }
+  .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,.14); }
+  .btn:focus-visible { outline: 4px solid #ffce6e; outline-offset: 3px; }
+  .btn-teal  { background: linear-gradient(160deg, #34b3a3, var(--teal)); }
+  .btn-coral { background: linear-gradient(160deg, #f59264, var(--coral)); }
+  .btn-gold  { background: linear-gradient(160deg, #f1c45f, var(--gold)); color: #5a4410; }
+  .btn-ghost { background: #fff; color: var(--teal-dark); box-shadow: var(--soft-shadow); }
+  .btn-block { width: 100%; }
+  .btn .ic { font-size: 30px; }
+
+  /* ---------- Welcome ---------- */
+  #welcome { align-items: center; text-align: center; padding-top: 22px; }
+  .flower { font-size: 80px; animation: sway 4s ease-in-out infinite; }
+  @keyframes sway { 0%,100% { transform: rotate(-6deg); } 50% { transform: rotate(6deg); } }
+  .welcome-card {
+    background: #fff; border-radius: 30px; box-shadow: var(--soft-shadow);
+    padding: 34px 26px; margin: 18px 0 26px; width: 100%;
+  }
+  .welcome-card h1 { font-size: 38px; color: var(--teal-dark); margin-bottom: 6px; }
+  .welcome-card .name-en { font-size: 20px; color: var(--coral); letter-spacing: 3px; font-weight: 800; }
+  .welcome-card p { font-size: 22px; color: var(--ink-soft); margin-top: 16px; }
+  .audio-note { font-size: 17px; color: var(--ink-soft); margin-top: 14px; opacity: .9; }
+
+  /* ---------- Level map ---------- */
+  .intro-line { font-size: 21px; color: var(--ink-soft); text-align: center; margin-bottom: 18px; }
+  .levels { display: flex; flex-direction: column; gap: 16px; }
+  .level-card {
+    background: #fff; border-radius: var(--radius); box-shadow: var(--soft-shadow);
+    padding: 20px 20px; display: flex; align-items: center; gap: 18px; cursor: pointer;
+    border: 3px solid transparent; transition: transform .1s, border-color .15s; text-align: right;
+    width: 100%; font-family: inherit; color: var(--ink);
+  }
+  .level-card:hover { transform: translateY(-2px); }
+  .level-card:active { transform: translateY(1px); }
+  .level-card:focus-visible { outline: 4px solid #ffce6e; outline-offset: 2px; }
+  .level-card .num {
+    width: 64px; height: 64px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 30px; font-weight: 900; color: #fff; background: var(--teal);
+  }
+  .level-card .meta { flex: 1; min-width: 0; }
+  .level-card .meta .ttl { font-size: 23px; font-weight: 800; color: var(--ink); }
+  .level-card .meta .thm { font-size: 18px; color: var(--coral); font-weight: 700; }
+  .level-card .meta .dsc { font-size: 17px; color: var(--ink-soft); margin-top: 2px; }
+  .level-card .state { font-size: 30px; flex-shrink: 0; }
+  .level-card.locked { opacity: .62; cursor: not-allowed; }
+  .level-card.locked .num { background: #b9c4c9; }
+  .level-card.done { border-color: var(--teal); }
+  .level-card.done .num { background: var(--gold); color: #5a4410; }
+
+  /* ---------- Level menu ---------- */
+  .menu-head {
+    background: #fff; border-radius: var(--radius); box-shadow: var(--soft-shadow);
+    padding: 22px; text-align: center; margin-bottom: 20px;
+  }
+  .menu-head .thm { font-size: 22px; color: var(--coral); font-weight: 800; }
+  .menu-head .dsc { font-size: 20px; color: var(--ink-soft); margin-top: 8px; }
+  .menu-head .best { font-size: 17px; color: var(--teal-dark); margin-top: 12px; font-weight: 700; }
+  .menu-btns { display: flex; flex-direction: column; gap: 16px; }
+  .menu-sub { font-size: 16px; font-weight: 600; opacity: .92; }
+  .menu-btn-wrap { display: flex; flex-direction: column; gap: 6px; }
+  .menu-btn-wrap .hint { font-size: 16px; color: var(--ink-soft); text-align: center; }
+
+  /* ---------- Learning flashcards ---------- */
+  .stage { flex: 1; display: flex; flex-direction: column; align-items: center; }
+  .flashcard {
+    background: #fff; border-radius: 28px; box-shadow: var(--soft-shadow);
+    width: 100%; padding: 30px 24px; display: flex; flex-direction: column;
+    align-items: center; gap: 10px; animation: pop .3s ease; cursor: pointer;
+  }
+  @keyframes pop { from { transform: scale(.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .flashcard .emoji { font-size: 96px; line-height: 1; }
+  .flashcard .en { font-size: 42px; font-weight: 900; color: var(--teal-dark); text-align: center; }
+  .flashcard .say { font-size: 21px; color: var(--coral); font-weight: 700; }
+  .flashcard .he { font-size: 26px; color: var(--ink); font-weight: 700; }
+  .flashcard .tap { font-size: 16px; color: #9aa7ad; margin-top: 4px; }
+
+  .nav-row { display: flex; align-items: center; gap: 14px; margin-top: 22px; width: 100%; }
+  .nav-row .navbtn {
+    width: 70px; height: 70px; border: none; border-radius: 50%; flex-shrink: 0;
+    background: #fff; box-shadow: var(--soft-shadow); font-size: 32px; cursor: pointer;
+    color: var(--teal-dark); transition: transform .1s;
+  }
+  .nav-row .navbtn:active { transform: translateY(2px); }
+  .nav-row .navbtn:disabled { opacity: .4; cursor: default; }
+  .nav-row .speak {
+    flex: 1; min-height: 70px; border: none; border-radius: var(--radius);
+    background: linear-gradient(160deg, #34b3a3, var(--teal)); color: #fff;
+    font-size: 22px; font-weight: 800; cursor: pointer; box-shadow: 0 5px 0 var(--teal-dark);
+    display: flex; align-items: center; justify-content: center; gap: 10px; font-family: inherit;
+  }
+  .nav-row .speak:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--teal-dark); }
+  .learn-done-row { margin-top: 18px; }
+
+  /* ---------- Test ---------- */
+  .q-card {
+    background: #fff; border-radius: 28px; box-shadow: var(--soft-shadow);
+    padding: 26px 22px; text-align: center; margin-bottom: 18px; animation: pop .3s ease;
+  }
+  .q-prompt { font-size: 21px; color: var(--ink-soft); }
+  .q-target { font-size: 40px; font-weight: 900; color: var(--teal-dark); margin: 10px 0; }
+  .q-target.he-target { color: var(--coral); }
+  .q-emoji { font-size: 72px; }
+  .q-replay {
+    margin-top: 10px; border: none; border-radius: 16px; padding: 12px 22px; cursor: pointer;
+    background: var(--teal-soft); color: var(--teal-dark); font-weight: 800; font-size: 19px;
+    display: inline-flex; align-items: center; gap: 8px; font-family: inherit;
+  }
+  .q-replay:active { transform: translateY(2px); }
+  .options { display: flex; flex-direction: column; gap: 14px; }
+  .opt {
+    background: #fff; border: 3px solid #e7edef; border-radius: var(--radius);
+    box-shadow: var(--soft-shadow); padding: 18px 20px; cursor: pointer; font-size: 26px;
+    font-weight: 800; color: var(--ink); text-align: center; transition: transform .1s, border-color .15s, background .15s;
+    font-family: inherit; min-height: 64px; display: flex; align-items: center; justify-content: center; gap: 10px;
+  }
+  .opt .opt-emoji { font-size: 34px; }
+  .opt:hover { transform: translateY(-2px); }
+  .opt:active { transform: translateY(1px); }
+  .opt:focus-visible { outline: 4px solid #ffce6e; outline-offset: 2px; }
+  .opt.correct { border-color: var(--good); background: #e6f6f3; animation: rightpop .5s ease; }
+  .opt.wrong { border-color: #f0a08a; background: #fdeee8; animation: shake .4s ease; }
+  .opt.disabled { pointer-events: none; opacity: .96; }
+  @keyframes rightpop { 0%{transform:scale(1);} 40%{transform:scale(1.05);} 100%{transform:scale(1);} }
+  @keyframes shake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-8px);} 75%{transform:translateX(8px);} }
+
+  .feedback {
+    min-height: 40px; text-align: center; font-size: 22px; font-weight: 800;
+    margin-top: 16px; transition: opacity .2s;
+  }
+  .feedback.good { color: var(--teal-dark); }
+  .feedback.bad { color: var(--coral-dark); }
+  .test-prog { display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 16px; }
+  .dot { width: 14px; height: 14px; border-radius: 50%; background: #cdd9da; }
+  .dot.cur { background: var(--coral); transform: scale(1.25); }
+  .dot.ok { background: var(--teal); }
+
+  /* ---------- Result ---------- */
+  #result .stage { gap: 16px; text-align: center; padding-top: 14px; }
+  .result-emoji { font-size: 96px; animation: sway 3s ease-in-out infinite; }
+  #result .big { font-size: 34px; font-weight: 900; color: var(--teal-dark); }
+  #result .big .en { display: block; font-size: 26px; color: var(--coral); margin-top: 4px; }
+  #result .stars { font-size: 46px; letter-spacing: 6px; }
+  #result .score { font-size: 24px; font-weight: 800; color: var(--ink); }
+  #result .msg { font-size: 21px; color: var(--ink-soft); max-width: 460px; }
+  .result-btns { display: flex; flex-direction: column; gap: 14px; width: 100%; max-width: 420px; margin-top: 8px; }
+
+  /* ---------- Confetti & burst ---------- */
+  #confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 50; }
+  .conf { position: absolute; width: 12px; height: 16px; border-radius: 3px; top: -20px; animation: fall linear forwards; }
+  @keyframes fall { to { transform: translateY(110vh) rotate(720deg); opacity: .85; } }
+  .burst { position: fixed; font-size: 56px; z-index: 60; pointer-events: none; transform: translate(-50%, -50%); animation: burst .9s ease forwards; }
+  @keyframes burst { 0%{transform:translate(-50%,-50%) scale(.3); opacity:0;} 30%{opacity:1; transform:translate(-50%,-50%) scale(1.2);} 100%{transform:translate(-50%,-150%) scale(1); opacity:0;} }
+
+  @media (max-width: 480px) {
+    body { font-size: 19px; padding: 12px; }
+    .welcome-card h1 { font-size: 32px; }
+    .flashcard .en { font-size: 34px; }
+    .flashcard .emoji { font-size: 78px; }
+    .q-target { font-size: 32px; }
+  }
+
+  #soundTestMsg {
+    min-height: 26px; font-size: 18px; font-weight: 700; text-align: center;
+    color: var(--teal-dark); margin-bottom: 10px;
+  }
+  #verTag { text-align: center; font-size: 14px; color: #9aa7ad; margin-top: 14px; }
+  #mapMsg {
+    font-size: 18px; font-weight: 700; text-align: center; color: var(--coral-dark);
+    background: #fdeee8; border-radius: 14px; margin-bottom: 14px; padding: 0;
+    max-height: 0; overflow: hidden; transition: max-height .25s, padding .25s;
+  }
+  #mapMsg.show { max-height: 120px; padding: 12px 14px; }
+
+  /* "Open in Safari" notice — visible only when JS does NOT run */
+  #noJsWarn {
+    background: #fff3cd; color: #7a5b00; border: 2px solid #e9b949;
+    border-radius: 16px; padding: 16px 18px; margin: 0 auto 16px;
+    max-width: 640px; font-size: 19px; font-weight: 700; line-height: 1.5; text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<!-- Diagnostic: surface any uncaught JS error on screen (helps debug on
+     phones we can't inspect). Runs first, in its own script, so it can also
+     catch parse errors in the main script below. -->
+<script>
+window.addEventListener('error', function (e) {
+  try {
+    var d = document.getElementById('errBox');
+    if (!d) {
+      d = document.createElement('div');
+      d.id = 'errBox';
+      d.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#b00020;color:#fff;padding:10px;font-size:13px;z-index:99999;direction:ltr;text-align:left;white-space:pre-wrap';
+      (document.body || document.documentElement).appendChild(d);
+    }
+    d.textContent = 'JS error: ' + (e.message || '') + (e.filename ? (' @' + e.lineno + ':' + e.colno) : '');
+  } catch (_) {}
+});
+</script>
+
+<!-- Shown ONLY if JavaScript is not running (e.g. the file was opened inside
+     WhatsApp / a file preview instead of a real browser). JS hides it on load. -->
+<div id="noJsWarn">
+  ⚠️ כדי שהמשחק יעבוד צריך לפתוח אותו בדפדפן <b>Safari</b>.<br>
+  לחצו על כפתור השיתוף ⬆️ ואז על <b>"פתח ב-Safari"</b> (Open in Safari).
+</div>
+
+<div id="app">
+
+  <!-- ============ WELCOME ============ -->
+  <section id="welcome" class="screen active">
+    <div class="flower">🌸</div>
+    <div class="welcome-card">
+      <h1>שלום סיגל!</h1>
+      <div class="name-en">SIGAL</div>
+      <p>כמה כיף שאת כאן 💛<br>בואי נלמד אנגלית ביחד — לאט, בנעימים, ובלי שום לחץ.</p>
+      <div class="audio-note">🔊 כדאי להגביר את הקול במכשיר — נשמע יחד איך אומרים את המילים.<br><span style="font-size:15px">באייפון: ודאו שמתג ההשתקה בצד <b>לא</b> דולק (אין כתום) 🔇</span></div>
+    </div>
+    <button class="btn btn-ghost btn-block" id="soundTestBtn" style="margin-bottom:10px"><span class="ic">🔊</span>קודם נבדוק שיש קול</button>
+    <div id="soundTestMsg"></div>
+    <button class="btn btn-coral btn-block" id="startBtn"><span class="ic">🌟</span>בואי נתחיל</button>
+    <div id="verTag">גרסה: 60 שלבים · v60</div>
+  </section>
+
+  <!-- ============ LEVEL MAP ============ -->
+  <section id="map" class="screen">
+    <div class="topbar">
+      <span style="width:60px"></span>
+      <h2>המסע שלך באנגלית</h2>
+      <button class="iconbtn" data-go="welcome" title="דף הבית">🏠</button>
+    </div>
+    <div class="intro-line">בחרי שלב כדי להתחיל. כל שלב נפתח אחרי שמסיימים את הקודם 🙂</div>
+    <div id="mapMsg"></div>
+    <div class="levels" id="levelList"></div>
+  </section>
+
+  <!-- ============ LEVEL MENU ============ -->
+  <section id="menu" class="screen">
+    <div class="topbar">
+      <button class="iconbtn" data-go="map" title="חזרה">↩️</button>
+      <h2 id="menuTitle"></h2>
+      <button class="iconbtn" data-go="welcome" title="דף הבית">🏠</button>
+    </div>
+    <div class="menu-head">
+      <div class="thm" id="menuTheme"></div>
+      <div class="dsc" id="menuDesc"></div>
+      <div class="best" id="menuBest"></div>
+    </div>
+    <div class="menu-btns">
+      <div class="menu-btn-wrap">
+        <button class="btn btn-teal btn-block" id="goLearn">
+          <span class="ic">📖</span><span>ללמוד<span class="menu-sub"> · כרטיסיות</span></span>
+        </button>
+        <div class="hint">קודם נכיר את המילים יחד, בלי מבחן 🌼</div>
+      </div>
+      <div class="menu-btn-wrap">
+        <button class="btn btn-coral btn-block" id="goTest">
+          <span class="ic">✏️</span><span>מבחן קטן<span class="menu-sub"> · נראה מה זכרת</span></span>
+        </button>
+        <div class="hint">כשתרגישי מוכנה — עונים על כמה שאלות ופותחים את השלב הבא 💪</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ LEARNING ============ -->
+  <section id="learn" class="screen">
+    <div class="topbar">
+      <button class="iconbtn" data-go="menu" title="חזרה">↩️</button>
+      <h2>לומדים מילים</h2>
+      <span class="pill" id="learnProg"></span>
+    </div>
+    <div class="stage">
+      <div class="flashcard" id="flashcard"></div>
+      <div class="nav-row">
+        <button class="navbtn" id="prevBtn" title="הקודם">›</button>
+        <button class="speak" id="speakBtn">🔊 שמעו שוב</button>
+        <button class="navbtn" id="nextBtn" title="הבא">‹</button>
+      </div>
+      <div class="learn-done-row" style="width:100%">
+        <button class="btn btn-gold btn-block" id="learnToTest"><span class="ic">✏️</span>אני מוכנה למבחן</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TEST ============ -->
+  <section id="test" class="screen">
+    <div class="topbar">
+      <button class="iconbtn" data-go="menu" title="חזרה">↩️</button>
+      <h2>מבחן קטן</h2>
+      <span class="pill" id="testScore"></span>
+    </div>
+    <div class="test-prog" id="testProg"></div>
+    <div class="q-card" id="qCard"></div>
+    <div class="options" id="options"></div>
+    <div class="feedback" id="feedback"></div>
+  </section>
+
+  <!-- ============ RESULT ============ -->
+  <section id="result" class="screen">
+    <div class="stage">
+      <div class="result-emoji" id="resultEmoji">🌟</div>
+      <div class="big" id="resultBig"></div>
+      <div class="stars" id="resultStars"></div>
+      <div class="score" id="resultScore"></div>
+      <div class="msg" id="resultMsg"></div>
+      <div class="result-btns" id="resultBtns"></div>
+    </div>
+  </section>
+
+</div>
+<div id="confetti"></div>
+
+<script>
+/* ============================================================
+   DATA — 5 progressive levels. Easy to edit / extend.
+   item: { en, he, emoji, say? }   say = what the voice reads (defaults to en)
+   ============================================================ */
+const LEVELS = [
+  {
+    id: 1,
+    title: 'שלב 1 · מילים ראשונות',
+    theme: 'משפחה וברכות · Family & Greetings',
+    desc: 'המילים הכי בסיסיות וחשובות — אנשים שאוהבים וברכות יומיומיות.',
+    mode: 'word',
+    items: [
+      { en: 'Hello',     he: 'שלום / היי',     emoji: '👋' },
+      { en: 'Mother',    he: 'אמא',            emoji: '👩' },
+      { en: 'Father',    he: 'אבא',            emoji: '👨' },
+      { en: 'Family',    he: 'משפחה',          emoji: '👨‍👩‍👧' },
+      { en: 'Yes',       he: 'כן',             emoji: '✅' },
+      { en: 'No',        he: 'לא',             emoji: '❌' },
+      { en: 'Thank you', he: 'תודה',           emoji: '🙏' },
+      { en: 'Water',     he: 'מים',            emoji: '💧' },
+      { en: 'Apple',     he: 'תפוח',           emoji: '🍎' },
+      { en: 'Good',      he: 'טוב',            emoji: '👍' },
+    ]
+  },
+  {
+    id: 2,
+    title: 'שלב 2 · צמדי מילים',
+    theme: 'תיאורים · Adjectives & Pairs',
+    desc: 'עכשיו מחברים שתי מילים יחד — גודל, צבע ומצב.',
+    mode: 'word',
+    items: [
+      { en: 'Big house',     he: 'בית גדול',     emoji: '🏠' },
+      { en: 'Small dog',     he: 'כלב קטן',      emoji: '🐕' },
+      { en: 'Red apple',     he: 'תפוח אדום',    emoji: '🍎' },
+      { en: 'Hot water',     he: 'מים חמים',     emoji: '🔥' },
+      { en: 'Cold water',    he: 'מים קרים',     emoji: '🧊' },
+      { en: 'Good morning',  he: 'בוקר טוב',     emoji: '🌅' },
+      { en: 'Good night',    he: 'לילה טוב',     emoji: '🌙' },
+      { en: 'Happy day',     he: 'יום שמח',      emoji: '😊' },
+      { en: 'Old book',      he: 'ספר ישן',      emoji: '📖' },
+      { en: 'New car',       he: 'מכונית חדשה',  emoji: '🚗' },
+    ]
+  },
+  {
+    id: 3,
+    title: 'שלב 3 · משפטים קצרים',
+    theme: 'משפטים · Short Sentences',
+    desc: 'משפטים שלמים וקצרים שאפשר להגיד כל יום.',
+    mode: 'sentence',
+    items: [
+      { en: 'I love you',        he: 'אני אוהבת אותך',      emoji: '❤️' },
+      { en: 'This is a book',    he: 'זה ספר',              emoji: '📕' },
+      { en: 'I am happy',        he: 'אני שמחה',            emoji: '😄' },
+      { en: 'I am tired',        he: 'אני עייפה',           emoji: '😴' },
+      { en: 'I am hungry',       he: 'אני רעבה',            emoji: '🍽️' },
+      { en: 'What is your name', he: 'מה השם שלך?',         emoji: '🙋' },
+      { en: 'My name is Sigal',  he: 'קוראים לי סיגל',      emoji: '🌸' },
+      { en: 'Where is the door', he: 'איפה הדלת?',          emoji: '🚪' },
+    ]
+  },
+  {
+    id: 4,
+    title: 'שלב 4 · שיחה',
+    theme: 'אוצר מילים ושיחה · Conversation',
+    desc: 'ביטויים מתקדמים יותר לשיחה אמיתית עם אנשים.',
+    mode: 'sentence',
+    items: [
+      { en: 'How are you?',        he: 'מה שלומך?',            emoji: '🤝' },
+      { en: 'I am fine, thank you',he: 'אני בסדר, תודה',       emoji: '😊' },
+      { en: 'Nice to meet you',    he: 'נעים להכיר',           emoji: '👋' },
+      { en: 'Excuse me',           he: 'סליחה / תסלח לי',      emoji: '🙇' },
+      { en: 'How much is it?',     he: 'כמה זה עולה?',         emoji: '💰' },
+      { en: 'I would like coffee', he: 'אני רוצה קפה',         emoji: '☕' },
+      { en: 'See you later',       he: 'נתראה אחר כך',         emoji: '👋' },
+      { en: 'Have a nice day',     he: 'שיהיה לך יום נעים',    emoji: '🌞' },
+    ]
+  },
+  {
+    id: 5,
+    title: 'שלב 5 · חזרה ודיאלוג',
+    theme: 'חזרה ושיחות · Review & Dialogues',
+    desc: 'חזרה על הכל ושיחה קטנה שלמה — את כבר יודעת המון!',
+    mode: 'sentence',
+    items: [
+      { en: 'Hello, how are you?',      he: 'שלום, מה שלומך?',       emoji: '👋' },
+      { en: 'I am fine, thank you',     he: 'אני בסדר, תודה',        emoji: '😊' },
+      { en: 'What would you like?',     he: 'מה תרצי?',              emoji: '🛍️' },
+      { en: 'I would like an apple',    he: 'אני רוצה תפוח',         emoji: '🍎' },
+      { en: 'How much is it?',          he: 'כמה זה עולה?',          emoji: '💰' },
+      { en: 'Thank you very much',      he: 'תודה רבה',              emoji: '🙏' },
+      { en: 'Have a nice day',          he: 'שיהיה לך יום נעים',     emoji: '🌞' },
+      { en: 'Goodbye, see you soon',    he: 'להתראות, נתראה בקרוב',  emoji: '👋' },
+    ]
+  },
+  {
+    id: 6,
+    title: 'שלב 6 · אוצר מילים יומיומי',
+    theme: 'מילים לכל יום · Everyday Vocabulary',
+    desc: 'הרבה מילים חדשות ושימושיות — אוכל, בית, גוף ובגדים. שלב גדול!',
+    mode: 'word',
+    items: [
+      { en: 'Bread',     he: 'לחם',       emoji: '🍞' },
+      { en: 'Milk',      he: 'חלב',       emoji: '🥛' },
+      { en: 'Egg',       he: 'ביצה',      emoji: '🥚' },
+      { en: 'Cheese',    he: 'גבינה',     emoji: '🧀' },
+      { en: 'Rice',      he: 'אורז',      emoji: '🍚' },
+      { en: 'Chicken',   he: 'עוף',       emoji: '🍗' },
+      { en: 'Soup',      he: 'מרק',       emoji: '🍲' },
+      { en: 'Salad',     he: 'סלט',       emoji: '🥗' },
+      { en: 'Coffee',    he: 'קפה',       emoji: '☕' },
+      { en: 'Tea',       he: 'תה',        emoji: '🍵' },
+      { en: 'Bed',       he: 'מיטה',      emoji: '🛏️' },
+      { en: 'Door',      he: 'דלת',       emoji: '🚪' },
+      { en: 'Window',    he: 'חלון',      emoji: '🪟' },
+      { en: 'Chair',     he: 'כיסא',      emoji: '🪑' },
+      { en: 'Key',       he: 'מפתח',      emoji: '🔑' },
+      { en: 'Lamp',      he: 'מנורה',     emoji: '💡' },
+      { en: 'Clock',     he: 'שעון',      emoji: '🕐' },
+      { en: 'Phone',     he: 'טלפון',     emoji: '📱' },
+      { en: 'Book',      he: 'ספר',       emoji: '📖' },
+      { en: 'Bath',      he: 'אמבטיה',    emoji: '🛁' },
+      { en: 'Hand',      he: 'יד',        emoji: '✋' },
+      { en: 'Eye',       he: 'עין',       emoji: '👁️' },
+      { en: 'Ear',       he: 'אוזן',      emoji: '👂' },
+      { en: 'Foot',      he: 'רגל',       emoji: '🦶' },
+      { en: 'Hair',      he: 'שיער',      emoji: '💇' },
+      { en: 'Shirt',     he: 'חולצה',     emoji: '👕' },
+      { en: 'Shoes',     he: 'נעליים',    emoji: '👟' },
+      { en: 'Hat',       he: 'כובע',      emoji: '🎩' },
+      { en: 'Dress',     he: 'שמלה',      emoji: '👗' },
+      { en: 'Coat',      he: 'מעיל',      emoji: '🧥' },
+    ]
+  },
+  {
+    id: 7,
+    title: 'שלב 7 · פעלים ופעולות',
+    theme: 'מילות פעולה · Verbs & Actions',
+    desc: 'הפעלים החשובים — מה שעושים כל יום. עכשיו נלמד לפעול באנגלית!',
+    mode: 'word',
+    items: [
+      { en: 'Eat',     he: 'לאכול',     emoji: '🍽️' },
+      { en: 'Drink',   he: 'לשתות',     emoji: '🥤' },
+      { en: 'Sleep',   he: 'לישון',     emoji: '😴' },
+      { en: 'Walk',    he: 'ללכת',      emoji: '🚶' },
+      { en: 'Run',     he: 'לרוץ',      emoji: '🏃' },
+      { en: 'Sit',     he: 'לשבת',      emoji: '🪑' },
+      { en: 'Stand',   he: 'לעמוד',     emoji: '🧍' },
+      { en: 'Read',    he: 'לקרוא',     emoji: '📖' },
+      { en: 'Write',   he: 'לכתוב',     emoji: '✍️' },
+      { en: 'Speak',   he: 'לדבר',      emoji: '🗣️' },
+      { en: 'Listen',  he: 'להקשיב',    emoji: '👂' },
+      { en: 'Look',    he: 'להסתכל',    emoji: '👀' },
+      { en: 'Open',    he: 'לפתוח',     emoji: '🔓' },
+      { en: 'Close',   he: 'לסגור',     emoji: '🔒' },
+      { en: 'Give',    he: 'לתת',       emoji: '🎁' },
+      { en: 'Take',    he: 'לקחת',      emoji: '🤲' },
+      { en: 'Buy',     he: 'לקנות',     emoji: '🛒' },
+      { en: 'Cook',    he: 'לבשל',      emoji: '🍳' },
+      { en: 'Wash',    he: 'לרחוץ',     emoji: '🧼' },
+      { en: 'Work',    he: 'לעבוד',     emoji: '💼' },
+      { en: 'Play',    he: 'לשחק',      emoji: '🎮' },
+      { en: 'Sing',    he: 'לשיר',      emoji: '🎤' },
+      { en: 'Dance',   he: 'לרקוד',     emoji: '💃' },
+      { en: 'Drive',   he: 'לנהוג',     emoji: '🚗' },
+      { en: 'Help',    he: 'לעזור',     emoji: '🤝' },
+      { en: 'Love',    he: 'לאהוב',     emoji: '❤️' },
+      { en: 'Smile',   he: 'לחייך',     emoji: '😊' },
+      { en: 'Cry',     he: 'לבכות',     emoji: '😢' },
+      { en: 'Wait',    he: 'לחכות',     emoji: '⏳' },
+      { en: 'Come',    he: 'לבוא',      emoji: '🙋' },
+    ]
+  },
+  {
+    id: 8,
+    title: 'שלב 8 · זמן, מקומות ושאלות',
+    theme: 'זמן ומקום · Time, Places & Questions',
+    desc: 'מילים לזמן, למקומות ולשאלות — כדי להבין ולשאול כל דבר.',
+    mode: 'word',
+    items: [
+      { en: 'Today',     he: 'היום',         emoji: '📅' },
+      { en: 'Tomorrow',  he: 'מחר',          emoji: '➡️' },
+      { en: 'Yesterday', he: 'אתמול',        emoji: '⬅️' },
+      { en: 'Morning',   he: 'בוקר',         emoji: '🌅' },
+      { en: 'Night',     he: 'לילה',         emoji: '🌙' },
+      { en: 'Day',       he: 'יום',          emoji: '☀️' },
+      { en: 'Week',      he: 'שבוע',         emoji: '🗓️' },
+      { en: 'Hour',      he: 'שעה',          emoji: '⏰' },
+      { en: 'Minute',    he: 'דקה',          emoji: '⏱️' },
+      { en: 'Now',       he: 'עכשיו',        emoji: '⌛' },
+      { en: 'Home',      he: 'בית',          emoji: '🏠' },
+      { en: 'School',    he: 'בית ספר',      emoji: '🏫' },
+      { en: 'Hospital',  he: 'בית חולים',    emoji: '🏥' },
+      { en: 'Store',     he: 'חנות',         emoji: '🏪' },
+      { en: 'Bank',      he: 'בנק',          emoji: '🏦' },
+      { en: 'Park',      he: 'פארק',         emoji: '🏞️' },
+      { en: 'Street',    he: 'רחוב',         emoji: '🛣️' },
+      { en: 'City',      he: 'עיר',          emoji: '🏙️' },
+      { en: 'Beach',     he: 'חוף',          emoji: '🏖️' },
+      { en: 'Airport',   he: 'שדה תעופה',    emoji: '✈️' },
+      { en: 'What',      he: 'מה',           emoji: '❓' },
+      { en: 'Where',     he: 'איפה',         emoji: '📍' },
+      { en: 'When',      he: 'מתי',          emoji: '🕐' },
+      { en: 'Who',       he: 'מי',           emoji: '🙋' },
+      { en: 'Why',       he: 'למה',          emoji: '🤔' },
+      { en: 'How',       he: 'איך',          emoji: '💭' },
+      { en: 'Here',      he: 'כאן',          emoji: '📌' },
+      { en: 'There',     he: 'שם',           emoji: '👉' },
+      { en: 'Money',     he: 'כסף',          emoji: '💰' },
+      { en: 'People',    he: 'אנשים',        emoji: '👥' },
+    ]
+  },
+  {
+    id: 9,
+    title: 'שלב 9 · משפטים ארוכים',
+    theme: 'משפטים שלמים · Longer Sentences',
+    desc: 'משפטים ארוכים ושלמים מהחיים. שלב מאתגר — את מוכנה לזה!',
+    mode: 'sentence',
+    items: [
+      { en: 'I am going home',          he: 'אני הולכת הביתה',          emoji: '🏠' },
+      { en: 'I want to drink water',    he: 'אני רוצה לשתות מים',       emoji: '💧' },
+      { en: 'She is my friend',         he: 'היא החברה שלי',            emoji: '👭' },
+      { en: 'We are eating dinner',     he: 'אנחנו אוכלים ארוחת ערב',   emoji: '🍽️' },
+      { en: 'He is reading a book',     he: 'הוא קורא ספר',             emoji: '📖' },
+      { en: 'The weather is nice today',he: 'מזג האוויר נעים היום',     emoji: '☀️' },
+      { en: 'I am very happy today',    he: 'אני מאוד שמחה היום',       emoji: '😄' },
+      { en: 'Please help me',           he: 'בבקשה תעזור לי',           emoji: '🙏' },
+      { en: 'I do not understand',      he: 'אני לא מבינה',             emoji: '🤔' },
+      { en: 'Can you help me?',         he: 'אתה יכול לעזור לי?',       emoji: '🆘' },
+      { en: 'I am learning English',    he: 'אני לומדת אנגלית',         emoji: '📚' },
+      { en: 'Where is the bathroom?',   he: 'איפה השירותים?',           emoji: '🚻' },
+      { en: 'How much does it cost?',   he: 'כמה זה עולה?',             emoji: '💰' },
+      { en: 'I would like some coffee', he: 'אני רוצה קצת קפה',         emoji: '☕' },
+      { en: 'What time is it?',         he: 'מה השעה?',                 emoji: '🕐' },
+      { en: 'I am going to the store',  he: 'אני הולכת לחנות',          emoji: '🏪' },
+      { en: 'My family is very big',    he: 'המשפחה שלי גדולה מאוד',    emoji: '👨‍👩‍👧‍👦' },
+      { en: 'I love my children',       he: 'אני אוהבת את הילדים שלי',  emoji: '👶' },
+      { en: 'The food is delicious',    he: 'האוכל טעים',               emoji: '😋' },
+      { en: 'I am a little tired',      he: 'אני קצת עייפה',            emoji: '😴' },
+      { en: 'See you tomorrow',         he: 'נתראה מחר',                emoji: '👋' },
+      { en: 'Have a good trip',         he: 'נסיעה טובה',               emoji: '✈️' },
+      { en: 'I will call you later',    he: 'אני אתקשר אליך אחר כך',    emoji: '📞' },
+      { en: 'Do you speak English?',    he: 'אתה מדבר אנגלית?',         emoji: '🗣️' },
+      { en: 'I live in Israel',         he: 'אני גרה בישראל',           emoji: '🇮🇱' },
+      { en: 'It is very hot today',     he: 'חם מאוד היום',             emoji: '🔥' },
+      { en: 'I need to go now',         he: 'אני צריכה ללכת עכשיו',     emoji: '🚶' },
+      { en: 'Thank you for your help',  he: 'תודה על העזרה',            emoji: '🙏' },
+      { en: 'I am proud of you',        he: 'אני גאה בך',               emoji: '🌟' },
+      { en: 'Everything is okay',       he: 'הכל בסדר',                 emoji: '👍' },
+    ]
+  },
+  {
+    id: 10,
+    title: 'שלב 10 · שיחות אמיתיות',
+    theme: 'שיחה חופשית · Real Conversations',
+    desc: 'השלב האחרון! שיחות אמיתיות מהחיים. כשתסיימי — את דוברת אנגלית! 🏆',
+    mode: 'sentence',
+    items: [
+      { en: 'Hello, how can I help you?',       he: 'שלום, איך אפשר לעזור?',       emoji: '🤝' },
+      { en: 'I am looking for a gift',          he: 'אני מחפשת מתנה',              emoji: '🎁' },
+      { en: 'Can I pay with a card?',           he: 'אפשר לשלם בכרטיס?',           emoji: '💳' },
+      { en: 'Of course, no problem',            he: 'בטח, אין בעיה',               emoji: '👍' },
+      { en: 'Could you say that again?',        he: 'אפשר להגיד שוב?',             emoji: '🔁' },
+      { en: 'I am sorry, I am late',            he: 'אני מצטערת, אני מאחרת',       emoji: '⏰' },
+      { en: 'Nice to see you again',            he: 'נחמד לראות אותך שוב',         emoji: '😊' },
+      { en: 'How was your day?',                he: 'איך היה היום שלך?',           emoji: '🌤️' },
+      { en: 'It was a wonderful day',           he: 'היה יום נפלא',                emoji: '🌟' },
+      { en: 'What do you recommend?',           he: 'מה אתה ממליץ?',               emoji: '🤔' },
+      { en: 'I will take this one',             he: 'אני אקח את זה',               emoji: '✅' },
+      { en: 'Where can I find it?',             he: 'איפה אפשר למצוא את זה?',      emoji: '🔎' },
+      { en: 'Turn right at the corner',         he: 'תפנה ימינה בפינה',            emoji: '➡️' },
+      { en: 'It is on the second floor',        he: 'זה בקומה השנייה',             emoji: '🏢' },
+      { en: 'Enjoy your meal',                  he: 'בתיאבון',                     emoji: '🍽️' },
+      { en: 'The same to you',                  he: 'גם לך',                       emoji: '🙂' },
+      { en: 'May I ask a question?',            he: 'אפשר לשאול שאלה?',            emoji: '❓' },
+      { en: 'I think you are right',            he: 'אני חושבת שאתה צודק',         emoji: '💭' },
+      { en: 'Let me think about it',            he: 'תן לי לחשוב על זה',           emoji: '🤔' },
+      { en: 'That sounds great',                he: 'זה נשמע נהדר',                emoji: '🎉' },
+      { en: 'I am happy to help',               he: 'אני שמחה לעזור',              emoji: '🤲' },
+      { en: 'Take care of yourself',            he: 'תשמור על עצמך',              emoji: '💛' },
+      { en: 'Call me if you need anything',     he: 'תתקשר אם אתה צריך משהו',      emoji: '📞' },
+      { en: 'I had a great time',               he: 'נהניתי מאוד',                 emoji: '😄' },
+      { en: 'Welcome to our home',              he: 'ברוך הבא לביתנו',             emoji: '🏡' },
+      { en: 'Make yourself at home',            he: 'תרגיש בבית',                  emoji: '🛋️' },
+      { en: 'Would you like something to drink?',he: 'תרצה משהו לשתות?',           emoji: '🥤' },
+      { en: 'It was nice talking to you',       he: 'היה נעים לדבר איתך',          emoji: '💬' },
+      { en: 'I hope to see you soon',           he: 'אני מקווה לראות אותך בקרוב',  emoji: '🙏' },
+      { en: 'Goodbye and good luck',            he: 'להתראות ובהצלחה',            emoji: '🍀' },
+    ]
+  },
+  {
+    id: 11, title: 'שלב 11 · המשפחה שלי', theme: 'בני המשפחה · My Family',
+    desc: 'מכירים את המשפחה באנגלית — אור, שקד, עדן, רפי, אליה ונועם 💛', mode: 'sentence',
+    items: [
+      { en: 'This is my family',          he: 'זאת המשפחה שלי',           emoji: '👨‍👩‍👧‍👦' },
+      { en: 'Rafi is my husband',         he: 'רפי הוא בעלי',              emoji: '👨' },
+      { en: 'Or is my son',               he: 'אור הוא הבן שלי',           emoji: '👦' },
+      { en: 'Shaked is my son',           he: 'שקד הוא הבן שלי',           emoji: '🧑' },
+      { en: 'Eden is my son',             he: 'עדן הוא הבן שלי',           emoji: '👨' },
+      { en: 'Eliya is my granddaughter',  he: 'אליה היא הנכדה שלי',        emoji: '👧' },
+      { en: 'Noam is my granddaughter',   he: 'נועם היא הנכדה שלי',        emoji: '👧' },
+      { en: 'I love my family',           he: 'אני אוהבת את המשפחה שלי',   emoji: '❤️' },
+      { en: 'I have three sons',          he: 'יש לי שלושה בנים',          emoji: '👨‍👦‍👦' },
+      { en: 'I have two granddaughters',  he: 'יש לי שתי נכדות',           emoji: '👧' },
+      { en: 'I am a proud grandmother',   he: 'אני סבתא גאה',              emoji: '👵' },
+      { en: 'My family is everything to me', he: 'המשפחה שלי היא הכל בשבילי', emoji: '🌍' },
+    ]
+  },
+  {
+    id: 12, title: 'שלב 12 · מה כולם עושים', theme: 'פעולות עכשיו · What Everyone Is Doing',
+    desc: 'מספרים מה כל אחד עושה ברגע זה.', mode: 'sentence',
+    items: [
+      { en: 'Or is working',           he: 'אור עובד',                emoji: '💼' },
+      { en: 'Shaked is reading a book',he: 'שקד קורא ספר',            emoji: '📖' },
+      { en: 'Eden is cooking',         he: 'עדן מבשל',                emoji: '🍳' },
+      { en: 'Rafi is sleeping',        he: 'רפי ישן',                 emoji: '😴' },
+      { en: 'Eliya is playing',        he: 'אליה משחקת',              emoji: '🧸' },
+      { en: 'Noam is singing',         he: 'נועם שרה',                emoji: '🎤' },
+      { en: 'I am making coffee',      he: 'אני מכינה קפה',           emoji: '☕' },
+      { en: 'We are eating together',  he: 'אנחנו אוכלים ביחד',       emoji: '🍽️' },
+      { en: 'Rafi is watching TV',     he: 'רפי צופה בטלוויזיה',      emoji: '📺' },
+      { en: 'Eliya is drawing',        he: 'אליה מציירת',             emoji: '🎨' },
+      { en: 'The children are laughing',he: 'הילדים צוחקים',          emoji: '😄' },
+      { en: 'I am talking on the phone',he: 'אני מדברת בטלפון',       emoji: '📞' },
+    ]
+  },
+  {
+    id: 13, title: 'שלב 13 · איך הם', theme: 'תיאור אנשים · Describing People',
+    desc: 'שמות תואר — איך כל אחד מהמשפחה.', mode: 'sentence',
+    items: [
+      { en: 'Or is tall',           he: 'אור גבוה',              emoji: '📏' },
+      { en: 'Shaked is smart',      he: 'שקד חכם',               emoji: '🧠' },
+      { en: 'Eden is kind',         he: 'עדן טוב לב',            emoji: '💗' },
+      { en: 'Rafi is funny',        he: 'רפי מצחיק',             emoji: '😆' },
+      { en: 'Eliya is sweet',       he: 'אליה מתוקה',            emoji: '🍬' },
+      { en: 'Noam is happy',        he: 'נועם שמחה',             emoji: '😊' },
+      { en: 'My family is wonderful',he: 'המשפחה שלי נפלאה',      emoji: '🌟' },
+      { en: 'Or is very busy',      he: 'אור מאוד עסוק',         emoji: '⏳' },
+      { en: 'Eliya is a good girl', he: 'אליה ילדה טובה',        emoji: '👧' },
+      { en: 'Noam is a clever girl',he: 'נועם ילדה פיקחית',      emoji: '💡' },
+      { en: 'Rafi is a good man',   he: 'רפי איש טוב',           emoji: '🤵' },
+      { en: 'They are all special', he: 'כולם מיוחדים',          emoji: '✨' },
+    ]
+  },
+  {
+    id: 14, title: 'שלב 14 · רגשות', theme: 'מה אני מרגישה · Feelings',
+    desc: 'מבטאים אהבה, גאווה וגעגוע.', mode: 'sentence',
+    items: [
+      { en: 'I am proud of Or',              he: 'אני גאה באור',                  emoji: '🌟' },
+      { en: 'I love Shaked very much',       he: 'אני אוהבת מאוד את שקד',         emoji: '❤️' },
+      { en: 'I miss Eden',                   he: 'אני מתגעגעת לעדן',              emoji: '💭' },
+      { en: 'I am happy with Rafi',          he: 'אני מאושרת עם רפי',             emoji: '😊' },
+      { en: 'I am proud of my grandchildren',he: 'אני גאה בנכדים שלי',            emoji: '🥰' },
+      { en: 'Eliya makes me smile',          he: 'אליה גורמת לי לחייך',           emoji: '😊' },
+      { en: 'Noam makes me laugh',           he: 'נועם מצחיקה אותי',              emoji: '😄' },
+      { en: 'I feel lucky',                  he: 'אני מרגישה בת מזל',             emoji: '🍀' },
+      { en: 'I am thankful for my family',   he: 'אני אסירת תודה על המשפחה שלי',  emoji: '🙏' },
+      { en: 'My heart is full',              he: 'הלב שלי מלא',                   emoji: '❤️' },
+      { en: 'I am never alone',              he: 'אני אף פעם לא לבד',             emoji: '🤗' },
+      { en: 'I love being a grandmother',    he: 'אני אוהבת להיות סבתא',          emoji: '👵' },
+    ]
+  },
+  {
+    id: 15, title: 'שלב 15 · שאלות על המשפחה', theme: 'שואלים שאלות · Family Questions',
+    desc: 'לומדים לשאול על המשפחה.', mode: 'sentence',
+    items: [
+      { en: 'Where is Or?',            he: 'איפה אור?',                  emoji: '📍' },
+      { en: 'How is Rafi?',            he: 'מה שלום רפי?',               emoji: '🤝' },
+      { en: 'What is Eliya doing?',    he: 'מה אליה עושה?',              emoji: '❓' },
+      { en: 'Who is coming today?',    he: 'מי בא היום?',                emoji: '🚪' },
+      { en: 'When will Shaked arrive?',he: 'מתי שקד יגיע?',              emoji: '🕐' },
+      { en: 'Is Eden at home?',        he: 'האם עדן בבית?',              emoji: '🏠' },
+      { en: 'Are the children here?',  he: 'האם הילדים כאן?',            emoji: '👀' },
+      { en: 'Why is Noam crying?',     he: 'למה נועם בוכה?',             emoji: '😢' },
+      { en: 'How old is Eliya?',       he: 'בת כמה אליה?',               emoji: '🎂' },
+      { en: 'Where are we going?',     he: 'לאן אנחנו הולכים?',          emoji: '🚗' },
+      { en: 'Can you call Or?',        he: 'אתה יכול להתקשר לאור?',      emoji: '📞' },
+      { en: 'What time is dinner?',    he: 'באיזו שעה ארוחת הערב?',      emoji: '🍽️' },
+    ]
+  },
+  {
+    id: 16, title: 'שלב 16 · זמן וימים', theme: 'מתי דברים קורים · Time & Days',
+    desc: 'ימים, שעות ומתי נפגשים.', mode: 'sentence',
+    items: [
+      { en: 'Or comes on Friday',           he: 'אור בא ביום שישי',                emoji: '📅' },
+      { en: 'We meet on Saturday',          he: 'אנחנו נפגשים בשבת',               emoji: '🗓️' },
+      { en: 'Rafi works in the morning',    he: 'רפי עובד בבוקר',                  emoji: '🌅' },
+      { en: 'Eliya goes to school on Sunday',he: 'אליה הולכת לבית הספר ביום ראשון', emoji: '🏫' },
+      { en: 'I cook on the weekend',        he: 'אני מבשלת בסוף השבוע',            emoji: '🍲' },
+      { en: 'Shaked calls every evening',   he: 'שקד מתקשר כל ערב',                emoji: '📞' },
+      { en: 'We have dinner at seven',      he: 'אנחנו אוכלים ערב בשבע',           emoji: '🍽️' },
+      { en: 'Eden visits every week',       he: 'עדן מבקר כל שבוע',                emoji: '🏠' },
+      { en: 'The children come on holidays',he: 'הילדים באים בחגים',               emoji: '🎉' },
+      { en: 'See you next week',            he: 'נתראה בשבוע הבא',                 emoji: '👋' },
+      { en: 'Today is a beautiful day',     he: 'היום יום יפה',                    emoji: '☀️' },
+      { en: 'Tomorrow we will rest',        he: 'מחר ננוח',                        emoji: '😌' },
+    ]
+  },
+  {
+    id: 17, title: 'שלב 17 · בבית', theme: 'בתוך הבית · At Home',
+    desc: 'חדרים, פעולות ואירוח בבית.', mode: 'sentence',
+    items: [
+      { en: 'Rafi is in the garden',        he: 'רפי בגינה',                  emoji: '🌳' },
+      { en: 'Eliya is in the kitchen',      he: 'אליה במטבח',                 emoji: '🍳' },
+      { en: 'Noam is in her room',          he: 'נועם בחדר שלה',              emoji: '🛏️' },
+      { en: 'Or is in the living room',     he: 'אור בסלון',                  emoji: '🛋️' },
+      { en: 'I am cleaning the house',      he: 'אני מנקה את הבית',           emoji: '🧹' },
+      { en: 'Dinner is on the table',       he: 'ארוחת הערב על השולחן',       emoji: '🍽️' },
+      { en: 'The door is open',             he: 'הדלת פתוחה',                 emoji: '🚪' },
+      { en: 'Please sit down',              he: 'בבקשה שב',                   emoji: '🪑' },
+      { en: 'Make yourself at home',        he: 'תרגיש בבית',                 emoji: '🏡' },
+      { en: 'The house is full of children',he: 'הבית מלא בילדים',            emoji: '👨‍👩‍👧‍👦' },
+      { en: 'I am watering the plants',     he: 'אני משקה את הצמחים',         emoji: '🪴' },
+      { en: 'Everyone is welcome here',     he: 'כולם מוזמנים כאן',           emoji: '🤗' },
+    ]
+  },
+  {
+    id: 18, title: 'שלב 18 · אוכל וארוחות', theme: 'מה אוהבים לאכול · Food & Meals',
+    desc: 'מה כל אחד אוהב לאכול ולשתות.', mode: 'sentence',
+    items: [
+      { en: 'Or likes pizza',          he: 'אור אוהב פיצה',         emoji: '🍕' },
+      { en: 'Shaked loves chocolate',  he: 'שקד אוהב שוקולד',       emoji: '🍫' },
+      { en: 'Eden eats a lot',         he: 'עדן אוכל הרבה',         emoji: '🍔' },
+      { en: 'Rafi drinks coffee',      he: 'רפי שותה קפה',          emoji: '☕' },
+      { en: 'Eliya likes ice cream',   he: 'אליה אוהבת גלידה',      emoji: '🍦' },
+      { en: 'Noam eats an apple',      he: 'נועם אוכלת תפוח',       emoji: '🍎' },
+      { en: 'I am cooking dinner',     he: 'אני מבשלת ארוחת ערב',   emoji: '🍲' },
+      { en: 'The food is ready',       he: 'האוכל מוכן',            emoji: '🍽️' },
+      { en: 'Would you like some soup?',he: 'תרצה קצת מרק?',        emoji: '🥣' },
+      { en: 'This cake is delicious',  he: 'העוגה הזאת טעימה',      emoji: '🍰' },
+      { en: "Let's eat together",      he: 'בואו נאכל ביחד',        emoji: '👨‍👩‍👧‍👦' },
+      { en: 'I made a salad',          he: 'הכנתי סלט',             emoji: '🥗' },
+    ]
+  },
+  {
+    id: 19, title: 'שלב 19 · יציאות וטיולים', theme: 'יוצאים מהבית · Outings & Trips',
+    desc: 'לאן יוצאים ומה עושים בחוץ.', mode: 'sentence',
+    items: [
+      { en: 'We go to the beach',          he: 'אנחנו הולכים לים',          emoji: '🏖️' },
+      { en: 'Or drives to Tel Aviv',       he: 'אור נוסע לתל אביב',         emoji: '🚗' },
+      { en: 'Eliya goes to the park',      he: 'אליה הולכת לפארק',          emoji: '🏞️' },
+      { en: 'We visit the family',         he: 'אנחנו מבקרים את המשפחה',     emoji: '🏠' },
+      { en: 'Rafi and I take a walk',      he: 'רפי ואני יוצאים לטיול',      emoji: '🚶' },
+      { en: 'The children love the zoo',   he: 'הילדים אוהבים את הגן חיות',  emoji: '🦁' },
+      { en: 'We are going on a trip',      he: 'אנחנו יוצאים לטיול',         emoji: '✈️' },
+      { en: "Let's go out today",          he: 'בואו נצא היום',             emoji: '🌞' },
+      { en: 'Noam wants to swim',          he: 'נועם רוצה לשחות',           emoji: '🏊' },
+      { en: 'We had a lovely day',         he: 'היה לנו יום נהדר',          emoji: '🌟' },
+      { en: 'The weather is perfect',      he: 'מזג האוויר מושלם',          emoji: '☀️' },
+      { en: 'I love spending time with them',he: 'אני אוהבת לבלות איתם',     emoji: '💛' },
+    ]
+  },
+  {
+    id: 20, title: 'שלב 20 · אתמול', theme: 'מה היה · Past (Yesterday)',
+    desc: 'מספרים מה קרה — לשון עבר. שלב מאתגר!', mode: 'sentence',
+    items: [
+      { en: 'Or called me yesterday',     he: 'אור התקשר אליי אתמול',      emoji: '📞' },
+      { en: 'Shaked visited last week',   he: 'שקד ביקר בשבוע שעבר',       emoji: '🏠' },
+      { en: 'We had a nice dinner',       he: 'אכלנו ארוחת ערב נחמדה',     emoji: '🍽️' },
+      { en: 'Eden helped me',             he: 'עדן עזר לי',                emoji: '🤝' },
+      { en: 'Eliya slept here',           he: 'אליה ישנה כאן',             emoji: '😴' },
+      { en: 'Rafi cooked breakfast',      he: 'רפי הכין ארוחת בוקר',       emoji: '🍳' },
+      { en: 'Noam drew a picture',        he: 'נועם ציירה ציור',           emoji: '🎨' },
+      { en: 'We watched a movie',         he: 'צפינו בסרט',                emoji: '🎬' },
+      { en: 'I was very happy',           he: 'הייתי מאוד שמחה',           emoji: '😊' },
+      { en: 'The children played all day',he: 'הילדים שיחקו כל היום',      emoji: '🧸' },
+      { en: 'It was a wonderful day',     he: 'זה היה יום נפלא',           emoji: '🌟' },
+      { en: 'We laughed a lot',           he: 'צחקנו הרבה',                emoji: '😄' },
+    ]
+  },
+  {
+    id: 21, title: 'שלב 21 · מחר', theme: 'מה יהיה · Future (Tomorrow)',
+    desc: 'מדברים על העתיד ותוכניות.', mode: 'sentence',
+    items: [
+      { en: 'Or will come tomorrow',        he: 'אור יבוא מחר',                emoji: '📅' },
+      { en: 'We will travel together',      he: 'אנחנו ניסע ביחד',             emoji: '✈️' },
+      { en: 'Eliya will start school',      he: 'אליה תתחיל בית ספר',          emoji: '🏫' },
+      { en: 'Shaked will call later',       he: 'שקד יתקשר אחר כך',            emoji: '📞' },
+      { en: 'We will celebrate the holiday',he: 'נחגוג את החג',                emoji: '🎉' },
+      { en: 'Rafi will fix it',             he: 'רפי יתקן את זה',              emoji: '🔧' },
+      { en: 'I will cook for everyone',     he: 'אני אבשל לכולם',              emoji: '🍲' },
+      { en: 'Noam will visit on Friday',    he: 'נועם תבקר ביום שישי',         emoji: '🏠' },
+      { en: 'We will see each other soon',  he: 'נתראה בקרוב',                 emoji: '👋' },
+      { en: 'Everything will be fine',      he: 'הכל יהיה בסדר',               emoji: '👍' },
+      { en: 'Tomorrow will be better',      he: 'מחר יהיה יותר טוב',           emoji: '🌅' },
+      { en: "I can't wait to see them",     he: 'אני לא יכולה לחכות לראות אותם',emoji: '🥰' },
+    ]
+  },
+  {
+    id: 22, title: 'שלב 22 · שגרה ובריאות', theme: 'יום-יום ובריאות · Routine & Health',
+    desc: 'שגרת היום וטיפ של בריאות.', mode: 'sentence',
+    items: [
+      { en: 'I take a walk every morning', he: 'אני יוצאת לטיול כל בוקר',  emoji: '🚶' },
+      { en: 'Rafi goes to the doctor',     he: 'רפי הולך לרופא',           emoji: '🩺' },
+      { en: 'I drink water every day',     he: 'אני שותה מים כל יום',      emoji: '💧' },
+      { en: 'Or exercises in the gym',     he: 'אור מתאמן בחדר כושר',      emoji: '💪' },
+      { en: 'I take my medicine',          he: 'אני לוקחת את התרופה שלי',  emoji: '💊' },
+      { en: 'We rest in the afternoon',    he: 'אנחנו נחים אחר הצהריים',   emoji: '😌' },
+      { en: 'Eliya brushes her teeth',     he: 'אליה מצחצחת שיניים',       emoji: '🪥' },
+      { en: 'I sleep well at night',       he: 'אני ישנה טוב בלילה',       emoji: '😴' },
+      { en: 'Take care of yourself',       he: 'תשמור על עצמך',            emoji: '💛' },
+      { en: 'I feel healthy',              he: 'אני מרגישה בריאה',         emoji: '🍎' },
+      { en: 'It is good to be active',     he: 'טוב להיות פעיל',           emoji: '🏃' },
+      { en: 'Wishing you good health',     he: 'מאחלת לך בריאות',          emoji: '🙏' },
+    ]
+  },
+  {
+    id: 23, title: 'שלב 23 · קניות וכסף', theme: 'בחנות · Shopping & Money',
+    desc: 'קונים, משלמים ושואלים מחיר.', mode: 'sentence',
+    items: [
+      { en: 'How much does it cost?',      he: 'כמה זה עולה?',              emoji: '💰' },
+      { en: 'I bought a gift for Noam',    he: 'קניתי מתנה לנועם',          emoji: '🎁' },
+      { en: 'Can I pay with a card?',      he: 'אפשר לשלם בכרטיס?',         emoji: '💳' },
+      { en: 'This is too expensive',       he: 'זה יקר מדי',               emoji: '💸' },
+      { en: 'I am going to the market',    he: 'אני הולכת לשוק',           emoji: '🛒' },
+      { en: 'Or bought a new car',         he: 'אור קנה מכונית חדשה',       emoji: '🚗' },
+      { en: 'Do you have a smaller size?', he: 'יש לכם מידה קטנה יותר?',    emoji: '👕' },
+      { en: 'I need to buy bread',         he: 'אני צריכה לקנות לחם',       emoji: '🍞' },
+      { en: 'The store is closed',         he: 'החנות סגורה',              emoji: '🚪' },
+      { en: 'It is on sale',               he: 'זה במבצע',                 emoji: '🏷️' },
+      { en: 'Here is your change',         he: 'הנה העודף שלך',            emoji: '🪙' },
+      { en: 'Thank you, have a nice day',  he: 'תודה, יום נעים',           emoji: '🙂' },
+    ]
+  },
+  {
+    id: 24, title: 'שלב 24 · טלפון והודעות', theme: 'בטלפון · Phone & Messages',
+    desc: 'שיחות, הודעות ושיחות וידאו עם המשפחה.', mode: 'sentence',
+    items: [
+      { en: 'Or sent me a message',     he: 'אור שלח לי הודעה',                emoji: '📩' },
+      { en: 'I called Shaked',          he: 'התקשרתי לשקד',                   emoji: '📞' },
+      { en: "Let's video call Eliya",   he: 'בואו נעשה שיחת וידאו עם אליה',     emoji: '📹' },
+      { en: 'Can you hear me?',         he: 'אתה שומע אותי?',                 emoji: '🔊' },
+      { en: 'Send me a photo',          he: 'תשלח לי תמונה',                  emoji: '📷' },
+      { en: 'I will text you later',    he: 'אני אשלח לך הודעה אחר כך',        emoji: '💬' },
+      { en: 'The phone is ringing',     he: 'הטלפון מצלצל',                   emoji: '📱' },
+      { en: 'Noam loves the camera',    he: 'נועם אוהבת את המצלמה',           emoji: '📸' },
+      { en: 'Please call me back',      he: 'תחזור אליי בבקשה',               emoji: '🔁' },
+      { en: 'I missed your call',       he: 'פספסתי את השיחה שלך',            emoji: '📵' },
+      { en: 'Talk to you soon',         he: 'נדבר בקרוב',                     emoji: '👋' },
+      { en: 'It was good to hear you',  he: 'היה טוב לשמוע אותך',             emoji: '💛' },
+    ]
+  },
+  {
+    id: 25, title: 'שלב 25 · חגים ושמחות', theme: 'חוגגים ביחד · Celebrations',
+    desc: 'ימי הולדת, מסיבות וברכות.', mode: 'sentence',
+    items: [
+      { en: 'Happy birthday, Eliya!',     he: 'יום הולדת שמח, אליה!',       emoji: '🎂' },
+      { en: 'We are having a party',      he: 'אנחנו עושים מסיבה',          emoji: '🎉' },
+      { en: 'Or brought a cake',          he: 'אור הביא עוגה',              emoji: '🍰' },
+      { en: 'Congratulations to the family',he: 'מזל טוב למשפחה',           emoji: '🎊' },
+      { en: 'We celebrate together',      he: 'אנחנו חוגגים ביחד',          emoji: '🥳' },
+      { en: 'Noam is dancing',            he: 'נועם רוקדת',                 emoji: '💃' },
+      { en: 'Make a wish',                he: 'תבקשי משאלה',                emoji: '✨' },
+      { en: 'This is a special day',      he: 'זה יום מיוחד',               emoji: '🌈' },
+      { en: 'Rafi gave a toast',          he: 'רפי הרים כוסית',             emoji: '🥂' },
+      { en: 'We took a family photo',     he: 'צילמנו תמונה משפחתית',        emoji: '📸' },
+      { en: 'Best wishes to you all',     he: 'כל הברכות לכולכם',           emoji: '💐' },
+      { en: 'I am so happy today',        he: 'אני כל כך שמחה היום',        emoji: '😊' },
+    ]
+  },
+  {
+    id: 26, title: 'שלב 26 · דעות והעדפות', theme: 'מה אני חושבת · Opinions',
+    desc: 'אומרים דעה, מסכימים ומעדיפים.', mode: 'sentence',
+    items: [
+      { en: 'I think Or is right',      he: 'אני חושבת שאור צודק',      emoji: '💭' },
+      { en: 'Shaked prefers tea',       he: 'שקד מעדיף תה',            emoji: '🍵' },
+      { en: 'In my opinion, it is good',he: 'לדעתי, זה טוב',           emoji: '👍' },
+      { en: 'I prefer to stay home',    he: 'אני מעדיפה להישאר בבית',   emoji: '🏠' },
+      { en: 'Eden likes the blue one',  he: 'עדן אוהב את הכחול',        emoji: '🔵' },
+      { en: 'I agree with you',         he: 'אני מסכימה איתך',          emoji: '🤝' },
+      { en: 'Maybe you are right',      he: 'אולי אתה צודק',            emoji: '🤔' },
+      { en: 'I am not sure',            he: 'אני לא בטוחה',             emoji: '❓' },
+      { en: 'That is a good idea',      he: 'זה רעיון טוב',             emoji: '💡' },
+      { en: 'I would rather walk',      he: 'אני מעדיפה ללכת ברגל',     emoji: '🚶' },
+      { en: 'It depends',               he: 'זה תלוי',                 emoji: '⚖️' },
+      { en: 'What do you think?',       he: 'מה אתה חושב?',            emoji: '💬' },
+    ]
+  },
+  {
+    id: 27, title: 'שלב 27 · שיחות קצרות', theme: 'דו-שיח · Short Dialogues',
+    desc: 'שיחות אמיתיות קצרות עם המשפחה.', mode: 'sentence',
+    items: [
+      { en: 'Hi Or, how are you?',       he: 'היי אור, מה שלומך?',        emoji: '👋' },
+      { en: "I'm fine, and you?",        he: 'אני בסדר, ואתה?',           emoji: '🙂' },
+      { en: 'Are you coming for dinner?',he: 'אתה בא לארוחת ערב?',        emoji: '🍽️' },
+      { en: "Yes, I'll be there at six", he: 'כן, אגיע בשש',              emoji: '🕕' },
+      { en: 'Can you bring Eliya?',      he: 'אתה יכול להביא את אליה?',    emoji: '👧' },
+      { en: 'Of course, no problem',     he: 'בטח, אין בעיה',             emoji: '👍' },
+      { en: 'See you soon',              he: 'נתראה בקרוב',               emoji: '👋' },
+      { en: 'Drive safely',              he: 'סע בזהירות',                emoji: '🚗' },
+      { en: 'Give my love to Noam',      he: 'תמסור נשיקה לנועם',         emoji: '😘' },
+      { en: 'Thanks for calling',        he: 'תודה שהתקשרת',              emoji: '🙏' },
+      { en: 'Goodbye, take care',        he: 'להתראות, שמור על עצמך',     emoji: '💛' },
+      { en: 'Have a good night',         he: 'לילה טוב',                  emoji: '🌙' },
+    ]
+  },
+  {
+    id: 28, title: 'שלב 28 · יום במשפחה', theme: 'סיפור קצר · A Family Day',
+    desc: 'סיפור שלם על יום אחד עם המשפחה.', mode: 'sentence',
+    items: [
+      { en: 'This morning Rafi made coffee',      he: 'הבוקר רפי הכין קפה',            emoji: '☕' },
+      { en: 'Then Or and the children came',      he: 'אחר כך אור והילדים הגיעו',      emoji: '🚪' },
+      { en: 'Eliya and Noam played in the garden',he: 'אליה ונועם שיחקו בגינה',        emoji: '🌳' },
+      { en: 'I cooked a big lunch',               he: 'בישלתי ארוחת צהריים גדולה',     emoji: '🍲' },
+      { en: 'We all ate together',                he: 'כולנו אכלנו ביחד',              emoji: '🍽️' },
+      { en: 'After lunch we took a walk',         he: 'אחרי הצהריים יצאנו לטיול',       emoji: '🚶' },
+      { en: 'Shaked told a funny story',          he: 'שקד סיפר סיפור מצחיק',          emoji: '😄' },
+      { en: 'The grandchildren were so happy',    he: 'הנכדים היו כל כך שמחים',        emoji: '🥰' },
+      { en: 'In the evening we watched a movie',  he: 'בערב צפינו בסרט',               emoji: '🎬' },
+      { en: 'Eden fell asleep on the sofa',       he: 'עדן נרדם על הספה',              emoji: '😴' },
+      { en: 'It was a perfect family day',        he: 'זה היה יום משפחתי מושלם',       emoji: '🌟' },
+      { en: 'I felt so grateful',                 he: 'הרגשתי כל כך אסירת תודה',       emoji: '🙏' },
+    ]
+  },
+  {
+    id: 29, title: 'שלב 29 · ביטויים יומיומיים', theme: 'ביטויים שימושיים · Everyday Expressions',
+    desc: 'ביטויים שאומרים כל יום באנגלית.', mode: 'sentence',
+    items: [
+      { en: 'Take it easy',              he: 'קח את זה בקלות',                emoji: '😌' },
+      { en: 'Good luck!',                he: 'בהצלחה!',                      emoji: '🍀' },
+      { en: 'Never mind',                he: 'לא נורא',                      emoji: '🤷' },
+      { en: "It's up to you",            he: 'זה תלוי בך',                   emoji: '🫵' },
+      { en: "Don't worry",               he: 'אל תדאג',                      emoji: '😊' },
+      { en: 'Well done!',                he: 'כל הכבוד!',                    emoji: '👏' },
+      { en: "I'm on my way",             he: 'אני בדרך',                     emoji: '🚗' },
+      { en: 'Just a moment',             he: 'רק רגע',                       emoji: '⏳' },
+      { en: 'It happens',                he: 'זה קורה',                      emoji: '🤷‍♀️' },
+      { en: 'You are welcome',           he: 'בבקשה',                        emoji: '🙂' },
+      { en: 'Better late than never',    he: 'מוטב מאוחר מאשר לעולם לא',      emoji: '⏰' },
+      { en: 'Everything will be okay',   he: 'הכל יהיה בסדר',                emoji: '🌈' },
+    ]
+  },
+  {
+    id: 30, title: 'שלב 30 · שיחה מתקדמת', theme: 'הסיום הגדול · Advanced Conversation',
+    desc: 'השלב האחרון! שיחה מהלב. כשתסיימי — את אלופת אנגלית! 🏆', mode: 'sentence',
+    items: [
+      { en: 'It was so nice to see everyone',     he: 'היה כל כך נעים לראות את כולם',   emoji: '🥰' },
+      { en: 'Thank you for coming to visit',      he: 'תודה שבאתם לבקר',               emoji: '🙏' },
+      { en: 'I hope you had a good time',         he: 'אני מקווה שנהניתם',             emoji: '😊' },
+      { en: 'We should do this more often',       he: 'כדאי שנעשה את זה יותר',          emoji: '🔁' },
+      { en: 'Let me know when you arrive',        he: 'תעדכן אותי כשתגיע',             emoji: '📞' },
+      { en: 'I am always here for you',           he: 'אני תמיד כאן בשבילך',           emoji: '💛' },
+      { en: 'Family is the most important thing', he: 'משפחה היא הדבר הכי חשוב',        emoji: '❤️' },
+      { en: 'I am so proud of all of you',        he: 'אני כל כך גאה בכולכם',          emoji: '🌟' },
+      { en: 'Come back soon, we miss you',        he: 'תחזרו מהר, אנחנו מתגעגעים',      emoji: '🤗' },
+      { en: 'Wishing you health and happiness',   he: 'מאחלת לכם בריאות ואושר',         emoji: '🍀' },
+      { en: 'I love you all from my heart',       he: 'אני אוהבת את כולכם מכל הלב',     emoji: '❤️' },
+      { en: 'Until we meet again',                he: 'עד שניפגש שוב',                 emoji: '👋' },
+    ]
+  },
+  {
+    id: 31, title: 'שלב 31 · זמן עבר', theme: 'מה היה אתמול · Past Simple',
+    desc: 'מספרים מה עשינו אתמול — זמן עבר באנגלית.', mode: 'sentence',
+    items: [
+      { en: "Yesterday I went to the market", he: 'אתמול הלכתי לשוק', emoji: '🛒' },
+      { en: "I ate breakfast with Rafi", he: 'אכלתי ארוחת בוקר עם רפי', emoji: '🍳' },
+      { en: "We saw a good movie", he: 'ראינו סרט טוב', emoji: '🎬' },
+      { en: "Eliya called me last night", he: 'אליה התקשרה אליי אתמול בלילה', emoji: '📞' },
+      { en: "I cooked dinner for everyone", he: 'בישלתי ארוחת ערב לכולם', emoji: '🍲' },
+      { en: "Or visited us on Friday", he: 'אור ביקר אותנו ביום שישי', emoji: '🏠' },
+      { en: "I read a book in the evening", he: 'קראתי ספר בערב', emoji: '📖' },
+      { en: "We walked in the park", he: 'הלכנו לטייל בפארק', emoji: '🌳' },
+      { en: "Shaked bought a new dress", he: 'שקד קנתה שמלה חדשה', emoji: '👗' },
+      { en: "I slept very well", he: 'ישנתי טוב מאוד', emoji: '😴' },
+      { en: "We talked for an hour", he: 'דיברנו שעה שלמה', emoji: '🗣️' },
+      { en: "Noam played with her toys", he: 'נועם שיחקה עם הצעצועים שלה', emoji: '🧸' },
+      { en: "I drank coffee this morning", he: 'שתיתי קפה הבוקר', emoji: '☕' },
+      { en: "Eden helped me in the kitchen", he: 'עדן עזרה לי במטבח', emoji: '🍴' },
+      { en: "We had a wonderful day", he: 'היה לנו יום נפלא', emoji: '🌞' },
+      { en: "I wrote a letter to my friend", he: 'כתבתי מכתב לחברה שלי', emoji: '✉️' },
+      { en: "It rained all day", he: 'ירד גשם כל היום', emoji: '🌧️' },
+      { en: "We arrived home late", he: 'הגענו הביתה מאוחר', emoji: '🌙' },
+      { en: "I felt very happy", he: 'הרגשתי מאוד שמחה', emoji: '😊' },
+      { en: "The children laughed a lot", he: 'הילדים צחקו הרבה', emoji: '😄' },
+    ]
+  },
+  {
+    id: 32, title: 'שלב 32 · זמן עתיד', theme: 'מה יהיה מחר · Future',
+    desc: 'מדברים על תוכניות לעתיד.', mode: 'sentence',
+    items: [
+      { en: "Tomorrow I will visit Eden", he: 'מחר אבקר את עדן', emoji: '🏠' },
+      { en: "We are going to travel next week", he: 'אנחנו ניסע בשבוע הבא', emoji: '✈️' },
+      { en: "I will call you later", he: 'אני אתקשר אליך אחר כך', emoji: '📞' },
+      { en: "Rafi will cook tonight", he: 'רפי יבשל הערב', emoji: '🍳' },
+      { en: "We will celebrate together", he: 'נחגוג ביחד', emoji: '🎉' },
+      { en: "Eliya is going to start school", he: 'אליה מתחילה בית ספר', emoji: '🎒' },
+      { en: "I will help you tomorrow", he: 'אני אעזור לך מחר', emoji: '🤝' },
+      { en: "We are going to the beach on Saturday", he: 'אנחנו הולכים לים בשבת', emoji: '🏖️' },
+      { en: "I will buy a gift for Noam", he: 'אני אקנה מתנה לנועם', emoji: '🎁' },
+      { en: "Or will come home soon", he: 'אור יחזור הביתה בקרוב', emoji: '🏡' },
+      { en: "We will have dinner at eight", he: 'נאכל ארוחת ערב בשמונה', emoji: '🍽️' },
+      { en: "I am going to rest now", he: 'אני הולכת לנוח עכשיו', emoji: '🛋️' },
+      { en: "Shaked will call this evening", he: 'שקד תתקשר הערב', emoji: '📲' },
+      { en: "It will be sunny tomorrow", he: 'מחר יהיה שמש', emoji: '☀️' },
+      { en: "We will meet next month", he: 'ניפגש בחודש הבא', emoji: '📅' },
+      { en: "I will learn more English", he: 'אני אלמד עוד אנגלית', emoji: '📚' },
+      { en: "They will arrive in the morning", he: 'הם יגיעו בבוקר', emoji: '🌅' },
+      { en: "We are going to have fun", he: 'אנחנו ניהנה', emoji: '🥳' },
+      { en: "I will see you soon", he: 'אני אראה אותך בקרוב', emoji: '👋' },
+      { en: "Everything will be fine", he: 'הכל יהיה בסדר', emoji: '💛' },
+    ]
+  },
+  {
+    id: 33, title: 'שלב 33 · רגשות ודעות', theme: 'מה אני מרגישה · Feelings & Opinions',
+    desc: 'מביעים רגשות ודעות.', mode: 'sentence',
+    items: [
+      { en: "I think it is a good idea", he: 'אני חושבת שזה רעיון טוב', emoji: '💡' },
+      { en: "I feel very happy today", he: 'אני מרגישה מאוד שמחה היום', emoji: '😊' },
+      { en: "I am a little worried", he: 'אני קצת מודאגת', emoji: '😟' },
+      { en: "I believe you can do it", he: 'אני מאמינה שאת יכולה', emoji: '💪' },
+      { en: "I am proud of Or", he: 'אני גאה באור', emoji: '🌟' },
+      { en: "I am so excited", he: 'אני כל כך נרגשת', emoji: '🤩' },
+      { en: "I do not agree", he: 'אני לא מסכימה', emoji: '🙅' },
+      { en: "In my opinion, it is too expensive", he: 'לדעתי, זה יקר מדי', emoji: '💰' },
+      { en: "I really like this", he: 'אני ממש אוהבת את זה', emoji: '❤️' },
+      { en: "I am a bit tired today", he: 'אני קצת עייפה היום', emoji: '😴' },
+      { en: "That makes me happy", he: 'זה משמח אותי', emoji: '😄' },
+      { en: "I am grateful for my family", he: 'אני אסירת תודה על המשפחה שלי', emoji: '🙏' },
+      { en: "I feel much better now", he: 'אני מרגישה הרבה יותר טוב עכשיו', emoji: '😌' },
+      { en: "I am not sure about that", he: 'אני לא בטוחה לגבי זה', emoji: '🤔' },
+      { en: "I hope so", he: 'אני מקווה שכן', emoji: '🤞' },
+      { en: "I am happy for you", he: 'אני שמחה בשבילך', emoji: '🤗' },
+      { en: "I am worried about the weather", he: 'אני מודאגת ממזג האוויר', emoji: '🌧️' },
+      { en: "It is important to me", he: 'זה חשוב לי', emoji: '⭐' },
+      { en: "I feel calm and relaxed", he: 'אני מרגישה רגועה ונינוחה', emoji: '🌸' },
+      { en: "I love spending time with Eliya and Noam", he: 'אני אוהבת לבלות עם אליה ונועם', emoji: '👵' },
+    ]
+  },
+  {
+    id: 34, title: 'שלב 34 · בריאות ורופא', theme: 'אצל הרופא · Health & Doctor',
+    desc: 'מילים וביטויים לבריאות ולרופא.', mode: 'sentence',
+    items: [
+      { en: "I do not feel well", he: 'אני לא מרגישה טוב', emoji: '🤒' },
+      { en: "I have a headache", he: 'יש לי כאב ראש', emoji: '🤕' },
+      { en: "I need to see a doctor", he: 'אני צריכה ללכת לרופא', emoji: '👩‍⚕️' },
+      { en: "Where does it hurt?", he: 'איפה כואב?', emoji: '❓' },
+      { en: "I have a sore throat", he: 'יש לי כאב גרון', emoji: '😷' },
+      { en: "Take this medicine twice a day", he: 'קח את התרופה הזו פעמיים ביום', emoji: '💊' },
+      { en: "I feel dizzy", he: 'אני מרגישה סחרחורת', emoji: '😵' },
+      { en: "Get well soon", he: 'החלמה מהירה', emoji: '🌷' },
+      { en: "I have a fever", he: 'יש לי חום', emoji: '🌡️' },
+      { en: "I need to rest", he: 'אני צריכה לנוח', emoji: '🛌' },
+      { en: "My back hurts", he: 'הגב שלי כואב', emoji: '🦴' },
+      { en: "Drink a lot of water", he: 'תשתה הרבה מים', emoji: '💧' },
+      { en: "I have an appointment at ten", he: 'יש לי תור בעשר', emoji: '📅' },
+      { en: "Are you feeling better?", he: 'אתה מרגיש יותר טוב?', emoji: '🙂' },
+      { en: "I caught a cold", he: 'תפסתי הצטננות', emoji: '🤧' },
+      { en: "Call the doctor please", he: 'תתקשר לרופא בבקשה', emoji: '📞' },
+      { en: "I am allergic to nuts", he: 'יש לי אלרגיה לאגוזים', emoji: '🥜' },
+      { en: "Take care of your health", he: 'תשמור על הבריאות שלך', emoji: '💚' },
+      { en: "I will feel better soon", he: 'אני ארגיש יותר טוב בקרוב', emoji: '😌' },
+      { en: "Health is everything", he: 'הבריאות היא הכל', emoji: '❤️' },
+    ]
+  },
+  {
+    id: 35, title: 'שלב 35 · במסעדה', theme: 'מזמינים אוכל · At the Restaurant',
+    desc: 'שיחה שלמה במסעדה.', mode: 'sentence',
+    items: [
+      { en: "A table for two, please", he: 'שולחן לשניים, בבקשה', emoji: '🍽️' },
+      { en: "Can I see the menu?", he: 'אפשר לראות את התפריט?', emoji: '📋' },
+      { en: "What do you recommend?", he: 'מה אתה ממליץ?', emoji: '🤔' },
+      { en: "I would like a salad", he: 'אני רוצה סלט', emoji: '🥗' },
+      { en: "Can I have some water?", he: 'אפשר לקבל מים?', emoji: '💧' },
+      { en: "The food is delicious", he: 'האוכל טעים', emoji: '😋' },
+      { en: "Can we get the bill?", he: 'אפשר את החשבון?', emoji: '🧾' },
+      { en: "I am ready to order", he: 'אני מוכנה להזמין', emoji: '✍️' },
+      { en: "Is this dish spicy?", he: 'המנה הזו חריפה?', emoji: '🌶️' },
+      { en: "I do not eat meat", he: 'אני לא אוכלת בשר', emoji: '🚫' },
+      { en: "Everything was wonderful", he: 'הכל היה נפלא', emoji: '👌' },
+      { en: "Can I have the soup?", he: 'אפשר את המרק?', emoji: '🍲' },
+      { en: "A cup of tea, please", he: 'כוס תה, בבקשה', emoji: '🍵' },
+      { en: "We would like to sit outside", he: 'נרצה לשבת בחוץ', emoji: '☀️' },
+      { en: "This is my favorite restaurant", he: 'זאת המסעדה האהובה עליי', emoji: '🏆' },
+      { en: "Thank you, it was great", he: 'תודה, היה מצוין', emoji: '🙏' },
+      { en: "Can I pay by card?", he: 'אפשר לשלם בכרטיס?', emoji: '💳' },
+      { en: "The service was excellent", he: 'השירות היה מצוין', emoji: '🌟' },
+      { en: "I am full, thank you", he: 'אני שבעה, תודה', emoji: '😊' },
+      { en: "Let's come back here again", he: 'בואו נחזור לכאן שוב', emoji: '🔁' },
+    ]
+  },
+  {
+    id: 36, title: 'שלב 36 · קניות', theme: 'בחנות · Shopping',
+    desc: 'שיחה שלמה בחנות.', mode: 'sentence',
+    items: [
+      { en: "How much is this?", he: 'כמה זה עולה?', emoji: '💰' },
+      { en: "Do you have this in blue?", he: 'יש לכם את זה בכחול?', emoji: '🔵' },
+      { en: "I am just looking, thank you", he: 'אני רק מסתכלת, תודה', emoji: '👀' },
+      { en: "Can I try it on?", he: 'אפשר למדוד?', emoji: '👗' },
+      { en: "It is too expensive", he: 'זה יקר מדי', emoji: '💸' },
+      { en: "Do you have a smaller size?", he: 'יש מידה יותר קטנה?', emoji: '📏' },
+      { en: "I will take it", he: 'אני אקח את זה', emoji: '✅' },
+      { en: "Where is the cashier?", he: 'איפה הקופה?', emoji: '🧾' },
+      { en: "Is there a discount?", he: 'יש הנחה?', emoji: '🏷️' },
+      { en: "I bought a gift for Shaked", he: 'קניתי מתנה לשקד', emoji: '🎁' },
+      { en: "This fits perfectly", he: 'זה מתאים בול', emoji: '👍' },
+      { en: "Can I get a bag?", he: 'אפשר שקית?', emoji: '🛍️' },
+      { en: "I need new shoes", he: 'אני צריכה נעליים חדשות', emoji: '👟' },
+      { en: "The store is closed", he: 'החנות סגורה', emoji: '🔒' },
+      { en: "They are open until eight", he: 'הם פתוחים עד שמונה', emoji: '🕗' },
+      { en: "I love this color", he: 'אני אוהבת את הצבע הזה', emoji: '🎨' },
+      { en: "Can you wrap it as a gift?", he: 'אפשר לעטוף את זה כמתנה?', emoji: '🎀' },
+      { en: "I forgot my wallet", he: 'שכחתי את הארנק שלי', emoji: '👛' },
+      { en: "It was a good deal", he: 'זאת הייתה מציאה', emoji: '🤑' },
+      { en: "Let's go to another shop", he: 'בואו נלך לחנות אחרת', emoji: '🏬' },
+    ]
+  },
+  {
+    id: 37, title: 'שלב 37 · בטלפון', theme: 'שיחת טלפון · On the Phone',
+    desc: 'איך מנהלים שיחת טלפון.', mode: 'sentence',
+    items: [
+      { en: "Hello, who is speaking?", he: 'שלום, מי מדבר?', emoji: '📞' },
+      { en: "Can I speak to Or?", he: 'אפשר לדבר עם אור?', emoji: '🗣️' },
+      { en: "He is not here right now", he: 'הוא לא כאן כרגע', emoji: '🚫' },
+      { en: "Can I leave a message?", he: 'אפשר להשאיר הודעה?', emoji: '📝' },
+      { en: "I will call you back later", he: 'אני אחזור אליך אחר כך', emoji: '🔁' },
+      { en: "The line is busy", he: 'הקו תפוס', emoji: '📵' },
+      { en: "Can you hear me?", he: 'אתה שומע אותי?', emoji: '👂' },
+      { en: "Sorry, wrong number", he: 'סליחה, טעות במספר', emoji: '❌' },
+      { en: "Please call me tonight", he: 'תתקשר אליי הערב בבקשה', emoji: '🌙' },
+      { en: "I missed your call", he: 'פספסתי את השיחה שלך', emoji: '📲' },
+      { en: "Let me check and call you", he: 'אני אבדוק ואחזור אליך', emoji: '✔️' },
+      { en: "My phone was on silent", he: 'הטלפון שלי היה בשקט', emoji: '🔇' },
+      { en: "It is good to hear your voice", he: 'כיף לשמוע את הקול שלך', emoji: '😊' },
+      { en: "Talk to you soon", he: 'נדבר בקרוב', emoji: '👋' },
+      { en: "Can you speak louder?", he: 'אתה יכול לדבר חזק יותר?', emoji: '🔊' },
+      { en: "I am driving, call you later", he: 'אני נוהגת, אתקשר אחר כך', emoji: '🚗' },
+      { en: "Save my number", he: 'תשמור את המספר שלי', emoji: '💾' },
+      { en: "Eliya wants to say hello", he: 'אליה רוצה להגיד שלום', emoji: '👧' },
+      { en: "The battery is low", he: 'הסוללה חלשה', emoji: '🔋' },
+      { en: "Thanks for calling", he: 'תודה שהתקשרת', emoji: '🙏' },
+    ]
+  },
+  {
+    id: 38, title: 'שלב 38 · זמנים ופגישות', theme: 'שעות ותורים · Time & Appointments',
+    desc: 'מתאמים זמנים ופגישות.', mode: 'sentence',
+    items: [
+      { en: "What time is it?", he: 'מה השעה?', emoji: '🕐' },
+      { en: "It is half past three", he: 'שלוש וחצי', emoji: '🕞' },
+      { en: "I have an appointment at noon", he: 'יש לי פגישה בצהריים', emoji: '📅' },
+      { en: "Let's meet at five", he: 'בואו ניפגש בחמש', emoji: '🕔' },
+      { en: "I am running late", he: 'אני מאחרת', emoji: '⏰' },
+      { en: "Are you free tomorrow?", he: 'אתה פנוי מחר?', emoji: '🆓' },
+      { en: "The meeting is at nine", he: 'הפגישה בתשע', emoji: '🕘' },
+      { en: "See you in an hour", he: 'נתראה בעוד שעה', emoji: '⏳' },
+      { en: "I will be there on time", he: 'אני אגיע בזמן', emoji: '✅' },
+      { en: "Can we change the time?", he: 'אפשר לשנות את השעה?', emoji: '🔄' },
+      { en: "It is almost midnight", he: 'כמעט חצות', emoji: '🌃' },
+      { en: "I wake up early", he: 'אני קמה מוקדם', emoji: '🌅' },
+      { en: "Let's do it next week", he: 'בואו נעשה את זה בשבוע הבא', emoji: '📆' },
+      { en: "I have time in the afternoon", he: 'יש לי זמן אחר הצהריים', emoji: '☀️' },
+      { en: "The bus leaves at eight", he: 'האוטובוס יוצא בשמונה', emoji: '🚌' },
+      { en: "We are a little early", he: 'הקדמנו קצת', emoji: '🕐' },
+      { en: "Don't be late", he: 'אל תאחר', emoji: '⌛' },
+      { en: "I will remind you", he: 'אני אזכיר לך', emoji: '🔔' },
+      { en: "The store opens at ten", he: 'החנות נפתחת בעשר', emoji: '🏪' },
+      { en: "Time flies so fast", he: 'הזמן עף כל כך מהר', emoji: '🕰️' },
+    ]
+  },
+  {
+    id: 39, title: 'שלב 39 · מזג אוויר ועונות', theme: 'מזג האוויר · Weather & Seasons',
+    desc: 'מדברים על מזג האוויר והעונות.', mode: 'sentence',
+    items: [
+      { en: "It is very hot today", he: 'חם מאוד היום', emoji: '🔥' },
+      { en: "It is raining outside", he: 'יורד גשם בחוץ', emoji: '🌧️' },
+      { en: "The sun is shining", he: 'השמש זורחת', emoji: '☀️' },
+      { en: "It is cold in winter", he: 'קר בחורף', emoji: '❄️' },
+      { en: "I love the spring", he: 'אני אוהבת את האביב', emoji: '🌸' },
+      { en: "It is windy today", he: 'יש רוח היום', emoji: '💨' },
+      { en: "Take an umbrella", he: 'קח מטרייה', emoji: '☂️' },
+      { en: "The weather is nice", he: 'מזג האוויר נעים', emoji: '🌤️' },
+      { en: "It might rain later", he: 'אולי ירד גשם אחר כך', emoji: '🌦️' },
+      { en: "Summer is very hot here", he: 'הקיץ חם מאוד כאן', emoji: '🏖️' },
+      { en: "The sky is cloudy", he: 'השמיים מעוננים', emoji: '☁️' },
+      { en: "It is snowing in the north", he: 'יורד שלג בצפון', emoji: '🌨️' },
+      { en: "What a beautiful day", he: 'איזה יום יפה', emoji: '😍' },
+      { en: "It is getting dark", he: 'מחשיך', emoji: '🌆' },
+      { en: "Autumn is my favorite season", he: 'הסתיו הוא העונה האהובה עליי', emoji: '🍂' },
+      { en: "Dress warmly", he: 'תתלבש חם', emoji: '🧥' },
+      { en: "The nights are getting cold", he: 'הלילות נהיים קרים', emoji: '🌙' },
+      { en: "It is a perfect day for the beach", he: 'יום מושלם לים', emoji: '🏝️' },
+      { en: "The weather changed suddenly", he: 'מזג האוויר השתנה פתאום', emoji: '🔄' },
+      { en: "I hope it will be sunny", he: 'אני מקווה שיהיה שמש', emoji: '🌞' },
+    ]
+  },
+  {
+    id: 40, title: 'שלב 40 · נסיעות ותחבורה', theme: 'בדרכים · Travel & Transport',
+    desc: 'איך מסתדרים בנסיעות ובדרכים.', mode: 'sentence',
+    items: [
+      { en: "Where is the train station?", he: 'איפה תחנת הרכבת?', emoji: '🚉' },
+      { en: "How do I get to the city?", he: 'איך מגיעים לעיר?', emoji: '🏙️' },
+      { en: "I need a taxi please", he: 'אני צריכה מונית בבקשה', emoji: '🚕' },
+      { en: "Which bus goes downtown?", he: 'איזה אוטובוס נוסע למרכז?', emoji: '🚌' },
+      { en: "Is it far from here?", he: 'זה רחוק מכאן?', emoji: '📍' },
+      { en: "Turn left at the corner", he: 'תפנה שמאלה בפינה', emoji: '⬅️' },
+      { en: "We are going on a trip", he: 'אנחנו יוצאים לטיול', emoji: '✈️' },
+      { en: "Don't forget your passport", he: 'אל תשכח את הדרכון', emoji: '🛂' },
+      { en: "The flight is at six", he: 'הטיסה בשש', emoji: '🛫' },
+      { en: "How long is the drive?", he: 'כמה זמן הנסיעה?', emoji: '⏱️' },
+      { en: "We missed the bus", he: 'פספסנו את האוטובוס', emoji: '😣' },
+      { en: "Rafi is driving us", he: 'רפי נוהג אותנו', emoji: '🚗' },
+      { en: "Is this seat taken?", he: 'המקום הזה תפוס?', emoji: '💺' },
+      { en: "We arrived safely", he: 'הגענו בשלום', emoji: '✅' },
+      { en: "The road is busy today", he: 'הכביש עמוס היום', emoji: '🚦' },
+      { en: "Let's stop for a rest", he: 'בואו נעצור לנוח', emoji: '⛽' },
+      { en: "Enjoy your trip", he: 'תהנו מהטיול', emoji: '🌴' },
+      { en: "I love to travel", he: 'אני אוהבת לטייל', emoji: '🧳' },
+      { en: "We are almost there", he: 'כמעט הגענו', emoji: '🛣️' },
+      { en: "Have a safe journey", he: 'נסיעה טובה ובטוחה', emoji: '🙏' },
+    ]
+  },
+  {
+    id: 41, title: 'שלב 41 · בעבודה', theme: 'בעבודה · At Work',
+    desc: 'ביטויים לעולם העבודה.', mode: 'sentence',
+    items: [
+      { en: "I am going to work", he: 'אני הולכת לעבודה', emoji: '💼' },
+      { en: "I have a meeting today", he: 'יש לי פגישה היום', emoji: '📊' },
+      { en: "Can you send me the email?", he: 'אתה יכול לשלוח לי את המייל?', emoji: '📧' },
+      { en: "I am very busy", he: 'אני מאוד עסוקה', emoji: '⏳' },
+      { en: "Let's start the project", he: 'בואו נתחיל את הפרויקט', emoji: '🚀' },
+      { en: "Good job, well done", he: 'עבודה טובה, כל הכבוד', emoji: '👏' },
+      { en: "I need more time", he: 'אני צריכה עוד זמן', emoji: '⌛' },
+      { en: "The boss is in a meeting", he: 'הבוס בפגישה', emoji: '👔' },
+      { en: "Or works in an office", he: 'אור עובד במשרד', emoji: '🏢' },
+      { en: "I finished my work", he: 'סיימתי את העבודה', emoji: '✅' },
+      { en: "Let's take a break", he: 'בואו ניקח הפסקה', emoji: '☕' },
+      { en: "Can we talk for a minute?", he: 'אפשר לדבר רגע?', emoji: '🗣️' },
+      { en: "The deadline is tomorrow", he: 'התאריך האחרון הוא מחר', emoji: '📅' },
+      { en: "I work from home", he: 'אני עובדת מהבית', emoji: '🏠' },
+      { en: "Please print this for me", he: 'תדפיס לי את זה בבקשה', emoji: '🖨️' },
+      { en: "The meeting went well", he: 'הפגישה עברה טוב', emoji: '👍' },
+      { en: "I am looking for a job", he: 'אני מחפשת עבודה', emoji: '🔍' },
+      { en: "See you at the office", he: 'נתראה במשרד', emoji: '🏬' },
+      { en: "Have a productive day", he: 'שיהיה יום פורה', emoji: '💪' },
+      { en: "I am proud of my work", he: 'אני גאה בעבודה שלי', emoji: '🌟' },
+    ]
+  },
+  {
+    id: 42, title: 'שלב 42 · כסף ובנק', theme: 'כסף ובנק · Money & Bank',
+    desc: 'מסתדרים עם כסף ובנק.', mode: 'sentence',
+    items: [
+      { en: "I need to go to the bank", he: 'אני צריכה ללכת לבנק', emoji: '🏦' },
+      { en: "How much money do I have?", he: 'כמה כסף יש לי?', emoji: '💰' },
+      { en: "I want to open an account", he: 'אני רוצה לפתוח חשבון', emoji: '📑' },
+      { en: "Can I withdraw cash?", he: 'אפשר למשוך מזומן?', emoji: '💵' },
+      { en: "The card does not work", he: 'הכרטיס לא עובד', emoji: '❌' },
+      { en: "I need to pay the bills", he: 'אני צריכה לשלם את החשבונות', emoji: '🧾' },
+      { en: "It is too expensive for me", he: 'זה יקר מדי בשבילי', emoji: '💸' },
+      { en: "Where is the ATM?", he: 'איפה הכספומט?', emoji: '🏧' },
+      { en: "I am saving money", he: 'אני חוסכת כסף', emoji: '🐷' },
+      { en: "Can you lend me ten shekels?", he: 'אתה יכול להלוות לי עשרה שקלים?', emoji: '🤲' },
+      { en: "The price went up", he: 'המחיר עלה', emoji: '📈' },
+      { en: "I paid in cash", he: 'שילמתי במזומן', emoji: '💴' },
+      { en: "Let's split the bill", he: 'בואו נחלק את החשבון', emoji: '🤝' },
+      { en: "Money is not everything", he: 'כסף זה לא הכל', emoji: '🌿' },
+      { en: "I found a good price", he: 'מצאתי מחיר טוב', emoji: '🏷️' },
+      { en: "Keep the change", he: 'תשמור את העודף', emoji: '🪙' },
+      { en: "I lost my wallet", he: 'איבדתי את הארנק שלי', emoji: '😟' },
+      { en: "Can I get a receipt?", he: 'אפשר קבלה?', emoji: '🧾' },
+      { en: "We need to be careful with money", he: 'צריך להיזהר עם הכסף', emoji: '⚠️' },
+      { en: "I will pay you back", he: 'אני אחזיר לך', emoji: '💳' },
+    ]
+  },
+  {
+    id: 43, title: 'שלב 43 · תיאור אנשים', theme: 'איך נראים אנשים · Describing People',
+    desc: 'מתארים אנשים ותכונות.', mode: 'sentence',
+    items: [
+      { en: "She has long hair", he: 'יש לה שיער ארוך', emoji: '💇‍♀️' },
+      { en: "He is very tall", he: 'הוא מאוד גבוה', emoji: '📏' },
+      { en: "Eliya has beautiful eyes", he: 'לאליה יש עיניים יפות', emoji: '👁️' },
+      { en: "He is a kind person", he: 'הוא בן אדם טוב לב', emoji: '💛' },
+      { en: "She is very smart", he: 'היא מאוד חכמה', emoji: '🧠' },
+      { en: "Noam is so cute", he: 'נועם כל כך חמודה', emoji: '🥰' },
+      { en: "He has a big smile", he: 'יש לו חיוך גדול', emoji: '😁' },
+      { en: "She is always happy", he: 'היא תמיד שמחה', emoji: '😊' },
+      { en: "Rafi is very funny", he: 'רפי מאוד מצחיק', emoji: '😄' },
+      { en: "They are good friends", he: 'הם חברים טובים', emoji: '👫' },
+      { en: "She wears glasses", he: 'היא מרכיבה משקפיים', emoji: '👓' },
+      { en: "He is strong and healthy", he: 'הוא חזק ובריא', emoji: '💪' },
+      { en: "Shaked is very patient", he: 'שקד מאוד סבלנית', emoji: '🌸' },
+      { en: "He has short black hair", he: 'יש לו שיער שחור קצר', emoji: '🧑' },
+      { en: "She is a wonderful mother", he: 'היא אמא נפלאה', emoji: '👩‍👧' },
+      { en: "Eden is very creative", he: 'עדן מאוד יצירתית', emoji: '🎨' },
+      { en: "He is older than me", he: 'הוא מבוגר ממני', emoji: '👴' },
+      { en: "She looks young", he: 'היא נראית צעירה', emoji: '✨' },
+      { en: "They are a lovely family", he: 'הם משפחה מקסימה', emoji: '🏡' },
+      { en: "I am proud of all of them", he: 'אני גאה בכולם', emoji: '🌟' },
+    ]
+  },
+  {
+    id: 44, title: 'שלב 44 · תיאור מקומות', theme: 'איך נראים מקומות · Describing Places',
+    desc: 'מתארים בית, שכונה ומקומות.', mode: 'sentence',
+    items: [
+      { en: "The house is very big", he: 'הבית מאוד גדול', emoji: '🏠' },
+      { en: "It is a quiet neighborhood", he: 'זאת שכונה שקטה', emoji: '🤫' },
+      { en: "The park is near my home", he: 'הפארק קרוב לבית שלי', emoji: '🌳' },
+      { en: "The beach is beautiful", he: 'החוף יפהפה', emoji: '🏖️' },
+      { en: "The city is very busy", he: 'העיר מאוד עמוסה', emoji: '🏙️' },
+      { en: "There is a small garden", he: 'יש גינה קטנה', emoji: '🌷' },
+      { en: "The room is clean and bright", he: 'החדר נקי ומואר', emoji: '☀️' },
+      { en: "It is far from the center", he: 'זה רחוק מהמרכז', emoji: '📍' },
+      { en: "The street is full of shops", he: 'הרחוב מלא בחנויות', emoji: '🏬' },
+      { en: "We live on the third floor", he: 'אנחנו גרים בקומה השלישית', emoji: '🏢' },
+      { en: "The view is amazing", he: 'הנוף מדהים', emoji: '🌄' },
+      { en: "It is a cozy place", he: 'זה מקום נעים ומזמין', emoji: '🛋️' },
+      { en: "The kitchen is new", he: 'המטבח חדש', emoji: '🍳' },
+      { en: "There is a lot of space", he: 'יש הרבה מקום', emoji: '📐' },
+      { en: "The school is close by", he: 'בית הספר קרוב', emoji: '🏫' },
+      { en: "It is a safe area", he: 'זה אזור בטוח', emoji: '🛡️' },
+      { en: "The restaurant is downtown", he: 'המסעדה במרכז העיר', emoji: '🍽️' },
+      { en: "Our home is full of love", he: 'הבית שלנו מלא באהבה', emoji: '❤️' },
+      { en: "The streets are clean", he: 'הרחובות נקיים', emoji: '🧹' },
+      { en: "It is a wonderful place to live", he: 'זה מקום נפלא לגור בו', emoji: '🌟' },
+    ]
+  },
+  {
+    id: 45, title: 'שלב 45 · בית ומטלות', theme: 'בבית · Home & Chores',
+    desc: 'מטלות ושיחות בבית.', mode: 'sentence',
+    items: [
+      { en: "I need to clean the house", he: 'אני צריכה לנקות את הבית', emoji: '🧹' },
+      { en: "Can you wash the dishes?", he: 'אתה יכול לשטוף כלים?', emoji: '🍽️' },
+      { en: "I am doing the laundry", he: 'אני עושה כביסה', emoji: '🧺' },
+      { en: "Let's tidy up the room", he: 'בואו נסדר את החדר', emoji: '🧸' },
+      { en: "I cooked a big meal", he: 'בישלתי ארוחה גדולה', emoji: '🍲' },
+      { en: "Please take out the trash", he: 'תוציא את הזבל בבקשה', emoji: '🗑️' },
+      { en: "The floor is wet", he: 'הרצפה רטובה', emoji: '💦' },
+      { en: "I made the bed", he: 'סידרתי את המיטה', emoji: '🛏️' },
+      { en: "Can you help me in the kitchen?", he: 'אתה יכול לעזור לי במטבח?', emoji: '🍴' },
+      { en: "I watered the plants", he: 'השקיתי את הצמחים', emoji: '🌱' },
+      { en: "The house is clean now", he: 'הבית נקי עכשיו', emoji: '✨' },
+      { en: "Let's cook together", he: 'בואו נבשל ביחד', emoji: '👩‍🍳' },
+      { en: "I need to go shopping", he: 'אני צריכה לעשות קניות', emoji: '🛒' },
+      { en: "Rafi fixed the door", he: 'רפי תיקן את הדלת', emoji: '🔧' },
+      { en: "Dinner is ready", he: 'ארוחת הערב מוכנה', emoji: '🍽️' },
+      { en: "Please close the window", he: 'תסגור את החלון בבקשה', emoji: '🪟' },
+      { en: "I am tired from cleaning", he: 'אני עייפה מהניקיון', emoji: '😮‍💨' },
+      { en: "Everything is in its place", he: 'הכל במקום שלו', emoji: '📦' },
+      { en: "Thank you for helping", he: 'תודה על העזרה', emoji: '🙏' },
+      { en: "Home sweet home", he: 'אין כמו בבית', emoji: '🏡' },
+    ]
+  },
+  {
+    id: 46, title: 'שלב 46 · סיפורי משפחה', theme: 'המשפחה שלי · Family Stories',
+    desc: 'מספרים על המשפחה.', mode: 'sentence',
+    items: [
+      { en: "I have three children", he: 'יש לי שלושה ילדים', emoji: '👨‍👩‍👧‍👦' },
+      { en: "Or is my oldest son", he: 'אור הוא הבן הבכור שלי', emoji: '👨' },
+      { en: "Shaked loves to read", he: 'שקד אוהבת לקרוא', emoji: '📚' },
+      { en: "Eden lives nearby", he: 'עדן גרה בקרבת מקום', emoji: '🏠' },
+      { en: "Rafi and I have been married for years", he: 'רפי ואני נשואים שנים', emoji: '💍' },
+      { en: "Eliya is my granddaughter", he: 'אליה היא הנכדה שלי', emoji: '👧' },
+      { en: "Noam is the youngest", he: 'נועם היא הצעירה ביותר', emoji: '👶' },
+      { en: "We meet every Friday", he: 'אנחנו נפגשים כל יום שישי', emoji: '🕯️' },
+      { en: "The grandchildren make me happy", he: 'הנכדות משמחות אותי', emoji: '🥰' },
+      { en: "We are a close family", he: 'אנחנו משפחה מאוחדת', emoji: '🤗' },
+      { en: "I love them all so much", he: 'אני אוהבת את כולם כל כך', emoji: '❤️' },
+      { en: "We have dinner together", he: 'אנחנו אוכלים ארוחת ערב ביחד', emoji: '🍽️' },
+      { en: "Rafi tells funny stories", he: 'רפי מספר סיפורים מצחיקים', emoji: '😄' },
+      { en: "The children grew up fast", he: 'הילדים גדלו מהר', emoji: '⏳' },
+      { en: "I am a proud grandmother", he: 'אני סבתא גאה', emoji: '👵' },
+      { en: "We share many memories", he: 'יש לנו הרבה זיכרונות משותפים', emoji: '📷' },
+      { en: "Family time is precious", he: 'זמן משפחה הוא יקר ערך', emoji: '💎' },
+      { en: "Eliya and Noam play together", he: 'אליה ונועם משחקות ביחד', emoji: '🧸' },
+      { en: "I cook for the whole family", he: 'אני מבשלת לכל המשפחה', emoji: '🍲' },
+      { en: "My family is my whole world", he: 'המשפחה שלי היא כל העולם שלי', emoji: '🌍' },
+    ]
+  },
+  {
+    id: 47, title: 'שלב 47 · חגים ומסיבות', theme: 'חוגגים · Celebrations',
+    desc: 'ברכות וחגיגות.', mode: 'sentence',
+    items: [
+      { en: "Happy birthday to you", he: 'יום הולדת שמח', emoji: '🎂' },
+      { en: "We are having a party", he: 'אנחנו עושים מסיבה', emoji: '🎉' },
+      { en: "Congratulations!", he: 'מזל טוב!', emoji: '🎊' },
+      { en: "I bought a present", he: 'קניתי מתנה', emoji: '🎁' },
+      { en: "Let's celebrate together", he: 'בואו נחגוג ביחד', emoji: '🥳' },
+      { en: "Happy holiday", he: 'חג שמח', emoji: '🕎' },
+      { en: "We invited the whole family", he: 'הזמנו את כל המשפחה', emoji: '👨‍👩‍👧‍👦' },
+      { en: "The cake is delicious", he: 'העוגה טעימה', emoji: '🍰' },
+      { en: "Make a wish", he: 'תביעי משאלה', emoji: '⭐' },
+      { en: "It is Eliya's birthday", he: 'זה יום ההולדת של אליה', emoji: '🎈' },
+      { en: "We sang and danced", he: 'שרנו ורקדנו', emoji: '💃' },
+      { en: "Best wishes to you", he: 'כל הברכות אליך', emoji: '🌟' },
+      { en: "Thank you for the gift", he: 'תודה על המתנה', emoji: '🙏' },
+      { en: "We had a great time", he: 'נהנינו מאוד', emoji: '😄' },
+      { en: "Let's take a photo", he: 'בואו נצטלם', emoji: '📸' },
+      { en: "Have a wonderful celebration", he: 'שתהיה חגיגה נפלאה', emoji: '🎆' },
+      { en: "The family gathered together", he: 'המשפחה התאספה יחד', emoji: '🤝' },
+      { en: "It was a special day", he: 'זה היה יום מיוחד', emoji: '💝' },
+      { en: "Cheers, to good health", he: 'לחיים, לבריאות', emoji: '🥂' },
+      { en: "May all your wishes come true", he: 'שכל המשאלות שלך יתגשמו', emoji: '✨' },
+    ]
+  },
+  {
+    id: 48, title: 'שלב 48 · ביטויים', theme: 'ביטויים באנגלית · Idioms',
+    desc: 'ביטויים נפוצים שכיף להכיר.', mode: 'sentence',
+    items: [
+      { en: "Break a leg", he: 'שיהיה בהצלחה (בהצלחה!)', emoji: '🍀' },
+      { en: "It is a piece of cake", he: 'זה קל מאוד', emoji: '🍰' },
+      { en: "Once in a blue moon", he: 'לעיתים רחוקות מאוד', emoji: '🌙' },
+      { en: "Better late than never", he: 'מוטב מאוחר מאשר אף פעם', emoji: '⏰' },
+      { en: "It costs an arm and a leg", he: 'זה עולה הון', emoji: '💸' },
+      { en: "Time is money", he: 'זמן זה כסף', emoji: '💰' },
+      { en: "The early bird catches the worm", he: 'המקדים זוכה', emoji: '🐦' },
+      { en: "Practice makes perfect", he: 'תרגול עושה מושלם', emoji: '💪' },
+      { en: "It is up to you", he: 'זה תלוי בך', emoji: '🤷' },
+      { en: "Hit the road", he: 'לצאת לדרך', emoji: '🛣️' },
+      { en: "I am under the weather", he: 'אני לא מרגישה טוב', emoji: '🤒' },
+      { en: "A blessing in disguise", he: 'ברכה נסתרת', emoji: '🎁' },
+      { en: "Keep your chin up", he: 'אל תתייאש', emoji: '😊' },
+      { en: "It is raining cats and dogs", he: 'יורד גשם זלעפות', emoji: '🌧️' },
+      { en: "Don't give up", he: 'אל תוותר', emoji: '✊' },
+      { en: "So far so good", he: 'עד כה הכל טוב', emoji: '👍' },
+      { en: "Take it easy", he: 'קח את זה בקלות', emoji: '😌' },
+      { en: "Look on the bright side", he: 'תסתכל על הצד החיובי', emoji: '🌈' },
+      { en: "Easier said than done", he: 'קל לומר, קשה לעשות', emoji: '🤔' },
+      { en: "Home is where the heart is", he: 'הבית הוא במקום שבו הלב', emoji: '🏡' },
+    ]
+  },
+  {
+    id: 49, title: 'שלב 49 · מילות קישור', theme: 'מחברים משפטים · Connectors',
+    desc: 'מחברים שני חלקי משפט יחד.', mode: 'sentence',
+    items: [
+      { en: "I am tired because I worked all day", he: 'אני עייפה כי עבדתי כל היום', emoji: '😴' },
+      { en: "I will come if I have time", he: 'אני אבוא אם יהיה לי זמן', emoji: '⏳' },
+      { en: "She is small but strong", he: 'היא קטנה אבל חזקה', emoji: '💪' },
+      { en: "We can walk or take the bus", he: 'אפשר ללכת או לנסוע באוטובוס', emoji: '🚌' },
+      { en: "Although it is cold, I am happy", he: 'למרות שקר, אני שמחה', emoji: '😊' },
+      { en: "I stayed home so I could rest", he: 'נשארתי בבית כדי לנוח', emoji: '🛋️' },
+      { en: "He is kind and also funny", he: 'הוא טוב לב וגם מצחיק', emoji: '😄' },
+      { en: "I like tea but not coffee", he: 'אני אוהבת תה אבל לא קפה', emoji: '🍵' },
+      { en: "First we eat, then we talk", he: 'קודם אוכלים, אחר כך מדברים', emoji: '🍽️' },
+      { en: "I will help you when I finish", he: 'אני אעזור לך כשאסיים', emoji: '✔️' },
+      { en: "She came even though she was tired", he: 'היא באה למרות שהייתה עייפה', emoji: '🙂' },
+      { en: "We can meet here or there", he: 'אפשר להיפגש כאן או שם', emoji: '📍' },
+      { en: "I am happy because you are here", he: 'אני שמחה כי אתה כאן', emoji: '💛' },
+      { en: "It is late, so let's go home", he: 'מאוחר, אז בואו נלך הביתה', emoji: '🌙' },
+      { en: "He works hard and never complains", he: 'הוא עובד קשה ואף פעם לא מתלונן', emoji: '💪' },
+      { en: "I will call you before I leave", he: 'אני אתקשר לפני שאני יוצאת', emoji: '📞' },
+      { en: "We waited until he arrived", he: 'חיכינו עד שהוא הגיע', emoji: '⏰' },
+      { en: "I would come but I am busy", he: 'הייתי באה אבל אני עסוקה', emoji: '🕐' },
+      { en: "She sings while she cooks", he: 'היא שרה בזמן שהיא מבשלת', emoji: '🎶' },
+      { en: "Study hard so you will succeed", he: 'תלמד קשה כדי שתצליח', emoji: '🎓' },
+    ]
+  },
+  {
+    id: 50, title: 'שלב 50 · בקשות מנומסות', theme: 'בנימוס · Polite Requests',
+    desc: 'מבקשים דברים בנימוס.', mode: 'sentence',
+    items: [
+      { en: "Could you help me, please?", he: 'אתה יכול לעזור לי, בבקשה?', emoji: '🙏' },
+      { en: "Would you like some tea?", he: 'תרצה קצת תה?', emoji: '🍵' },
+      { en: "May I ask you something?", he: 'אפשר לשאול אותך משהו?', emoji: '❓' },
+      { en: "Could you speak slowly?", he: 'אתה יכול לדבר לאט?', emoji: '🐢' },
+      { en: "Would you mind closing the door?", he: 'אכפת לך לסגור את הדלת?', emoji: '🚪' },
+      { en: "Can I help you with that?", he: 'אפשר לעזור לך עם זה?', emoji: '🤝' },
+      { en: "Please take a seat", he: 'בבקשה שב', emoji: '💺' },
+      { en: "Could you repeat that?", he: 'אתה יכול לחזור על זה?', emoji: '🔁' },
+      { en: "Would you pass me the salt?", he: 'תעביר לי את המלח?', emoji: '🧂' },
+      { en: "May I come in?", he: 'אפשר להיכנס?', emoji: '🚪' },
+      { en: "Could I have a glass of water?", he: 'אפשר כוס מים?', emoji: '💧' },
+      { en: "Would you like to join us?", he: 'תרצה להצטרף אלינו?', emoji: '👫' },
+      { en: "Please wait a moment", he: 'חכה רגע בבקשה', emoji: '⏳' },
+      { en: "Could you tell me the way?", he: 'אתה יכול להגיד לי את הדרך?', emoji: '🗺️' },
+      { en: "Would you do me a favor?", he: 'תעשה לי טובה?', emoji: '🙏' },
+      { en: "May I use your phone?", he: 'אפשר להשתמש בטלפון שלך?', emoji: '📱' },
+      { en: "Please be careful", he: 'תיזהר בבקשה', emoji: '⚠️' },
+      { en: "Could you wait for me?", he: 'אתה יכול לחכות לי?', emoji: '⌛' },
+      { en: "Would you like anything else?", he: 'תרצה עוד משהו?', emoji: '🍽️' },
+      { en: "Thank you for your kindness", he: 'תודה על הטוב לב שלך', emoji: '💛' },
+    ]
+  },
+  {
+    id: 51, title: 'שלב 51 · עצות והצעות', theme: 'נותנים עצה · Advice & Suggestions',
+    desc: 'מציעים ומייעצים.', mode: 'sentence',
+    items: [
+      { en: "You should rest more", he: 'כדאי שתנוח יותר', emoji: '🛌' },
+      { en: "Why don't we go for a walk?", he: 'למה שלא נצא לטיול?', emoji: '🚶' },
+      { en: "You should drink water", he: 'כדאי שתשתה מים', emoji: '💧' },
+      { en: "Let's try something new", he: 'בואו ננסה משהו חדש', emoji: '✨' },
+      { en: "You had better see a doctor", he: 'כדאי לך ללכת לרופא', emoji: '👩‍⚕️' },
+      { en: "How about we cook together?", he: 'מה דעתך שנבשל ביחד?', emoji: '🍳' },
+      { en: "You should call your mother", he: 'כדאי שתתקשר לאמא שלך', emoji: '📞' },
+      { en: "Let's meet this weekend", he: 'בואו ניפגש בסוף השבוע', emoji: '📅' },
+      { en: "You should not worry", he: 'אתה לא צריך לדאוג', emoji: '😌' },
+      { en: "Maybe we should wait", he: 'אולי כדאי לחכות', emoji: '⏳' },
+      { en: "I suggest we leave early", he: 'אני מציעה שנצא מוקדם', emoji: '🌅' },
+      { en: "You should learn English", he: 'כדאי שתלמד אנגלית', emoji: '📚' },
+      { en: "Let's ask for help", he: 'בואו נבקש עזרה', emoji: '🙋' },
+      { en: "It is a good idea to relax", he: 'זה רעיון טוב להירגע', emoji: '🌸' },
+      { en: "You should take a break", he: 'כדאי שתיקח הפסקה', emoji: '☕' },
+      { en: "Why not try again?", he: 'למה לא לנסות שוב?', emoji: '🔁' },
+      { en: "You should be proud", he: 'אתה צריך להיות גאה', emoji: '🌟' },
+      { en: "Let's plan a trip", he: 'בואו נתכנן טיול', emoji: '✈️' },
+      { en: "I advise you to be patient", he: 'אני ממליצה לך להיות סבלני', emoji: '🧘' },
+      { en: "You should follow your heart", he: 'כדאי שתלך אחרי הלב', emoji: '💖' },
+    ]
+  },
+  {
+    id: 52, title: 'שלב 52 · השוואות', theme: 'משווים · Comparisons',
+    desc: 'משווים בין דברים.', mode: 'sentence',
+    items: [
+      { en: "This is bigger than that", he: 'זה יותר גדול מזה', emoji: '📦' },
+      { en: "She is taller than me", he: 'היא יותר גבוהה ממני', emoji: '📏' },
+      { en: "Today is hotter than yesterday", he: 'היום חם יותר מאתמול', emoji: '🔥' },
+      { en: "This is the best restaurant", he: 'זאת המסעדה הכי טובה', emoji: '🏆' },
+      { en: "Noam is younger than Eliya", he: 'נועם יותר צעירה מאליה', emoji: '👶' },
+      { en: "This book is more interesting", he: 'הספר הזה יותר מעניין', emoji: '📖' },
+      { en: "My house is smaller than yours", he: 'הבית שלי יותר קטן משלך', emoji: '🏠' },
+      { en: "He runs faster than me", he: 'הוא רץ מהר ממני', emoji: '🏃' },
+      { en: "This is the most beautiful place", he: 'זה המקום הכי יפה', emoji: '🌄' },
+      { en: "Coffee is stronger than tea", he: 'הקפה חזק יותר מהתה', emoji: '☕' },
+      { en: "She is the kindest person I know", he: 'היא האדם הכי טוב לב שאני מכירה', emoji: '💛' },
+      { en: "This way is shorter", he: 'הדרך הזאת יותר קצרה', emoji: '🛣️' },
+      { en: "Winter is colder than autumn", he: 'החורף קר יותר מהסתיו', emoji: '❄️' },
+      { en: "You are better than you think", he: 'אתה יותר טוב ממה שאתה חושב', emoji: '🌟' },
+      { en: "This is the easiest level", he: 'זה השלב הכי קל', emoji: '✅' },
+      { en: "My phone is older than yours", he: 'הטלפון שלי יותר ישן משלך', emoji: '📱' },
+      { en: "The more I learn, the happier I am", he: 'ככל שאני לומדת יותר, אני שמחה יותר', emoji: '😊' },
+      { en: "This is cheaper than that", he: 'זה יותר זול מזה', emoji: '💰' },
+      { en: "She is the smartest in the class", he: 'היא הכי חכמה בכיתה', emoji: '🧠' },
+      { en: "Family is more important than money", he: 'משפחה חשובה יותר מכסף', emoji: '❤️' },
+    ]
+  },
+  {
+    id: 53, title: 'שלב 53 · סיפור אישי', theme: 'הסיפור שלי · My Story',
+    desc: 'מספרים סיפור חיים בזמן עבר.', mode: 'sentence',
+    items: [
+      { en: "When I was young, I lived in a small town", he: 'כשהייתי צעירה, גרתי בעיירה קטנה', emoji: '🏘️' },
+      { en: "I met Rafi many years ago", he: 'פגשתי את רפי לפני הרבה שנים', emoji: '💑' },
+      { en: "We got married and had children", he: 'התחתנו והבאנו ילדים', emoji: '👨‍👩‍👧‍👦' },
+      { en: "I worked hard all my life", he: 'עבדתי קשה כל חיי', emoji: '💪' },
+      { en: "We moved to a new house", he: 'עברנו לבית חדש', emoji: '🏠' },
+      { en: "The children brought us joy", he: 'הילדים הביאו לנו שמחה', emoji: '😊' },
+      { en: "I learned many things", he: 'למדתי הרבה דברים', emoji: '📚' },
+      { en: "We traveled to many places", he: 'טיילנו להרבה מקומות', emoji: '✈️' },
+      { en: "Life was not always easy", he: 'החיים לא תמיד היו קלים', emoji: '🌧️' },
+      { en: "But we were always together", he: 'אבל תמיד היינו ביחד', emoji: '🤝' },
+      { en: "I am grateful for everything", he: 'אני אסירת תודה על הכל', emoji: '🙏' },
+      { en: "My grandchildren were born", he: 'הנכדות שלי נולדו', emoji: '👶' },
+      { en: "They made my life complete", he: 'הן השלימו לי את החיים', emoji: '💖' },
+      { en: "I never stopped dreaming", he: 'מעולם לא הפסקתי לחלום', emoji: '🌟' },
+      { en: "Now I am learning English", he: 'עכשיו אני לומדת אנגלית', emoji: '📖' },
+      { en: "It is never too late to learn", he: 'אף פעם לא מאוחר מדי ללמוד', emoji: '⏳' },
+      { en: "I am proud of my journey", he: 'אני גאה בדרך שלי', emoji: '🛤️' },
+      { en: "Every day is a gift", he: 'כל יום הוא מתנה', emoji: '🎁' },
+      { en: "I have a wonderful family", he: 'יש לי משפחה נפלאה', emoji: '🏡' },
+      { en: "This is my happy story", he: 'זה הסיפור השמח שלי', emoji: '😊' },
+    ]
+  },
+  {
+    id: 54, title: 'שלב 54 · חלומות ותוכניות', theme: 'מה שאני חולמת · Dreams & Plans',
+    desc: 'מדברים על חלומות ותוכניות.', mode: 'sentence',
+    items: [
+      { en: "I want to learn many languages", he: 'אני רוצה ללמוד הרבה שפות', emoji: '🌍' },
+      { en: "One day I will travel the world", he: 'יום אחד אטייל בעולם', emoji: '🗺️' },
+      { en: "I dream of visiting Paris", he: 'אני חולמת לבקר בפריז', emoji: '🗼' },
+      { en: "We are planning a family trip", he: 'אנחנו מתכננים טיול משפחתי', emoji: '✈️' },
+      { en: "I hope to see my grandchildren grow", he: 'אני מקווה לראות את הנכדות גדלות', emoji: '👵' },
+      { en: "I want to stay healthy", he: 'אני רוצה להישאר בריאה', emoji: '💚' },
+      { en: "We will build a beautiful garden", he: 'נבנה גינה יפה', emoji: '🌷' },
+      { en: "I plan to read more books", he: 'אני מתכננת לקרוא יותר ספרים', emoji: '📚' },
+      { en: "My dream is to speak English well", he: 'החלום שלי הוא לדבר אנגלית טוב', emoji: '🗣️' },
+      { en: "We want to spend more time together", he: 'אנחנו רוצים לבלות יותר זמן ביחד', emoji: '🤗' },
+      { en: "I hope for peace and happiness", he: 'אני מקווה לשלום ואושר', emoji: '🕊️' },
+      { en: "Someday I will write a book", he: 'יום אחד אכתוב ספר', emoji: '✍️' },
+      { en: "I want to dance again", he: 'אני רוצה לרקוד שוב', emoji: '💃' },
+      { en: "We are saving for a vacation", he: 'אנחנו חוסכים לחופשה', emoji: '🏖️' },
+      { en: "I will never stop learning", he: 'לעולם לא אפסיק ללמוד', emoji: '📖' },
+      { en: "My goal is to be happy", he: 'המטרה שלי היא להיות מאושרת', emoji: '😊' },
+      { en: "I hope all my dreams come true", he: 'אני מקווה שכל החלומות יתגשמו', emoji: '✨' },
+      { en: "We plan to celebrate our anniversary", he: 'אנחנו מתכננים לחגוג יום נישואים', emoji: '💍' },
+      { en: "I want to make beautiful memories", he: 'אני רוצה ליצור זיכרונות יפים', emoji: '📷' },
+      { en: "The future looks bright", he: 'העתיד נראה מזהיר', emoji: '🌟' },
+    ]
+  },
+  {
+    id: 55, title: 'שלב 55 · שיחת חולין', theme: 'סתם לדבר · Small Talk',
+    desc: 'שיחות קטנות ויומיומיות.', mode: 'sentence',
+    items: [
+      { en: "How was your weekend?", he: 'איך היה הסוף שבוע שלך?', emoji: '🌞' },
+      { en: "Did you sleep well?", he: 'ישנת טוב?', emoji: '😴' },
+      { en: "What's new with you?", he: 'מה חדש אצלך?', emoji: '🆕' },
+      { en: "The weather is lovely today", he: 'מזג האוויר נעים היום', emoji: '☀️' },
+      { en: "How are the kids?", he: 'מה שלום הילדים?', emoji: '👶' },
+      { en: "Long time no see", he: 'מזמן לא התראינו', emoji: '👋' },
+      { en: "You look great today", he: 'אתה נראה נהדר היום', emoji: '😊' },
+      { en: "How is your family?", he: 'מה שלום המשפחה?', emoji: '🏡' },
+      { en: "I heard the good news", he: 'שמעתי את החדשות הטובות', emoji: '📰' },
+      { en: "Let's catch up soon", he: 'בוא נתעדכן בקרוב', emoji: '☕' },
+      { en: "It has been a busy week", he: 'היה שבוע עמוס', emoji: '⏳' },
+      { en: "What are your plans for today?", he: 'מה התוכניות שלך להיום?', emoji: '📅' },
+      { en: "Take care of yourself", he: 'תשמור על עצמך', emoji: '💛' },
+      { en: "Say hello to everyone", he: 'תמסור דרישת שלום לכולם', emoji: '👋' },
+      { en: "I am doing fine, thanks", he: 'אני בסדר, תודה', emoji: '🙂' },
+      { en: "Have a great day", he: 'שיהיה לך יום מצוין', emoji: '🌟' },
+      { en: "It was nice talking to you", he: 'היה נעים לדבר איתך', emoji: '💬' },
+      { en: "Let's grab a coffee sometime", he: 'בוא נשתה קפה מתישהו', emoji: '☕' },
+      { en: "Send my regards to Rafi", he: 'תמסור דרישת שלום לרפי', emoji: '🙋' },
+      { en: "See you around", he: 'נתראה בסביבה', emoji: '👋' },
+    ]
+  },
+  {
+    id: 56, title: 'שלב 56 · פתרון בעיות', theme: 'כשיש בעיה · Problems',
+    desc: 'מתמודדים עם בעיות ותלונות.', mode: 'sentence',
+    items: [
+      { en: "There is a problem", he: 'יש בעיה', emoji: '⚠️' },
+      { en: "This is not what I ordered", he: 'זה לא מה שהזמנתי', emoji: '❌' },
+      { en: "Can you help me fix it?", he: 'אתה יכול לעזור לי לתקן?', emoji: '🔧' },
+      { en: "I am not satisfied", he: 'אני לא מרוצה', emoji: '😕' },
+      { en: "Something is wrong", he: 'משהו לא בסדר', emoji: '🚫' },
+      { en: "Can I speak to the manager?", he: 'אפשר לדבר עם המנהל?', emoji: '👔' },
+      { en: "I would like a refund", he: 'אני רוצה החזר כספי', emoji: '💰' },
+      { en: "It does not work", he: 'זה לא עובד', emoji: '⚙️' },
+      { en: "I have a complaint", he: 'יש לי תלונה', emoji: '📝' },
+      { en: "This is broken", he: 'זה שבור', emoji: '💔' },
+      { en: "Please fix this problem", he: 'תתקן את הבעיה הזאת בבקשה', emoji: '🔨' },
+      { en: "I am sorry for the trouble", he: 'אני מצטערת על הטרחה', emoji: '🙏' },
+      { en: "Let's find a solution", he: 'בואו נמצא פתרון', emoji: '💡' },
+      { en: "It is too noisy here", he: 'רועש מדי כאן', emoji: '🔊' },
+      { en: "Can you change it for me?", he: 'אתה יכול להחליף לי את זה?', emoji: '🔄' },
+      { en: "I waited a long time", he: 'חיכיתי הרבה זמן', emoji: '⏰' },
+      { en: "This is not acceptable", he: 'זה לא מקובל', emoji: '🙅' },
+      { en: "Thank you for understanding", he: 'תודה על ההבנה', emoji: '🙏' },
+      { en: "I hope we can solve this", he: 'אני מקווה שנוכל לפתור את זה', emoji: '🤝' },
+      { en: "Everything is fine now", he: 'הכל בסדר עכשיו', emoji: '✅' },
+    ]
+  },
+  {
+    id: 57, title: 'שלב 57 · אצל הנכדות', theme: 'דיאלוג עם הנכדות · With the Grandkids',
+    desc: 'שיחה חמה עם אליה ונועם.', mode: 'sentence',
+    items: [
+      { en: "Hello Eliya, I missed you", he: 'שלום אליה, התגעגעתי אליך', emoji: '🥰' },
+      { en: "Come give grandma a hug", he: 'בואי תני חיבוק לסבתא', emoji: '🤗' },
+      { en: "How are you, my sweet Noam?", he: 'מה שלומך, נועם המתוקה שלי?', emoji: '👶' },
+      { en: "Did you have a good day?", he: 'היה לך יום טוב?', emoji: '😊' },
+      { en: "Let's play together", he: 'בואי נשחק ביחד', emoji: '🧸' },
+      { en: "I brought you a little gift", he: 'הבאתי לך מתנה קטנה', emoji: '🎁' },
+      { en: "You are growing so fast", he: 'את גדלה כל כך מהר', emoji: '📏' },
+      { en: "Tell me about your day", he: 'ספרי לי על היום שלך', emoji: '🗣️' },
+      { en: "Are you hungry, sweetie?", he: 'את רעבה, מתוקה?', emoji: '🍎' },
+      { en: "I made your favorite food", he: 'הכנתי את האוכל האהוב עלייך', emoji: '🍝' },
+      { en: "You are such a good girl", he: 'את ילדה כל כך טובה', emoji: '🌟' },
+      { en: "Let's read a story", he: 'בואי נקרא סיפור', emoji: '📖' },
+      { en: "Grandma loves you very much", he: 'סבתא אוהבת אותך מאוד', emoji: '❤️' },
+      { en: "Be careful, my dear", he: 'תיזהרי, יקירתי', emoji: '⚠️' },
+      { en: "You make me so happy", he: 'את משמחת אותי כל כך', emoji: '😄' },
+      { en: "Give me a big smile", he: 'תני לי חיוך גדול', emoji: '😁' },
+      { en: "It is time for a nap", he: 'הגיע הזמן לנמנם', emoji: '😴' },
+      { en: "I will see you next week", he: 'נתראה בשבוע הבא', emoji: '📅' },
+      { en: "Sleep well, my angel", he: 'נומי טוב, מלאך שלי', emoji: '🌙' },
+      { en: "I love you to the moon", he: 'אני אוהבת אותך עד הירח', emoji: '🌕' },
+    ]
+  },
+  {
+    id: 58, title: 'שלב 58 · יום בעיר', theme: 'דיאלוג בעיר · A Day in Town',
+    desc: 'שיחה שלמה של יום בעיר.', mode: 'sentence',
+    items: [
+      { en: "Let's go to the city center", he: 'בואו נלך למרכז העיר', emoji: '🏙️' },
+      { en: "First, we will go to the bank", he: 'קודם נלך לבנק', emoji: '🏦' },
+      { en: "Then we can do some shopping", he: 'אחר כך נעשה קצת קניות', emoji: '🛍️' },
+      { en: "I need to buy some bread", he: 'אני צריכה לקנות לחם', emoji: '🍞' },
+      { en: "Let's stop for coffee", he: 'בואו נעצור לקפה', emoji: '☕' },
+      { en: "Excuse me, where is the pharmacy?", he: 'סליחה, איפה בית המרקחת?', emoji: '💊' },
+      { en: "It is just around the corner", he: 'זה ממש מעבר לפינה', emoji: '📍' },
+      { en: "Thank you very much", he: 'תודה רבה', emoji: '🙏' },
+      { en: "Let's have lunch here", he: 'בואו נאכל צהריים כאן', emoji: '🍽️' },
+      { en: "This place looks nice", he: 'המקום הזה נראה נחמד', emoji: '👍' },
+      { en: "The streets are crowded today", he: 'הרחובות עמוסים היום', emoji: '🚶' },
+      { en: "Let's sit and rest a little", he: 'בואו נשב וננוח קצת', emoji: '💺' },
+      { en: "Did you find what you needed?", he: 'מצאת את מה שחיפשת?', emoji: '🔍' },
+      { en: "Yes, I bought everything", he: 'כן, קניתי הכל', emoji: '✅' },
+      { en: "It was a productive day", he: 'היה יום פורה', emoji: '💪' },
+      { en: "I am a little tired now", he: 'אני קצת עייפה עכשיו', emoji: '😮‍💨' },
+      { en: "Let's head back home", he: 'בואו נחזור הביתה', emoji: '🏡' },
+      { en: "We had a wonderful time", he: 'נהנינו מאוד', emoji: '😊' },
+      { en: "Thank you for coming with me", he: 'תודה שבאת איתי', emoji: '💛' },
+      { en: "Let's do it again soon", he: 'בואו נעשה את זה שוב בקרוב', emoji: '🔁' },
+    ]
+  },
+  {
+    id: 59, title: 'שלב 59 · שיחה חופשית', theme: 'מדברים על הכל · Free Conversation',
+    desc: 'שיחה חופשית ומתקדמת.', mode: 'sentence',
+    items: [
+      { en: "Tell me, how have you been?", he: 'ספר לי, מה שלומך לאחרונה?', emoji: '🙂' },
+      { en: "I have been thinking about you", he: 'חשבתי עליך', emoji: '💭' },
+      { en: "Life has been good lately", he: 'החיים טובים לאחרונה', emoji: '🌟' },
+      { en: "What do you enjoy doing?", he: 'מה אתה אוהב לעשות?', emoji: '🎨' },
+      { en: "I enjoy spending time with family", he: 'אני נהנית לבלות עם המשפחה', emoji: '👨‍👩‍👧' },
+      { en: "That sounds really nice", he: 'זה נשמע ממש נחמד', emoji: '😊' },
+      { en: "What do you think about it?", he: 'מה אתה חושב על זה?', emoji: '🤔' },
+      { en: "I completely agree with you", he: 'אני מסכימה איתך לגמרי', emoji: '👍' },
+      { en: "Let me tell you something", he: 'תן לי לספר לך משהו', emoji: '🗣️' },
+      { en: "That is very interesting", he: 'זה מאוד מעניין', emoji: '✨' },
+      { en: "I never thought about it that way", he: 'מעולם לא חשבתי על זה ככה', emoji: '💡' },
+      { en: "You are absolutely right", he: 'אתה צודק לחלוטין', emoji: '✅' },
+      { en: "I feel the same way", he: 'אני מרגישה אותו דבר', emoji: '💛' },
+      { en: "It depends on the situation", he: 'זה תלוי במצב', emoji: '⚖️' },
+      { en: "To be honest with you", he: 'אם להיות כנה איתך', emoji: '🙊' },
+      { en: "I really appreciate that", he: 'אני ממש מעריכה את זה', emoji: '🙏' },
+      { en: "Let's keep in touch", he: 'בוא נשמור על קשר', emoji: '📞' },
+      { en: "It was a great conversation", he: 'זאת הייתה שיחה נהדרת', emoji: '💬' },
+      { en: "I learned a lot from you", he: 'למדתי ממך הרבה', emoji: '📚' },
+      { en: "Thank you for listening", he: 'תודה שהקשבת', emoji: '👂' },
+    ]
+  },
+  {
+    id: 60, title: 'שלב 60 · סיום הקורס', theme: 'הגעת לסוף! · Graduation',
+    desc: 'השלב האחרון של המסע. את אלופה! 🏆', mode: 'sentence',
+    items: [
+      { en: "I finished all the levels", he: 'סיימתי את כל השלבים', emoji: '🎓' },
+      { en: "I can speak English now", he: 'אני יכולה לדבר אנגלית עכשיו', emoji: '🗣️' },
+      { en: "I am so proud of myself", he: 'אני כל כך גאה בעצמי', emoji: '🌟' },
+      { en: "It was a long journey", he: 'זאת הייתה דרך ארוכה', emoji: '🛤️' },
+      { en: "I never gave up", he: 'אף פעם לא ויתרתי', emoji: '✊' },
+      { en: "Thank you for believing in me", he: 'תודה שהאמנתם בי', emoji: '💛' },
+      { en: "My family supported me", he: 'המשפחה שלי תמכה בי', emoji: '🤝' },
+      { en: "Now I can talk with everyone", he: 'עכשיו אני יכולה לדבר עם כולם', emoji: '🌍' },
+      { en: "Learning never ends", he: 'הלמידה לא נגמרת לעולם', emoji: '📚' },
+      { en: "I feel confident now", he: 'אני מרגישה בטוחה עכשיו', emoji: '💪' },
+      { en: "Dreams really do come true", he: 'חלומות באמת מתגשמים', emoji: '✨' },
+      { en: "I want to thank my teacher", he: 'אני רוצה להודות למורה שלי', emoji: '🙏' },
+      { en: "This is just the beginning", he: 'זאת רק ההתחלה', emoji: '🌱' },
+      { en: "I will keep practicing", he: 'אני אמשיך לתרגל', emoji: '🔁' },
+      { en: "Anything is possible", he: 'הכל אפשרי', emoji: '🌈' },
+      { en: "I am a real English speaker", he: 'אני דוברת אנגלית אמיתית', emoji: '🎤' },
+      { en: "Sigal, you did it!", he: 'סיגל, עשית את זה!', emoji: '🎉' },
+      { en: "Congratulations to me", he: 'מזל טוב לי', emoji: '🥳' },
+      { en: "The best is yet to come", he: 'הטוב ביותר עוד לפנינו', emoji: '🚀' },
+      { en: "I am ready for the world", he: 'אני מוכנה לעולם', emoji: '🌍' },
+    ]
+  }
+];
+
+const PASS_RATIO = 0.6;          // gentle 60% to unlock next level
+const STORE_KEY = 'sigal_progress';
+
+/* ============================================================
+   PROGRESS (localStorage)
+   { unlocked: highest unlocked level id, best: { levelId: percent } }
+   ============================================================ */
+function loadProgress() {
+  let p = { unlocked: 1, best: {} };
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORE_KEY));
+    if (saved && typeof saved.unlocked === 'number') p = { unlocked: saved.unlocked, best: saved.best || {} };
+  } catch (e) {}
+  // Safety/migration: unlock through (highest already-passed level + 1).
+  // Fixes old saves from when there were only 5 levels, so newly added
+  // levels (e.g. level 6) open automatically for users who finished before.
+  let highestPassed = 0;
+  LEVELS.forEach(lv => { if ((p.best[lv.id] || 0) >= PASS_RATIO * 100) highestPassed = Math.max(highestPassed, lv.id); });
+  p.unlocked = Math.max(p.unlocked, Math.min(highestPassed + 1, LEVELS.length));
+  return p;
+}
+function saveProgress(p) {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(p)); } catch (e) {}
+}
+let progress = loadProgress();
+
+/* ============================================================
+   SPEECH — slow & clear English
+   ============================================================ */
+let enVoice = null;
+function pickVoice() {
+  const voices = window.speechSynthesis ? speechSynthesis.getVoices() : [];
+  const en = voices.filter(v => /^en/i.test(v.lang));
+  // Prefer LOCAL (offline) voices. Edge lists "online/natural" voices that
+  // can stay silent — local Microsoft/Google voices work reliably.
+  enVoice = en.find(v => v.localService && /en[-_]US/i.test(v.lang))
+         || en.find(v => v.localService && /en[-_]GB/i.test(v.lang))
+         || en.find(v => v.localService)
+         || en.find(v => /en[-_]US/i.test(v.lang))
+         || en.find(v => /en[-_]GB/i.test(v.lang))
+         || en[0] || null;
+}
+if (window.speechSynthesis) {
+  pickVoice();
+  speechSynthesis.onvoiceschanged = pickVoice;
+}
+function inNativeApp() {
+  return !!(window.ReactNativeWebView && window.ReactNativeWebView.postMessage);
+}
+function speak(text, opts) {
+  opts = opts || {};
+  // Inside the native app the browser's speechSynthesis is unavailable, so
+  // send the word to the app, which reads it aloud with native text-to-speech.
+  if (inNativeApp()) {
+    try {
+      window.ReactNativeWebView.postMessage(JSON.stringify({
+        type: 'speak',
+        text: text,
+        rate: opts.rate != null ? opts.rate : 0.7
+      }));
+    } catch (e) {}
+    return;
+  }
+  if (!window.speechSynthesis) return;
+  try {
+    if (!enVoice) pickVoice();                       // iOS often loads voices late
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'en-US';
+    if (enVoice) u.voice = enVoice;
+    u.rate = opts.rate != null ? opts.rate : 0.7;    // slow & clear for a beginner
+    u.pitch = opts.pitch != null ? opts.pitch : 1.0;
+    speechSynthesis.speak(u);
+    speechSynthesis.resume();                         // iOS sometimes leaves the queue paused
+  } catch (e) {}
+}
+function stopSpeak() {
+  if (inNativeApp()) {
+    try { window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'stopSpeak' })); } catch (e) {}
+    return;
+  }
+  if (window.speechSynthesis) speechSynthesis.cancel();
+}
+
+/* ============================================================
+   SOUND — success / gentle-retry chime (Web Audio)
+   ============================================================ */
+let actx = null;
+function ding(ok) {
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+    const notes = ok ? [523.25, 659.25, 783.99] : [392.0, 329.63];
+    notes.forEach((f, i) => {
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = 'sine'; o.frequency.value = f;
+      o.connect(g); g.connect(actx.destination);
+      const t = actx.currentTime + i * 0.11;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.25, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.28);
+      o.start(t); o.stop(t + 0.3);
+    });
+  } catch (e) {}
+}
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+function shuffle(a) {
+  a = a.slice();
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+function showScreen(id) {
+  stopSpeak();
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function levelById(id) { return LEVELS.find(l => l.id === id); }
+
+/* ============================================================
+   CONFETTI & burst
+   ============================================================ */
+const CONF_COLORS = ['#ef8354', '#2a9d8f', '#e9b949', '#5aa9e6', '#e07a9b', '#7dcfb6'];
+function confetti(count) {
+  const box = document.getElementById('confetti');
+  count = count || 30;
+  for (let i = 0; i < count; i++) {
+    const c = document.createElement('div');
+    c.className = 'conf';
+    c.style.left = Math.random() * 100 + 'vw';
+    c.style.background = CONF_COLORS[Math.floor(Math.random() * CONF_COLORS.length)];
+    c.style.animationDuration = (1.6 + Math.random() * 1.3) + 's';
+    c.style.transform = 'rotate(' + (Math.random() * 360) + 'deg)';
+    box.appendChild(c);
+    setTimeout(() => c.remove(), 3200);
+  }
+}
+function burstAt(el, symbol) {
+  const r = el.getBoundingClientRect();
+  const s = document.createElement('div');
+  s.className = 'burst';
+  s.textContent = symbol || '🌟';
+  s.style.left = (r.left + r.width / 2) + 'px';
+  s.style.top = (r.top + r.height / 2) + 'px';
+  document.body.appendChild(s);
+  setTimeout(() => s.remove(), 900);
+}
+
+/* ============================================================
+   NAV wiring
+   ============================================================ */
+document.querySelectorAll('[data-go]').forEach(b =>
+  b.addEventListener('click', () => {
+    if (b.dataset.go === 'map') renderMap();
+    showScreen(b.dataset.go);
+  })
+);
+
+/* ============================================================
+   WELCOME
+   ============================================================ */
+let greeted = false;
+function unlockAudio() {
+  // create/resume audio context on a user gesture
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+  } catch (e) {}
+}
+// Unlock audio on the very first touch/click anywhere — robust across phones.
+function primeAudioOnce() {
+  unlockAudio();
+  try { if (window.speechSynthesis) pickVoice(); } catch (e) {}
+}
+document.addEventListener('pointerdown', primeAudioOnce, { once: true });
+document.addEventListener('touchend', primeAudioOnce, { once: true });
+
+// Sound check: lets the user confirm sound works before starting.
+document.getElementById('soundTestBtn').addEventListener('click', () => {
+  unlockAudio();
+  ding(true);
+  speak('Hello Sigal', { rate: 0.8 });
+  const msg = document.getElementById('soundTestMsg');
+  msg.textContent = '🎵 שמעתם צליל ומילה באנגלית? מצוין! אם לא — העלו את ווליום המדיה ונסו שוב';
+});
+
+document.getElementById('startBtn').addEventListener('click', () => {
+  unlockAudio();
+  if (!greeted) {
+    greeted = true;
+    speak("Hello Sigal! Let's learn English together.", { rate: 0.78 });
+  }
+  renderMap();
+  showScreen('map');
+});
+
+/* ============================================================
+   LEVEL MAP
+   ============================================================ */
+function renderMap() {
+  const list = document.getElementById('levelList');
+  list.innerHTML = '';
+  const mm = document.getElementById('mapMsg');
+  if (mm) { mm.classList.remove('show'); mm.textContent = ''; }
+  LEVELS.forEach(lv => {
+    const unlocked = lv.id <= progress.unlocked;
+    const done = (progress.best[lv.id] || 0) >= PASS_RATIO * 100;
+    const card = document.createElement('button');
+    card.className = 'level-card' + (unlocked ? '' : ' locked') + (done ? ' done' : '');
+    card.innerHTML =
+      `<div class="num">${lv.id}</div>
+       <div class="meta">
+         <div class="ttl">${lv.title}</div>
+         <div class="thm">${lv.theme}</div>
+         <div class="dsc">${lv.desc}</div>
+       </div>
+       <div class="state">${!unlocked ? '🔒' : (done ? '✓' : '➜')}</div>`;
+    if (unlocked) {
+      card.addEventListener('click', () => openLevel(lv.id));
+    } else {
+      card.setAttribute('aria-disabled', 'true');
+      card.addEventListener('click', () => {
+        // Explain WHY it's locked and what to do — clearer than a silent shake.
+        const msg = document.getElementById('mapMsg');
+        msg.textContent = `שלב ${lv.id} עדיין נעול 🔒 — קודם צריך לעבור את המבחן של שלב ${lv.id - 1} 🙂`;
+        msg.classList.add('show');
+        // gentle nudge animation too
+        card.animate(
+          [{ transform: 'translateX(0)' }, { transform: 'translateX(-6px)' }, { transform: 'translateX(6px)' }, { transform: 'translateX(0)' }],
+          { duration: 300 }
+        );
+      });
+    }
+    list.appendChild(card);
+  });
+}
+
+/* ============================================================
+   LEVEL MENU
+   ============================================================ */
+let currentLevel = null;
+function openLevel(id) {
+  currentLevel = levelById(id);
+  document.getElementById('menuTitle').textContent = currentLevel.title;
+  document.getElementById('menuTheme').textContent = currentLevel.theme;
+  document.getElementById('menuDesc').textContent = currentLevel.desc;
+  const best = progress.best[id] || 0;
+  document.getElementById('menuBest').textContent =
+    best > 0 ? `הציון הכי טוב שלך בשלב הזה: ${best}% 🌟` : 'עוד לא עשית את המבחן בשלב הזה — אין שום לחץ 🌼';
+  showScreen('menu');
+}
+document.getElementById('goLearn').addEventListener('click', startLearn);
+document.getElementById('goTest').addEventListener('click', startTest);
+
+/* ============================================================
+   LEARNING MODE
+   ============================================================ */
+let learnIdx = 0;
+function startLearn() {
+  learnIdx = 0;
+  renderFlashcard();
+  showScreen('learn');
+  // speak after the screen settles
+  setTimeout(() => speak(sayOf(currentLevel.items[0])), 300);
+}
+function sayOf(item) { return item.say || item.en; }
+function renderFlashcard() {
+  const items = currentLevel.items;
+  const item = items[learnIdx];
+  document.getElementById('flashcard').innerHTML =
+    `<div class="emoji">${item.emoji}</div>
+     <div class="en">${item.en}</div>
+     <div class="he">${item.he}</div>
+     <div class="tap">👆 לחצי על הכרטיס כדי לשמוע שוב</div>`;
+  document.getElementById('learnProg').textContent = (learnIdx + 1) + ' / ' + items.length;
+  document.getElementById('prevBtn').disabled = learnIdx === 0;
+  document.getElementById('nextBtn').disabled = learnIdx === items.length - 1;
+}
+document.getElementById('flashcard').addEventListener('click', () => speak(sayOf(currentLevel.items[learnIdx])));
+document.getElementById('speakBtn').addEventListener('click', () => speak(sayOf(currentLevel.items[learnIdx])));
+document.getElementById('nextBtn').addEventListener('click', () => {
+  if (learnIdx < currentLevel.items.length - 1) { learnIdx++; renderFlashcard(); speak(sayOf(currentLevel.items[learnIdx])); }
+});
+document.getElementById('prevBtn').addEventListener('click', () => {
+  if (learnIdx > 0) { learnIdx--; renderFlashcard(); speak(sayOf(currentLevel.items[learnIdx])); }
+});
+document.getElementById('learnToTest').addEventListener('click', startTest);
+
+/* ============================================================
+   TEST MODE
+   For 'word' levels: hear English -> pick the Hebrew meaning.
+   For 'sentence' levels: read Hebrew -> pick the English phrase.
+   ============================================================ */
+const PRAISE = ['כל הכבוד סיגל! 🎉', 'מצוין! 🌟', 'יפהפה! 💛', 'את אלופה! 👏', 'נכון מאוד! ✨'];
+const ENCOURAGE = ['לא נורא סיגל, ננסה שוב 💛', 'כמעט! בואי ננסה עוד פעם 🌼', 'זה בסדר גמור, את לומדת ✨'];
+
+let testQueue = [], testIdx = 0, testCorrect = 0, testLocked = false, curQuestion = null;
+
+/* Difficulty rises with the level:
+   - more questions per test
+   - more answer options to choose from (harder to guess) */
+function questionCount(lv) {
+  let want;
+  if (lv.id <= 3)      want = 6;
+  else if (lv.id <= 5) want = 8;
+  else if (lv.id <= 8) want = 10;
+  else                 want = 12;   // advanced 30-item levels (9-10)
+  return Math.min(want, lv.items.length);
+}
+function optionCount(lv) {
+  if (lv.id <= 2) return 3;         // gentlest start
+  if (lv.id <= 15) return 4;        // 4 options from level 3
+  return 5;                         // hardest levels (16+): 5 options
+}
+
+function startTest() {
+  const items = currentLevel.items;
+  testQueue = shuffle(items).slice(0, questionCount(currentLevel));
+  testIdx = 0; testCorrect = 0;
+  showScreen('test');
+  renderQuestion();
+}
+function updateTestHeader() {
+  document.getElementById('testScore').textContent = `${testCorrect} / ${testQueue.length}`;
+  const prog = document.getElementById('testProg');
+  prog.innerHTML = '';
+  testQueue.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i < testIdx ? ' ok' : (i === testIdx ? ' cur' : ''));
+    prog.appendChild(d);
+  });
+}
+function renderQuestion() {
+  if (testIdx >= testQueue.length) return endTest();
+  testLocked = false;
+  updateTestHeader();
+  document.getElementById('feedback').textContent = '';
+  document.getElementById('feedback').className = 'feedback';
+
+  const item = testQueue[testIdx];
+  curQuestion = item;
+  const items = currentLevel.items;
+  const isSentence = currentLevel.mode === 'sentence';
+
+  // Build the question card
+  const qCard = document.getElementById('qCard');
+  if (isSentence) {
+    // Read Hebrew, pick English
+    qCard.innerHTML =
+      `<div class="q-prompt">איך אומרים את זה באנגלית?</div>
+       <div class="q-target he-target">${item.he}</div>
+       <div class="q-emoji">${item.emoji}</div>`;
+  } else {
+    // Hear English, pick Hebrew
+    qCard.innerHTML =
+      `<div class="q-prompt">הקשיבי למילה — מה הפירוש בעברית?</div>
+       <div class="q-target">${item.en}</div>
+       <button class="q-replay" id="qReplay">🔊 שמעו שוב</button>`;
+  }
+
+  // Options
+  const distractors = shuffle(items.filter(it => it.en !== item.en)).slice(0, optionCount(currentLevel) - 1);
+  const opts = shuffle([item, ...distractors]);
+  const box = document.getElementById('options');
+  box.innerHTML = '';
+  opts.forEach(it => {
+    const b = document.createElement('button');
+    b.className = 'opt';
+    if (isSentence) {
+      b.innerHTML = `<span>${it.en}</span>`;
+    } else {
+      b.innerHTML = `<span class="opt-emoji">${it.emoji}</span><span>${it.he}</span>`;
+    }
+    b.addEventListener('click', () => chooseAnswer(b, it));
+    box.appendChild(b);
+  });
+
+  // Speak the prompt
+  if (!isSentence) {
+    const rep = document.getElementById('qReplay');
+    if (rep) rep.addEventListener('click', () => speak(sayOf(item)));
+    setTimeout(() => speak(sayOf(item)), 350);
+  } else {
+    // for sentence levels, still let her hear the correct English once she's looking
+    // (we don't reveal the answer aloud before she chooses)
+  }
+}
+function chooseAnswer(el, item) {
+  if (testLocked) return;
+  const fb = document.getElementById('feedback');
+  if (item.en === curQuestion.en) {
+    testLocked = true;
+    el.classList.add('correct');
+    document.querySelectorAll('.opt').forEach(o => o.classList.add('disabled'));
+    ding(true);
+    confetti();
+    burstAt(el, '🌟');
+    testCorrect++;
+    updateTestHeader();
+    fb.textContent = PRAISE[Math.floor(Math.random() * PRAISE.length)];
+    fb.className = 'feedback good';
+    speak(sayOf(curQuestion));         // hear the correct English word/phrase
+    setTimeout(() => { testIdx++; renderQuestion(); }, 1700);
+  } else {
+    el.classList.add('wrong');
+    ding(false);
+    fb.textContent = ENCOURAGE[Math.floor(Math.random() * ENCOURAGE.length)];
+    fb.className = 'feedback bad';
+    setTimeout(() => el.classList.remove('wrong'), 500);
+  }
+}
+
+/* ============================================================
+   RESULT
+   ============================================================ */
+function endTest() {
+  const total = testQueue.length;
+  const pct = Math.round((testCorrect / total) * 100);
+  const passed = (testCorrect / total) >= PASS_RATIO;
+
+  // persist best score + unlock
+  if (pct > (progress.best[currentLevel.id] || 0)) progress.best[currentLevel.id] = pct;
+  if (passed && currentLevel.id === progress.unlocked && progress.unlocked < LEVELS.length) {
+    progress.unlocked = currentLevel.id + 1;
+  }
+  saveProgress(progress);
+
+  // stars: up to 5 based on percent
+  const starCount = Math.max(1, Math.round((pct / 100) * 5));
+  let stars = '';
+  for (let i = 0; i < 5; i++) stars += i < starCount ? '⭐' : '☆';
+
+  document.getElementById('resultEmoji').textContent = passed ? '🎉' : '🌼';
+  document.getElementById('resultBig').innerHTML = passed
+    ? `כל הכבוד סיגל!<span class="en">You did it!</span>`
+    : `יופי של ניסיון, סיגל!<span class="en">Good try!</span>`;
+  document.getElementById('resultStars').textContent = stars;
+  document.getElementById('resultScore').textContent = `ענית נכון על ${testCorrect} מתוך ${total} (${pct}%)`;
+
+  const nextLv = levelById(currentLevel.id + 1);
+  let msg;
+  if (passed && nextLv) {
+    msg = `מעולה! פתחת את ${nextLv.title} 🔓 את מתקדמת נהדר!`;
+  } else if (passed && !nextLv) {
+    msg = `סיימת את כל השלבים! את אלופה אמיתית באנגלית 🏆 אפשר לחזור ולתרגל מתי שבא לך.`;
+  } else {
+    msg = `צריך רק קצת יותר מחצי כדי לעבור. בואי נחזור על הכרטיסיות וננסה שוב — את ממש קרובה 💛`;
+  }
+  document.getElementById('resultMsg').textContent = msg;
+
+  // buttons
+  const btns = document.getElementById('resultBtns');
+  btns.innerHTML = '';
+  if (passed && nextLv) {
+    const nb = document.createElement('button');
+    nb.className = 'btn btn-teal btn-block';
+    nb.innerHTML = `<span class="ic">➜</span>לשלב הבא`;
+    nb.addEventListener('click', () => openLevel(nextLv.id));
+    btns.appendChild(nb);
+  }
+  const lb = document.createElement('button');
+  lb.className = 'btn btn-gold btn-block';
+  lb.innerHTML = `<span class="ic">📖</span>לחזור על המילים`;
+  lb.addEventListener('click', startLearn);
+  btns.appendChild(lb);
+
+  const ab = document.createElement('button');
+  ab.className = 'btn btn-coral btn-block';
+  ab.innerHTML = `<span class="ic">🔁</span>מבחן שוב`;
+  ab.addEventListener('click', startTest);
+  btns.appendChild(ab);
+
+  const hb = document.createElement('button');
+  hb.className = 'btn btn-ghost btn-block';
+  hb.innerHTML = `<span class="ic">🗺️</span>לכל השלבים`;
+  hb.addEventListener('click', () => { renderMap(); showScreen('map'); });
+  btns.appendChild(hb);
+
+  showScreen('result');
+  if (passed) { confetti(60); ding(true); speak("Well done Sigal! You did it!", { rate: 0.8 }); }
+  else { speak("Good try Sigal!", { rate: 0.8 }); }
+}
+
+/* init */
+// JS is running, so hide the "open in Safari" notice.
+(function(){ var w = document.getElementById('noJsWarn'); if (w) w.style.display = 'none'; })();
+
+// Register the service worker so the app works offline and feels native.
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+  });
+}
+
+renderMap();
+</script>
+</body>
+</html>
