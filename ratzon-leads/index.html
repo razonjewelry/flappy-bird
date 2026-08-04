@@ -52,12 +52,13 @@
 
   .field{display:flex; flex-direction:column; gap:6px; margin-bottom:12px}
   label{font-size:12.5px; color:var(--muted); font-weight:500}
-  input,textarea{
+  input,select,textarea{
     width:100%; background:var(--surface-2); border:1px solid var(--line);
     color:var(--txt); border-radius:12px; padding:12px 13px; font-size:16px;
     font-family:inherit; transition:border .15s,box-shadow .15s; outline:none;
   }
-  input:focus,textarea:focus{border-color:var(--gold); box-shadow:0 0 0 3px rgba(201,162,75,.15)}
+  select{cursor:pointer}
+  input:focus,select:focus,textarea:focus{border-color:var(--gold); box-shadow:0 0 0 3px rgba(201,162,75,.15)}
   textarea{resize:vertical; min-height:90px; line-height:1.6}
   .hint{font-size:11.5px; color:var(--muted); margin-top:4px}
 
@@ -83,7 +84,10 @@
   .drop:hover{border-color:var(--gold)}
   .drop .big{font-size:30px; margin-bottom:6px}
   .drop p{margin:4px 0; font-size:13.5px; color:var(--muted)}
-  #preview{max-width:100%; max-height:200px; border-radius:10px; margin-top:12px; display:none}
+  #preview{max-width:100%; max-height:260px; border-radius:10px; margin-top:12px; display:none; cursor:zoom-in}
+  .lightbox{position:fixed; inset:0; background:rgba(0,0,0,.92); display:flex; align-items:center;
+    justify-content:center; z-index:100; padding:14px; cursor:zoom-out}
+  .lightbox img{max-width:100%; max-height:100%; border-radius:8px}
 
   .prog{height:8px; background:var(--surface-2); border-radius:6px; overflow:hidden; margin-top:12px; display:none}
   .prog span{display:block; height:100%; width:0; background:var(--gold); transition:width .2s}
@@ -140,6 +144,7 @@
       </div>
       <input type="file" id="fileInput" accept="image/*" class="hidden">
       <img id="preview" alt="תצוגה מקדימה">
+      <div class="hint" id="previewHint" style="display:none; text-align:center">🔍 לחץ על התמונה להגדלה</div>
       <div class="prog" id="prog"><span id="progBar"></span></div>
       <div class="status" id="ocrStatus"></div>
       <details id="ocrRawWrap" style="display:none">
@@ -173,22 +178,33 @@
   <div class="card">
     <h2><span class="ic">③</span> ההודעה ללקוח</h2>
     <div class="field">
+      <label>בחר נוסח מוכן</label>
+      <select id="presetSel"></select>
+    </div>
+    <div class="field">
       <textarea id="msgBox" style="min-height:150px"></textarea>
     </div>
     <div class="btn-row">
-      <button class="btn ghost" id="rebuild">↻ בנה מחדש מהנוסח</button>
+      <button class="btn ghost" id="rebuild">↻ בנה מחדש</button>
       <button class="btn ghost" id="copyMsg">📄 העתק</button>
     </div>
 
     <details>
-      <summary>⚙️ עריכת הנוסח הקבוע</summary>
+      <summary>⚙️ עריכת הנוסחים</summary>
       <div class="field" style="margin-top:10px">
-        <label>נוסח בסיס — השתמש ב-<code>{שם}</code> ו-<code>{קישור}</code></label>
+        <label>עריכת הנוסח הנבחר — <code>{שם}</code> ו-<code>{קישור}</code></label>
         <textarea id="tmplBox" style="min-height:150px"></textarea>
-        <div class="hint">הנוסח נשמר אוטומטית במכשיר. <code>{קישור}</code> יופיע רק אם יש קישור.</div>
+        <div class="hint">נשמר אוטומטית במכשיר. <code>{קישור}</code> מופיע רק כשיש קישור למוצר.</div>
+      </div>
+      <div class="btn-row">
+        <button class="btn ghost" id="addPreset">➕ נוסח חדש</button>
+        <button class="btn ghost" id="delPreset">🗑️ מחק נוסח נבחר</button>
       </div>
     </details>
   </div>
+
+  <!-- הגדלת תמונה -->
+  <div id="lightbox" class="lightbox hidden"><img id="lightboxImg" src="" alt=""></div>
 
   <!-- שלב 4: שליחה -->
   <button class="btn wa" id="sendWa" disabled>📲 פתח וואטסאפ עם ההודעה</button>
@@ -205,12 +221,27 @@
   "use strict";
   const $ = (id) => document.getElementById(id);
 
-  const DEFAULT_TMPL =
+  const DEFAULT_PRESETS = [
+    { name: 'כללי', text:
 `היי {שם} 😊
 קיבלנו את הפנייה שלך מהאתר של רצון תכשיטים 🙏
 {קישור}
 נשמח לעזור ולענות על כל שאלה, ולהתאים לך בדיוק את מה שחיפשת 💍
-מה הכי משך את העין?`;
+מה הכי משך את העין?` },
+    { name: 'מוצר ספציפי', text:
+`היי {שם} 😊
+כאן רצון תכשיטים 🙏
+{קישור}
+יש עליו שאלה? נשמח לעזור, לספר עוד ולהתאים בדיוק בשבילך 💍` },
+    { name: 'פנייה כללית (לא מוצר מסוים)', text:
+`היי {שם} 😊
+ראינו שהשארת פרטים באתר של רצון תכשיטים 🙏
+נשמח לשמוע איך נוכל לעזור — מחפש/ת משהו מסוים, או שנשמח להתאים לך משהו במיוחד? 💍` },
+    { name: 'קצר וחם', text:
+`היי {שם}! 😊
+כאן מרצון תכשיטים — ראינו שהשארת פרטים.
+אשמח לעזור, מה חיפשת? 💍` },
+  ];
 
   // ---------- ערכת נושא ----------
   const root = document.documentElement;
@@ -223,9 +254,38 @@
     syncThemeIcon();
   };
 
-  // ---------- נוסח קבוע ----------
-  $('tmplBox').value = localStorage.getItem('rz_tmpl') || DEFAULT_TMPL;
-  $('tmplBox').addEventListener('input', () => localStorage.setItem('rz_tmpl', $('tmplBox').value));
+  // ---------- נוסחים מוכנים ----------
+  function loadPresets(){
+    try { const p = JSON.parse(localStorage.getItem('rz_presets') || 'null'); if (Array.isArray(p) && p.length) return p; } catch (_) {}
+    return DEFAULT_PRESETS.map((p) => ({ ...p }));
+  }
+  let presets = loadPresets();
+  let activeIdx = Math.min(Math.max(0, Number(localStorage.getItem('rz_active') || 0) || 0), presets.length - 1);
+  function savePresets(){ localStorage.setItem('rz_presets', JSON.stringify(presets)); localStorage.setItem('rz_active', String(activeIdx)); }
+  function refreshPresetUI(){
+    const sel = $('presetSel'); sel.innerHTML = '';
+    presets.forEach((p, i) => { const o = document.createElement('option'); o.value = String(i); o.textContent = p.name; sel.appendChild(o); });
+    sel.value = String(activeIdx);
+    $('tmplBox').value = presets[activeIdx].text;
+  }
+  $('presetSel').addEventListener('change', () => {
+    activeIdx = Number($('presetSel').value);
+    $('tmplBox').value = presets[activeIdx].text;
+    savePresets(); buildMessage();
+  });
+  $('tmplBox').addEventListener('input', () => { presets[activeIdx].text = $('tmplBox').value; savePresets(); });
+  $('addPreset').addEventListener('click', () => {
+    const name = prompt('שם הנוסח החדש:', 'נוסח חדש');
+    if (!name || !name.trim()) return;
+    presets.push({ name: name.trim(), text: 'היי {שם} 😊\n' });
+    activeIdx = presets.length - 1; savePresets(); refreshPresetUI(); buildMessage();
+  });
+  $('delPreset').addEventListener('click', () => {
+    if (presets.length <= 1) { alert('חייב להישאר לפחות נוסח אחד.'); return; }
+    if (!confirm('למחוק את הנוסח "' + presets[activeIdx].name + '"?')) return;
+    presets.splice(activeIdx, 1); activeIdx = 0; savePresets(); refreshPresetUI(); buildMessage();
+  });
+  refreshPresetUI();
 
   // ---------- מעבר בין מצבי הזנה ----------
   $('tabPaste').onclick = () => switchTab('paste');
@@ -259,8 +319,19 @@
   function findName(text){
     const byLabel = grab(text, 'שם מלא') || grab(text, 'שם');
     if (byLabel) return byLabel;
-    const m = text.match(/^\s*שם(?:\s+מלא)?\s+([֐-׿][֐-׿'"׳״\s]{1,40})$/m);
-    return m ? m[1].trim() : null;
+    // ה-OCR לפעמים מפספס נקודתיים או הופך סדר מילים. נחפש שורה שמכילה "שם",
+    // נקלף ממנה את מילות התווית והפיסוק — מה שנשאר בעברית הוא כנראה השם.
+    for (const ln of text.split(/\r?\n/)) {
+      if (!/שם/.test(ln)) continue;
+      if (/(firstname|lastname|email|אימייל)/i.test(ln)) continue;
+      const s = ln
+        .replace(/שם\s*מלא|שם|טלפון|נייד|מלא/g, ' ')
+        .replace(/[^֐-׿'"׳״\s]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+      if (s.length >= 2) return s;
+    }
+    return null;
   }
 
   // חילוץ טלפון גמיש: קודם לפי תווית, ואם אין — מחפש מספר נייד ישראלי בכל הטקסט
@@ -273,6 +344,8 @@
     return hit || byLabel || null;
   }
 
+  let blocked = false; // true כשזוהה מייל מועדון — חוסם שליחה בטעות.
+
   // מפרסר טקסט (מהדבקה או מ-OCR) וממלא את השדות
   function parseAndFill(text){
     const name = findName(text);
@@ -282,9 +355,11 @@
     $('fName').value = name || '';
     $('fPhone').value = phone || '';
     $('fLink').value = link || '';
+    const kind = classify(text, { name, phone });
+    blocked = (kind === 'club');
     refreshPhone();
     buildMessage();
-    setLeadStatus(classify(text, { name, phone }));
+    setLeadStatus(kind);
     return { name, phone, link };
   }
 
@@ -321,7 +396,7 @@
   function buildMessage(){
     const name = $('fName').value.trim();
     const link = $('fLink').value.trim();
-    let tmpl = $('tmplBox').value || DEFAULT_TMPL;
+    let tmpl = $('tmplBox').value || DEFAULT_PRESETS[0].text;
     const linkText = link ? ('לגבי הפריט שראית:\n' + link) : '';
     let msg = tmpl.replace(/\{שם\}/g, name).replace(/\{קישור\}/g, linkText);
     msg = msg.replace(/\n{3,}/g, '\n\n').replace(/[ \t]+\n/g, '\n').trim();
@@ -330,7 +405,7 @@
   }
 
   function updateSendState(){
-    const ok = !!normalizePhone($('fPhone').value) && $('msgBox').value.trim().length > 0;
+    const ok = !blocked && !!normalizePhone($('fPhone').value) && $('msgBox').value.trim().length > 0;
     $('sendWa').disabled = !ok;
   }
 
@@ -352,6 +427,14 @@
   // ---------- צילום מסך + OCR ----------
   $('drop').onclick = () => $('fileInput').click();
   $('fileInput').onchange = (e) => { if (e.target.files[0]) runOCR(e.target.files[0]); };
+
+  // הגדלת התמונה בלחיצה (כדי לקרוא ולתקן פרטים ידנית)
+  $('preview').addEventListener('click', () => {
+    if (!$('preview').src) return;
+    $('lightboxImg').src = $('preview').src;
+    $('lightbox').classList.remove('hidden');
+  });
+  $('lightbox').addEventListener('click', () => $('lightbox').classList.add('hidden'));
 
   function loadImage(file){
     return new Promise((res, rej) => {
@@ -385,6 +468,7 @@
 
   async function runOCR(file){
     const img = $('preview'); img.src = URL.createObjectURL(file); img.style.display = 'block';
+    $('previewHint').style.display = 'block';
     $('prog').style.display = 'block';
     $('progBar').style.width = '0';
     setStatus('ok', '🔎 קורא את התמונה... (בפעם הראשונה זה לוקח כמה שניות)');
