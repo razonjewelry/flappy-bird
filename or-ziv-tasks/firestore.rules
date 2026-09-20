@@ -1,0 +1,31 @@
+rules_version = '2';
+
+// חוקי האבטחה של Firestore. להעתיק ללשונית Rules בקונסולה וללחוץ Publish.
+//
+// הרעיון: רק מכשיר שעבר התחברות (אפילו אנונימית) יכול לקרוא ולכתוב.
+// זה חוסם סורקים אקראיים שמוצאים את כתובת הפרויקט, ומספיק לאפליקציה
+// פרטית של שני אנשים.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /tasks/{taskId} {
+      allow read: if request.auth != null;
+
+      allow create: if request.auth != null
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0
+        && request.resource.data.text.size() <= 500
+        && request.resource.data.creatorId in ['or', 'ziv'];
+
+      allow update: if request.auth != null
+        && request.resource.data.creatorId == resource.data.creatorId
+        && request.resource.data.createdAt == resource.data.createdAt;
+
+      allow delete: if request.auth != null;
+    }
+
+    // כל השאר חסום.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
