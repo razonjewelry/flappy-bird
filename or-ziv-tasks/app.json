@@ -22,7 +22,16 @@
       }
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro",
+      "output": "single",
+      "name": "המשימות שלנו",
+      "shortName": "המשימות",
+      "lang": "he",
+      "themeColor": "#2563EB",
+      "backgroundColor": "#F3F4F6",
+      "display": "standalone",
+      "orientation": "portrait"
     },
     "plugins": [
       [

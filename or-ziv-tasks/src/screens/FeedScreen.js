@@ -2,7 +2,6 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -14,6 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { confirmDestructive, notify } from '../lib/dialog';
 import { createTask, deleteTask, setTaskCompleted, setTaskSnoozed } from '../lib/tasks';
 import { useTasks } from '../lib/useTasks';
 import { getUser } from '../lib/users';
@@ -40,23 +40,33 @@ export default function FeedScreen({ currentUserId, onSwitchUser }) {
       await createTask({ text, creatorId: currentUserId });
     } catch {
       setInputText(text);
-      Alert.alert('לא הצלחנו לשמור', 'בדוק את החיבור לאינטרנט ונסה שוב.');
+      notify('לא הצלחנו לשמור', 'בדוק את החיבור לאינטרנט ונסה שוב.');
+    }
+  };
+
+  // בדפדפן, Enter בתיבה רב-שורתית יורד שורה במקום לשלוח. משתמשים מצפים
+  // ש-Enter ישלח ו-Shift+Enter ירד שורה, כמו בכל אפליקציית הודעות.
+  const handleKeyPress = (event) => {
+    if (Platform.OS !== 'web') return;
+    const native = event.nativeEvent;
+    if (native.key === 'Enter' && !native.shiftKey) {
+      event.preventDefault?.();
+      native.preventDefault?.();
+      handleAdd();
     }
   };
 
   const handleDelete = (task) => {
-    Alert.alert('למחוק את המשימה?', task.text, [
-      { text: 'ביטול', style: 'cancel' },
-      {
-        text: 'מחק',
-        style: 'destructive',
-        onPress: () => {
-          deleteTask(task.id).catch(() =>
-            Alert.alert('המחיקה נכשלה', 'בדוק את החיבור לאינטרנט ונסה שוב.')
-          );
-        },
+    confirmDestructive({
+      title: 'למחוק את המשימה?',
+      message: task.text,
+      confirmLabel: 'מחק',
+      onConfirm: () => {
+        deleteTask(task.id).catch(() =>
+          notify('המחיקה נכשלה', 'בדוק את החיבור לאינטרנט ונסה שוב.')
+        );
       },
-    ]);
+    });
   };
 
   const renderTask = ({ item }) => {
@@ -202,6 +212,7 @@ export default function FeedScreen({ currentUserId, onSwitchUser }) {
               value={inputText}
               onChangeText={setInputText}
               onSubmitEditing={handleAdd}
+              onKeyPress={handleKeyPress}
               returnKeyType="send"
               blurOnSubmit={false}
               multiline

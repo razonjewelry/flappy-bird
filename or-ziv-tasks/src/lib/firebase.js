@@ -1,22 +1,15 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { initializeApp } from 'firebase/app';
-import {
-  getReactNativePersistence,
-  initializeAuth,
-  onAuthStateChanged,
-  signInAnonymously,
-} from 'firebase/auth';
+import { initializeAuth, onAuthStateChanged, signInAnonymously } from 'firebase/auth';
 import { initializeFirestore } from 'firebase/firestore';
 
 import { firebaseConfig } from '../firebaseConfig';
+import { authPersistence } from './authPersistence';
 
 const app = initializeApp(firebaseConfig);
 
-// getReactNativePersistence שומר את ההתחברות ב-AsyncStorage,
-// כך שלא מתחברים מחדש בכל פתיחה של האפליקציה.
-export const auth = initializeAuth(app, {
-  persistence: getReactNativePersistence(AsyncStorage),
-});
+// ההתמדה מגיעה מקובץ נפרד לכל פלטפורמה: AsyncStorage בנייד, אחסון
+// הדפדפן בווב. ראה authPersistence.native.js ו-authPersistence.web.js.
+export const auth = initializeAuth(app, { persistence: authPersistence });
 
 // autoDetectLongPolling פותר ניתוקים של Firestore ברשתות סלולריות
 // ומאחורי פרוקסי, שזו תקלה נפוצה ב-React Native.
