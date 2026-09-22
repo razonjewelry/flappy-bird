@@ -34,7 +34,6 @@ const TABS = [
 export default function FeedScreen({ currentUserId, onSwitchUser }) {
   const [inputText, setInputText] = useState('');
   const [tab, setTab] = useState('feed');
-  const [showDone, setShowDone] = useState(false);
   const { tasks, isLoading, isOffline, error } = useTasks();
 
   const currentUser = getUser(currentUserId);
@@ -82,6 +81,19 @@ export default function FeedScreen({ currentUserId, onSwitchUser }) {
       confirmLabel: 'מחק',
       onConfirm: () => {
         deleteTask(task.id).catch(() =>
+          notify('המחיקה נכשלה', 'בדוק את החיבור לאינטרנט ונסה שוב.')
+        );
+      },
+    });
+  };
+
+  const handleClearDone = () => {
+    confirmDestructive({
+      title: `למחוק ${done.length} משימות שבוצעו?`,
+      message: 'הן יימחקו לשניכם ואי אפשר לשחזר.',
+      confirmLabel: 'מחק',
+      onConfirm: () => {
+        Promise.all(done.map((t) => deleteTask(t.id))).catch(() =>
           notify('המחיקה נכשלה', 'בדוק את החיבור לאינטרנט ונסה שוב.')
         );
       },
@@ -165,18 +177,13 @@ export default function FeedScreen({ currentUserId, onSwitchUser }) {
             </Card>
 
             {done.length > 0 && (
-              <Card>
-                <Pressable style={styles.doneToggle} onPress={() => setShowDone((v) => !v)}>
-                  <Text style={styles.doneToggleText}>
-                    בוצעו ({done.length})
-                  </Text>
-                  <Ionicons
-                    name={showDone ? 'chevron-up' : 'chevron-down'}
-                    size={16}
-                    color={colors.muted}
-                  />
-                </Pressable>
-                {showDone && <View style={styles.doneList}>{done.map(renderRow)}</View>}
+              <Card
+                title="בוצעו"
+                count={done.length}
+                actionLabel="נקה"
+                onAction={handleClearDone}
+              >
+                {done.map(renderRow)}
               </Card>
             )}
           </>
@@ -227,7 +234,7 @@ export default function FeedScreen({ currentUserId, onSwitchUser }) {
 }
 
 /** כרטיס־סקשן עם כותרת זהב וספירה, כמו ב-Ratzon. */
-function Card({ title, count, empty, children }) {
+function Card({ title, count, empty, actionLabel, onAction, children }) {
   const isEmpty = React.Children.count(children) === 0;
 
   return (
@@ -235,11 +242,18 @@ function Card({ title, count, empty, children }) {
       {title && (
         <View style={styles.cardHead}>
           <Text style={styles.cardTitle}>{title}</Text>
-          {count !== undefined && (
-            <View style={styles.countPill}>
-              <Text style={styles.countText}>{count}</Text>
-            </View>
-          )}
+          <View style={styles.cardHeadEnd}>
+            {actionLabel && (
+              <Pressable onPress={onAction} hitSlop={8}>
+                <Text style={styles.cardAction}>{actionLabel}</Text>
+              </Pressable>
+            )}
+            {count !== undefined && (
+              <View style={styles.countPill}>
+                <Text style={styles.countText}>{count}</Text>
+              </View>
+            )}
+          </View>
         </View>
       )}
       {isEmpty && empty ? <Text style={styles.empty}>{empty}</Text> : children}
@@ -253,7 +267,7 @@ function TaskRow({ task, onDelete }) {
   const done = Boolean(task.isCompleted);
 
   return (
-    <View style={[styles.row, task.isImportant && !done && styles.rowImportant]}>
+    <View style={[styles.row, task.isImportant && !done && styles.rowImportant, done && styles.rowDone]}>
       <TouchableOpacity
         onPress={() => setTaskCompleted(task.id, !done)}
         hitSlop={8}
@@ -279,38 +293,38 @@ function TaskRow({ task, onDelete }) {
       {!done && (
         <TouchableOpacity
           onPress={() => setTaskImportant(task.id, !task.isImportant)}
-          hitSlop={6}
+          hitSlop={8}
           style={styles.iconButton}
           accessibilityLabel={task.isImportant ? 'הסר חשוב' : 'סמן כחשוב'}
         >
           <Ionicons
             name={task.isImportant ? 'star' : 'star-outline'}
-            size={17}
-            color={task.isImportant ? colors.primary : colors.line}
+            size={19}
+            color={task.isImportant ? colors.primary : colors.muted}
           />
         </TouchableOpacity>
       )}
 
       <TouchableOpacity
         onPress={() => setTaskSnoozed(task.id, !task.isSnoozed)}
-        hitSlop={6}
+        hitSlop={8}
         style={styles.iconButton}
-        accessibilityLabel={task.isSnoozed ? 'החזר לפיד' : 'דחה'}
+        accessibilityLabel={task.isSnoozed ? 'החזר לפיד' : 'דחה למועד אחר'}
       >
         <Ionicons
-          name={task.isSnoozed ? 'return-up-back' : 'alarm-outline'}
-          size={17}
+          name={task.isSnoozed ? 'arrow-undo-outline' : 'time-outline'}
+          size={19}
           color={colors.muted}
         />
       </TouchableOpacity>
 
       <TouchableOpacity
         onPress={onDelete}
-        hitSlop={6}
+        hitSlop={8}
         style={styles.iconButton}
         accessibilityLabel="מחק"
       >
-        <Ionicons name="close" size={18} color={colors.danger} />
+        <Ionicons name="trash-outline" size={18} color={colors.muted} />
       </TouchableOpacity>
     </View>
   );
@@ -449,6 +463,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     writingDirection: 'rtl',
   },
+  cardHeadEnd: { flexDirection: 'row-reverse', alignItems: 'center', gap: 10 },
+  cardAction: { color: colors.muted, fontSize: 12, textDecorationLine: 'underline' },
   countPill: {
     backgroundColor: colors.card2,
     borderRadius: radius.pill,
@@ -479,6 +495,7 @@ const styles = StyleSheet.create({
     borderColor: colors.primary,
     backgroundColor: colors.primarySoft,
   },
+  rowDone: { opacity: 0.6 },
   rowMain: { flex: 1, minWidth: 0 },
   rowTitle: {
     color: colors.text,
@@ -487,7 +504,11 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     writingDirection: 'rtl',
   },
-  rowTitleDone: { color: colors.muted, textDecorationLine: 'line-through' },
+  rowTitleDone: {
+    color: colors.muted,
+    textDecorationLine: 'line-through',
+    textDecorationColor: colors.muted,
+  },
   rowMeta: { flexDirection: 'row-reverse', alignItems: 'center', gap: 7, marginTop: 4 },
   metaText: { color: colors.muted, fontSize: 11 },
 
@@ -510,15 +531,7 @@ const styles = StyleSheet.create({
   },
   pillText: { fontSize: 11 },
 
-  iconButton: { padding: 2 },
-
-  doneToggle: {
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  doneToggleText: { color: colors.muted, fontSize: 13, writingDirection: 'rtl' },
-  doneList: { marginTop: 12 },
+  iconButton: { paddingHorizontal: 5, paddingVertical: 4 },
 
   ghostButton: {
     marginTop: 12,
