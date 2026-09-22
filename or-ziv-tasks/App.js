@@ -1,14 +1,16 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 import { isFirebaseConfigured } from './src/firebaseConfig';
+import { ensureSignedIn } from './src/lib/firebase';
 import { clearCurrentUserId, loadCurrentUserId, saveCurrentUserId } from './src/lib/users';
 import FeedScreen from './src/screens/FeedScreen';
 import PickUserScreen from './src/screens/PickUserScreen';
 import SetupNeededScreen from './src/screens/SetupNeededScreen';
 
-export default function App() {
+function AppContent() {
   const [isBooting, setIsBooting] = useState(true);
   const [bootError, setBootError] = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);
@@ -23,9 +25,6 @@ export default function App() {
 
     (async () => {
       try {
-        // טוענים את firebase רק אחרי שווידאנו שיש הגדרות, אחרת ה-SDK
-        // קורס בהפעלה עם שגיאה לא ברורה במקום להציג את מסך ההסבר.
-        const { ensureSignedIn } = await import('./src/lib/firebase');
         const [savedUserId] = await Promise.all([loadCurrentUserId(), ensureSignedIn()]);
         if (!isMounted) return;
         setCurrentUserId(savedUserId);
@@ -52,18 +51,12 @@ export default function App() {
   }, []);
 
   if (!isFirebaseConfigured) {
-    return (
-      <>
-        <StatusBar style="dark" />
-        <SetupNeededScreen />
-      </>
-    );
+    return <SetupNeededScreen />;
   }
 
   if (isBooting) {
     return (
       <SafeAreaView style={styles.centered}>
-        <StatusBar style="dark" />
         <ActivityIndicator size="large" color="#3B82F6" />
       </SafeAreaView>
     );
@@ -72,28 +65,29 @@ export default function App() {
   if (bootError) {
     return (
       <SafeAreaView style={styles.centered}>
-        <StatusBar style="dark" />
-        <View style={styles.errorBox}>
-          <Text style={styles.errorTitle}>לא הצלחנו להתחבר</Text>
-          <Text style={styles.errorText}>
-            בדוק שיש אינטרנט, שההגדרות ב-src/firebaseConfig.js נכונות, ושהפעלת
-            התחברות אנונימית (Anonymous) ב-Firebase Authentication.
-          </Text>
-          <Text style={styles.errorDetail}>{String(bootError?.message ?? bootError)}</Text>
-        </View>
+        <Text style={styles.errorTitle}>לא הצלחנו להתחבר</Text>
+        <Text style={styles.errorText}>
+          בדוק שיש אינטרנט, שההגדרות ב-src/firebaseConfig.js נכונות, ושהתחברות
+          אנונימית (Anonymous) מופעלת ב-Firebase Authentication.
+        </Text>
+        <Text style={styles.errorDetail}>{String(bootError?.message ?? bootError)}</Text>
       </SafeAreaView>
     );
   }
 
+  if (currentUserId) {
+    return <FeedScreen currentUserId={currentUserId} onSwitchUser={handleSwitchUser} />;
+  }
+
+  return <PickUserScreen onPick={handlePickUser} />;
+}
+
+export default function App() {
   return (
-    <>
+    <SafeAreaProvider>
       <StatusBar style="dark" />
-      {currentUserId ? (
-        <FeedScreen currentUserId={currentUserId} onSwitchUser={handleSwitchUser} />
-      ) : (
-        <PickUserScreen onPick={handlePickUser} />
-      )}
-    </>
+      <AppContent />
+    </SafeAreaProvider>
   );
 }
 
@@ -105,7 +99,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 28,
   },
-  errorBox: { alignItems: 'center' },
   errorTitle: {
     fontSize: 22,
     fontWeight: 'bold',

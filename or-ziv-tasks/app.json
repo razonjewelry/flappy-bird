@@ -5,10 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
-    "splash": {
-      "resizeMode": "contain",
-      "backgroundColor": "#F3F4F6"
-    },
+    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.razon.orzivtasks"
@@ -16,9 +13,7 @@
     "android": {
       "package": "com.razon.orzivtasks",
       "softwareKeyboardLayoutMode": "resize",
-      "adaptiveIcon": {
-        "backgroundColor": "#3B82F6"
-      }
+      "edgeToEdgeEnabled": true
     }
   }
 }
