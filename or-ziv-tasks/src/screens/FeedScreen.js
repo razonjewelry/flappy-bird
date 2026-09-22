@@ -18,6 +18,7 @@ import { createTask, deleteTask, setTaskCompleted, setTaskImportant } from '../l
 import { useTasks } from '../lib/useTasks';
 import { getUser, USERS } from '../lib/users';
 import { colors, NAV_HEIGHT, radius, relativeTime, todayLabel, userColors } from '../theme';
+import { BUILD } from '../version';
 
 const TABS = [
   { key: 'feed', label: 'הפיד', icon: 'home' },
@@ -332,6 +333,7 @@ function SettingsPanel({ currentUser, onSwitchUser, counts }) {
         <Text style={[styles.aboutText, styles.aboutMuted]}>
           {USERS.map((u) => u.name).join(' · ')}
         </Text>
+        <Text style={styles.build}>{BUILD}</Text>
       </Card>
     </>
   );
@@ -532,6 +534,13 @@ const styles = StyleSheet.create({
     writingDirection: 'rtl',
   },
   aboutMuted: { color: colors.muted, marginTop: 10, fontSize: 12 },
+  build: {
+    color: colors.primary,
+    fontSize: 11,
+    marginTop: 12,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
 
   tabbar: {
     flexDirection: 'row-reverse',
