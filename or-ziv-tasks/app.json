@@ -4,7 +4,7 @@
     "slug": "or-ziv-tasks",
     "version": "1.0.0",
     "orientation": "portrait",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "icon": "./assets/icon.png",
     "scheme": "orzivtasks",
@@ -18,7 +18,7 @@
       "edgeToEdgeEnabled": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#2563EB"
+        "backgroundColor": "#121212"
       }
     },
     "web": {
@@ -28,8 +28,8 @@
       "name": "המשימות שלנו",
       "shortName": "המשימות",
       "lang": "he",
-      "themeColor": "#2563EB",
-      "backgroundColor": "#F3F4F6",
+      "themeColor": "#D4AF37",
+      "backgroundColor": "#121212",
       "display": "standalone",
       "orientation": "portrait"
     },
@@ -40,7 +40,7 @@
           "image": "./assets/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#F3F4F6"
+          "backgroundColor": "#121212"
         }
       ]
     ]

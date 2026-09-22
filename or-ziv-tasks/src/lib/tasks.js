@@ -39,6 +39,7 @@ export function createTask({ text, creatorId }) {
     creatorId,
     isCompleted: false,
     isSnoozed: false,
+    isImportant: false,
     createdAt: Date.now(),
   });
 }
@@ -49,6 +50,10 @@ export function setTaskCompleted(id, isCompleted) {
 
 export function setTaskSnoozed(id, isSnoozed) {
   return updateDoc(doc(db, TASKS, id), { isSnoozed });
+}
+
+export function setTaskImportant(id, isImportant) {
+  return updateDoc(doc(db, TASKS, id), { isImportant });
 }
 
 export function deleteTask(id) {

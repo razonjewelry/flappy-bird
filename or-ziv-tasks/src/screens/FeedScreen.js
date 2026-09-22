@@ -2,9 +2,9 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  FlatList,
-  KeyboardAvoidingView,
   Platform,
+  Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -14,27 +14,47 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { confirmDestructive, notify } from '../lib/dialog';
-import { createTask, deleteTask, setTaskCompleted, setTaskSnoozed } from '../lib/tasks';
+import {
+  createTask,
+  deleteTask,
+  setTaskCompleted,
+  setTaskImportant,
+  setTaskSnoozed,
+} from '../lib/tasks';
 import { useTasks } from '../lib/useTasks';
-import { getUser } from '../lib/users';
+import { getUser, USERS } from '../lib/users';
+import { colors, NAV_HEIGHT, radius, relativeTime, todayLabel, userColors } from '../theme';
+
+const TABS = [
+  { key: 'feed', label: 'הפיד', icon: 'home' },
+  { key: 'snoozed', label: 'דחויים', icon: 'alarm' },
+  { key: 'settings', label: 'הגדרות', icon: 'settings' },
+];
 
 export default function FeedScreen({ currentUserId, onSwitchUser }) {
   const [inputText, setInputText] = useState('');
-  const [showSnoozed, setShowSnoozed] = useState(false);
+  const [tab, setTab] = useState('feed');
+  const [showDone, setShowDone] = useState(false);
   const { tasks, isLoading, isOffline, error } = useTasks();
 
   const currentUser = getUser(currentUserId);
-  const displayedTasks = useMemo(
-    () => tasks.filter((task) => Boolean(task.isSnoozed) === showSnoozed),
-    [tasks, showSnoozed]
-  );
+
+  const { important, open, done, snoozed } = useMemo(() => {
+    const active = tasks.filter((t) => !t.isSnoozed);
+    return {
+      important: active.filter((t) => t.isImportant && !t.isCompleted),
+      open: active.filter((t) => !t.isImportant && !t.isCompleted),
+      done: active.filter((t) => t.isCompleted),
+      snoozed: tasks.filter((t) => t.isSnoozed),
+    };
+  }, [tasks]);
 
   const handleAdd = async () => {
     const text = inputText.trim();
     if (text === '') return;
 
-    // מנקים את התיבה מיד כדי שההקלדה תרגיש מיידית. Firestore כבר יציג
-    // את המשימה מקומית לפני שהשרת מאשר אותה.
+    // מנקים מיד כדי שההקלדה תרגיש מיידית. Firestore מציג את המשימה
+    // מקומית עוד לפני שהשרת מאשר אותה.
     setInputText('');
     try {
       await createTask({ text, creatorId: currentUserId });
@@ -44,8 +64,7 @@ export default function FeedScreen({ currentUserId, onSwitchUser }) {
     }
   };
 
-  // בדפדפן, Enter בתיבה רב-שורתית יורד שורה במקום לשלוח. משתמשים מצפים
-  // ש-Enter ישלח ו-Shift+Enter ירד שורה, כמו בכל אפליקציית הודעות.
+  // בדפדפן, Enter בתיבה רב-שורתית יורד שורה במקום לשלוח.
   const handleKeyPress = (event) => {
     if (Platform.OS !== 'web') return;
     const native = event.nativeEvent;
@@ -69,296 +88,476 @@ export default function FeedScreen({ currentUserId, onSwitchUser }) {
     });
   };
 
-  const renderTask = ({ item }) => {
-    const creator = getUser(item.creatorId);
-
-    return (
-      <TouchableOpacity
-        style={styles.card}
-        onLongPress={() => handleDelete(item)}
-        delayLongPress={400}
-        activeOpacity={0.9}
-      >
-        {creator && (
-          <View style={[styles.badge, { backgroundColor: creator.color }]}>
-            <Text style={[styles.badgeText, { color: creator.textColor }]}>{creator.name}</Text>
-          </View>
-        )}
-
-        <View style={styles.cardRow}>
-          <TouchableOpacity
-            onPress={() => setTaskCompleted(item.id, !item.isCompleted)}
-            hitSlop={8}
-            accessibilityRole="checkbox"
-            accessibilityState={{ checked: Boolean(item.isCompleted) }}
-          >
-            <Ionicons
-              name={item.isCompleted ? 'checkmark-circle' : 'ellipse-outline'}
-              size={28}
-              color={item.isCompleted ? '#9CA3AF' : '#3B82F6'}
-            />
-          </TouchableOpacity>
-
-          <Text style={[styles.taskText, item.isCompleted && styles.taskTextDone]}>
-            {item.text}
-          </Text>
-
-          <TouchableOpacity
-            onPress={() => setTaskSnoozed(item.id, !item.isSnoozed)}
-            hitSlop={8}
-            style={styles.snoozeButton}
-            accessibilityRole="button"
-            accessibilityLabel={item.isSnoozed ? 'החזר לפיד' : 'דחה למועד אחר'}
-          >
-            <Ionicons
-              name={item.isSnoozed ? 'return-up-back' : 'alarm-outline'}
-              size={24}
-              color="#6B7280"
-            />
-          </TouchableOpacity>
-        </View>
-      </TouchableOpacity>
-    );
-  };
-
-  const renderEmpty = () => {
-    if (isLoading) {
-      return (
-        <View style={styles.empty}>
-          <ActivityIndicator size="large" color="#3B82F6" />
-        </View>
-      );
-    }
-
-    return (
-      <View style={styles.empty}>
-        <Ionicons
-          name={showSnoozed ? 'alarm-outline' : 'sparkles-outline'}
-          size={48}
-          color="#D1D5DB"
-        />
-        <Text style={styles.emptyTitle}>
-          {showSnoozed ? 'אין כאן כלום' : 'הפיד ריק'}
-        </Text>
-        <Text style={styles.emptyText}>
-          {showSnoozed
-            ? 'משימות שתדחו יופיעו כאן.'
-            : 'כתוב משימה או רעיון למטה, וזיו יראה אותו מיד.'}
-        </Text>
-      </View>
-    );
-  };
+  const renderRow = (task) => (
+    <TaskRow key={task.id} task={task} onDelete={() => handleDelete(task)} />
+  );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        <View style={styles.header}>
-          <Text style={styles.title}>{showSnoozed ? 'רעיונות דחויים' : 'הפיד שלנו'}</Text>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <View style={styles.header}>
+        <Text style={styles.h1}>המשימות שלנו</Text>
+        <Text style={styles.sub}>משותף · אור & זיו</Text>
+        <Text style={styles.date}>{todayLabel()}</Text>
+      </View>
 
-          <View style={styles.toggleRow}>
-            <TouchableOpacity style={styles.chip} onPress={onSwitchUser}>
-              <Ionicons name="person-circle-outline" size={16} color="#4B5563" />
-              <Text style={styles.chipText}>{currentUser?.name ?? 'לא ידוע'}</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.chip, showSnoozed && styles.chipActive]}
-              onPress={() => setShowSnoozed((value) => !value)}
-            >
-              <Text style={styles.chipText}>
-                {showSnoozed ? 'חזרה לפיד' : 'דחויים'}
-              </Text>
-            </TouchableOpacity>
-          </View>
+      {isOffline && (
+        <View style={styles.banner}>
+          <Ionicons name="cloud-offline-outline" size={14} color={colors.primary} />
+          <Text style={styles.bannerText}>אין חיבור · השינויים יסונכרנו כשהרשת תחזור</Text>
         </View>
+      )}
 
-        {isOffline && (
-          <View style={styles.offlineBanner}>
-            <Ionicons name="cloud-offline-outline" size={15} color="#92400E" />
-            <Text style={styles.offlineText}>אין חיבור - השינויים יסונכרנו כשהרשת תחזור</Text>
-          </View>
-        )}
+      {error && (
+        <View style={[styles.banner, styles.bannerError]}>
+          <Text style={[styles.bannerText, { color: colors.danger }]}>
+            שגיאת חיבור ל-Firebase
+          </Text>
+        </View>
+      )}
 
-        {error && (
-          <View style={styles.errorBanner}>
-            <Text style={styles.errorText}>
-              שגיאת חיבור ל-Firebase. בדוק את ההגדרות ואת חוקי האבטחה.
+      {tab === 'feed' && (
+        <View style={styles.capture}>
+          <TextInput
+            style={styles.input}
+            placeholder="מה צריך לעשות?"
+            placeholderTextColor={colors.muted}
+            value={inputText}
+            onChangeText={setInputText}
+            onSubmitEditing={handleAdd}
+            onKeyPress={handleKeyPress}
+            returnKeyType="send"
+            blurOnSubmit={false}
+          />
+          <TouchableOpacity
+            style={[styles.addButton, inputText.trim() === '' && styles.addButtonOff]}
+            onPress={handleAdd}
+            disabled={inputText.trim() === ''}
+            accessibilityRole="button"
+            accessibilityLabel="הוסף"
+          >
+            <Text style={[styles.addButtonText, inputText.trim() === '' && styles.addButtonTextOff]}>
+              הוסף
             </Text>
-          </View>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        {isLoading && (
+          <ActivityIndicator size="large" color={colors.primary} style={styles.loader} />
         )}
 
-        <FlatList
-          data={displayedTasks}
-          keyExtractor={(item) => item.id}
-          renderItem={renderTask}
-          ListEmptyComponent={renderEmpty}
-          contentContainerStyle={[
-            styles.list,
-            displayedTasks.length === 0 && styles.listEmpty,
-          ]}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        />
+        {!isLoading && tab === 'feed' && (
+          <>
+            {important.length > 0 && (
+              <Card title="חשוב" count={important.length}>
+                {important.map(renderRow)}
+              </Card>
+            )}
 
-        {!showSnoozed && (
-          <View style={styles.inputBar}>
-            <TextInput
-              style={styles.input}
-              placeholder="הוסף משימה או רעיון..."
-              placeholderTextColor="#9CA3AF"
-              value={inputText}
-              onChangeText={setInputText}
-              onSubmitEditing={handleAdd}
-              onKeyPress={handleKeyPress}
-              returnKeyType="send"
-              blurOnSubmit={false}
-              multiline
-            />
+            <Card title="לעשות" count={open.length} empty="הכול נקי. הוסף משימה למעלה.">
+              {open.map(renderRow)}
+            </Card>
+
+            {done.length > 0 && (
+              <Card>
+                <Pressable style={styles.doneToggle} onPress={() => setShowDone((v) => !v)}>
+                  <Text style={styles.doneToggleText}>
+                    בוצעו ({done.length})
+                  </Text>
+                  <Ionicons
+                    name={showDone ? 'chevron-up' : 'chevron-down'}
+                    size={16}
+                    color={colors.muted}
+                  />
+                </Pressable>
+                {showDone && <View style={styles.doneList}>{done.map(renderRow)}</View>}
+              </Card>
+            )}
+          </>
+        )}
+
+        {!isLoading && tab === 'snoozed' && (
+          <Card
+            title="דחויים"
+            count={snoozed.length}
+            empty="שום דבר לא נדחה. משימות שתדחו יופיעו כאן."
+          >
+            {snoozed.map(renderRow)}
+          </Card>
+        )}
+
+        {!isLoading && tab === 'settings' && (
+          <SettingsPanel
+            currentUser={currentUser}
+            onSwitchUser={onSwitchUser}
+            counts={{ open: open.length + important.length, done: done.length, snoozed: snoozed.length }}
+          />
+        )}
+      </ScrollView>
+
+      <View style={styles.tabbar}>
+        {TABS.map((t) => {
+          const active = tab === t.key;
+          return (
             <TouchableOpacity
-              style={[styles.sendButton, inputText.trim() === '' && styles.sendButtonDisabled]}
-              onPress={handleAdd}
-              disabled={inputText.trim() === ''}
-              accessibilityRole="button"
-              accessibilityLabel="שלח"
+              key={t.key}
+              style={styles.tabButton}
+              onPress={() => setTab(t.key)}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: active }}
             >
-              <Ionicons name="send" size={20} color="#FFF" />
+              <Ionicons
+                name={active ? t.icon : `${t.icon}-outline`}
+                size={20}
+                color={active ? colors.primary : colors.muted}
+              />
+              <Text style={[styles.tabLabel, active && styles.tabLabelActive]}>{t.label}</Text>
             </TouchableOpacity>
-          </View>
-        )}
-      </KeyboardAvoidingView>
+          );
+        })}
+      </View>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  flex: { flex: 1 },
-  container: { flex: 1, backgroundColor: '#F3F4F6' },
+/** כרטיס־סקשן עם כותרת זהב וספירה, כמו ב-Ratzon. */
+function Card({ title, count, empty, children }) {
+  const isEmpty = React.Children.count(children) === 0;
 
-  header: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 16,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-  title: {
-    fontSize: 28,
+  return (
+    <View style={styles.card}>
+      {title && (
+        <View style={styles.cardHead}>
+          <Text style={styles.cardTitle}>{title}</Text>
+          {count !== undefined && (
+            <View style={styles.countPill}>
+              <Text style={styles.countText}>{count}</Text>
+            </View>
+          )}
+        </View>
+      )}
+      {isEmpty && empty ? <Text style={styles.empty}>{empty}</Text> : children}
+    </View>
+  );
+}
+
+function TaskRow({ task, onDelete }) {
+  const creator = getUser(task.creatorId);
+  const tint = userColors[task.creatorId] ?? userColors.or;
+  const done = Boolean(task.isCompleted);
+
+  return (
+    <View style={[styles.row, task.isImportant && !done && styles.rowImportant]}>
+      <TouchableOpacity
+        onPress={() => setTaskCompleted(task.id, !done)}
+        hitSlop={8}
+        style={[styles.check, done && styles.checkOn]}
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: done }}
+      >
+        {done && <Ionicons name="checkmark" size={14} color="#000" />}
+      </TouchableOpacity>
+
+      <View style={styles.rowMain}>
+        <Text style={[styles.rowTitle, done && styles.rowTitleDone]}>{task.text}</Text>
+        <View style={styles.rowMeta}>
+          {creator && (
+            <View style={[styles.pill, { borderColor: tint.border }]}>
+              <Text style={[styles.pillText, { color: tint.fg }]}>{creator.name}</Text>
+            </View>
+          )}
+          <Text style={styles.metaText}>{relativeTime(task.createdAt)}</Text>
+        </View>
+      </View>
+
+      {!done && (
+        <TouchableOpacity
+          onPress={() => setTaskImportant(task.id, !task.isImportant)}
+          hitSlop={6}
+          style={styles.iconButton}
+          accessibilityLabel={task.isImportant ? 'הסר חשוב' : 'סמן כחשוב'}
+        >
+          <Ionicons
+            name={task.isImportant ? 'star' : 'star-outline'}
+            size={17}
+            color={task.isImportant ? colors.primary : colors.line}
+          />
+        </TouchableOpacity>
+      )}
+
+      <TouchableOpacity
+        onPress={() => setTaskSnoozed(task.id, !task.isSnoozed)}
+        hitSlop={6}
+        style={styles.iconButton}
+        accessibilityLabel={task.isSnoozed ? 'החזר לפיד' : 'דחה'}
+      >
+        <Ionicons
+          name={task.isSnoozed ? 'return-up-back' : 'alarm-outline'}
+          size={17}
+          color={colors.muted}
+        />
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        onPress={onDelete}
+        hitSlop={6}
+        style={styles.iconButton}
+        accessibilityLabel="מחק"
+      >
+        <Ionicons name="close" size={18} color={colors.danger} />
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+function SettingsPanel({ currentUser, onSwitchUser, counts }) {
+  return (
+    <>
+      <Card title="מי אני">
+        <View style={styles.row}>
+          <Ionicons name="person-circle-outline" size={22} color={colors.primary} />
+          <View style={styles.rowMain}>
+            <Text style={styles.rowTitle}>{currentUser?.name ?? 'לא ידוע'}</Text>
+            <Text style={styles.metaText}>נשמר במכשיר הזה</Text>
+          </View>
+        </View>
+        <TouchableOpacity style={styles.ghostButton} onPress={onSwitchUser}>
+          <Text style={styles.ghostButtonText}>החלף משתמש</Text>
+        </TouchableOpacity>
+      </Card>
+
+      <Card title="סיכום">
+        <View style={styles.statsRow}>
+          <Stat label="לעשות" value={counts.open} tone={colors.primary} />
+          <Stat label="בוצעו" value={counts.done} tone={colors.ok} />
+          <Stat label="דחויים" value={counts.snoozed} tone={colors.muted} />
+        </View>
+      </Card>
+
+      <Card title="על האפליקציה">
+        <Text style={styles.aboutText}>
+          המשימות נשמרות בענן ומסונכרנות בין המכשירים בזמן אמת. כל מה שאחד
+          מוסיף או מסמן מופיע אצל השני תוך שנייה, בלי לרענן.
+        </Text>
+        <Text style={[styles.aboutText, styles.aboutMuted]}>
+          {USERS.map((u) => u.name).join(' · ')}
+        </Text>
+      </Card>
+    </>
+  );
+}
+
+function Stat({ label, value, tone }) {
+  return (
+    <View style={styles.stat}>
+      <Text style={[styles.statValue, { color: tone }]}>{value}</Text>
+      <Text style={styles.statLabel}>{label}</Text>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.bg },
+
+  header: { paddingHorizontal: 16, paddingTop: 14, paddingBottom: 6 },
+  h1: {
+    color: colors.primary,
+    fontSize: 24,
     fontWeight: 'bold',
-    color: '#111827',
-    marginBottom: 14,
     textAlign: 'right',
     writingDirection: 'rtl',
   },
-  toggleRow: { flexDirection: 'row-reverse', justifyContent: 'space-between' },
-  chip: {
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: '#E5E7EB',
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 20,
+  sub: {
+    color: colors.muted,
+    fontSize: 13,
+    marginTop: 2,
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
-  chipActive: { backgroundColor: '#D1D5DB' },
-  chipText: { fontSize: 14, color: '#4B5563', fontWeight: '600' },
+  date: {
+    color: colors.text,
+    fontSize: 14,
+    marginTop: 6,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
 
-  offlineBanner: {
+  banner: {
     flexDirection: 'row-reverse',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: '#FEF3C7',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    backgroundColor: colors.primarySoft,
+    paddingVertical: 7,
+    paddingHorizontal: 14,
+    marginTop: 10,
   },
-  offlineText: { fontSize: 13, color: '#92400E', writingDirection: 'rtl' },
+  bannerError: { backgroundColor: 'rgba(255,76,76,0.10)' },
+  bannerText: { color: colors.primary, fontSize: 12, writingDirection: 'rtl' },
 
-  errorBanner: { backgroundColor: '#FEE2E2', paddingVertical: 10, paddingHorizontal: 16 },
-  errorText: { fontSize: 13, color: '#991B1B', textAlign: 'center', writingDirection: 'rtl' },
-
-  list: { padding: 20 },
-  listEmpty: { flexGrow: 1, justifyContent: 'center' },
-
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 15,
-    marginBottom: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  badge: {
-    alignSelf: 'flex-end',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginBottom: 8,
-  },
-  badgeText: { fontSize: 12, fontWeight: '600' },
-  cardRow: { flexDirection: 'row-reverse', alignItems: 'center' },
-  taskText: {
-    flex: 1,
-    fontSize: 16,
-    color: '#111827',
-    marginHorizontal: 12,
-    textAlign: 'right',
-    writingDirection: 'rtl',
-  },
-  taskTextDone: { color: '#9CA3AF', textDecorationLine: 'line-through' },
-  snoozeButton: { padding: 4 },
-
-  empty: { alignItems: 'center', paddingHorizontal: 40 },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#6B7280',
-    marginTop: 14,
-    writingDirection: 'rtl',
-  },
-  emptyText: {
-    fontSize: 14,
-    color: '#9CA3AF',
-    textAlign: 'center',
-    marginTop: 6,
-    lineHeight: 20,
-    writingDirection: 'rtl',
-  },
-
-  inputBar: {
-    flexDirection: 'row-reverse',
-    alignItems: 'flex-end',
-    gap: 10,
-    padding: 16,
-    backgroundColor: '#FFFFFF',
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-  },
+  capture: { flexDirection: 'row-reverse', gap: 8, paddingHorizontal: 16, marginTop: 14 },
   input: {
     flex: 1,
-    maxHeight: 120,
-    backgroundColor: '#F3F4F6',
-    borderRadius: 24,
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 12,
-    fontSize: 16,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.line,
+    borderRadius: radius.md,
+    color: colors.text,
+    paddingHorizontal: 14,
+    paddingVertical: 13,
+    fontSize: 15,
     textAlign: 'right',
     writingDirection: 'rtl',
   },
-  sendButton: {
-    backgroundColor: '#3B82F6',
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+  addButton: {
+    backgroundColor: colors.primary,
+    borderRadius: radius.md,
+    paddingHorizontal: 20,
     justifyContent: 'center',
+  },
+  addButtonOff: { backgroundColor: colors.card2, borderWidth: 1, borderColor: colors.line },
+  addButtonText: { color: '#000', fontWeight: 'bold', fontSize: 14 },
+  addButtonTextOff: { color: colors.muted },
+
+  scroll: { flex: 1 },
+  scrollContent: { padding: 16, paddingBottom: NAV_HEIGHT + 24 },
+  loader: { marginTop: 40 },
+
+  card: {
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.line,
+    borderRadius: radius.lg,
+    padding: 14,
+    marginBottom: 14,
+  },
+  cardHead: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 11,
+  },
+  cardTitle: {
+    color: colors.primary,
+    fontSize: 16,
+    fontWeight: 'bold',
+    writingDirection: 'rtl',
+  },
+  countPill: {
+    backgroundColor: colors.card2,
+    borderRadius: radius.pill,
+    paddingHorizontal: 9,
+    paddingVertical: 2,
+  },
+  countText: { color: colors.muted, fontSize: 12 },
+  empty: {
+    color: colors.muted,
+    fontSize: 13,
+    textAlign: 'center',
+    paddingVertical: 14,
+    writingDirection: 'rtl',
+  },
+
+  row: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: colors.card2,
+    borderRadius: radius.md,
+    paddingVertical: 11,
+    paddingHorizontal: 12,
+    marginBottom: 9,
+  },
+  rowImportant: {
+    borderWidth: 1,
+    borderColor: colors.primary,
+    backgroundColor: colors.primarySoft,
+  },
+  rowMain: { flex: 1, minWidth: 0 },
+  rowTitle: {
+    color: colors.text,
+    fontSize: 15,
+    lineHeight: 20,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  rowTitleDone: { color: colors.muted, textDecorationLine: 'line-through' },
+  rowMeta: { flexDirection: 'row-reverse', alignItems: 'center', gap: 7, marginTop: 4 },
+  metaText: { color: colors.muted, fontSize: 11 },
+
+  check: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: colors.muted,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkOn: { backgroundColor: colors.ok, borderColor: colors.ok },
+
+  pill: {
+    borderWidth: 1,
+    borderRadius: radius.pill,
+    paddingHorizontal: 8,
+    paddingVertical: 1,
+  },
+  pillText: { fontSize: 11 },
+
+  iconButton: { padding: 2 },
+
+  doneToggle: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  doneToggleText: { color: colors.muted, fontSize: 13, writingDirection: 'rtl' },
+  doneList: { marginTop: 12 },
+
+  ghostButton: {
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    borderRadius: radius.md,
+    paddingVertical: 11,
     alignItems: 'center',
   },
-  sendButtonDisabled: { backgroundColor: '#93C5FD' },
+  ghostButtonText: { color: colors.primary, fontWeight: 'bold', fontSize: 14 },
+
+  statsRow: { flexDirection: 'row-reverse', gap: 10 },
+  stat: {
+    flex: 1,
+    backgroundColor: colors.card2,
+    borderRadius: radius.md,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  statValue: { fontSize: 22, fontWeight: 'bold' },
+  statLabel: { color: colors.muted, fontSize: 11, marginTop: 3 },
+
+  aboutText: {
+    color: colors.text,
+    fontSize: 13,
+    lineHeight: 20,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  aboutMuted: { color: colors.muted, marginTop: 10, fontSize: 12 },
+
+  tabbar: {
+    flexDirection: 'row-reverse',
+    height: NAV_HEIGHT,
+    backgroundColor: colors.nav,
+    borderTopWidth: 1,
+    borderTopColor: colors.line,
+  },
+  tabButton: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3 },
+  tabLabel: { color: colors.muted, fontSize: 11 },
+  tabLabelActive: { color: colors.primary },
 });

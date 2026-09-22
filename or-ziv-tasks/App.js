@@ -4,6 +4,7 @@ import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 import { isFirebaseConfigured } from './src/firebaseConfig';
+import { colors } from './src/theme';
 import { ensureSignedIn } from './src/lib/firebase';
 import { clearCurrentUserId, loadCurrentUserId, saveCurrentUserId } from './src/lib/users';
 import FeedScreen from './src/screens/FeedScreen';
@@ -85,7 +86,7 @@ function AppContent() {
 export default function App() {
   return (
     <SafeAreaProvider>
-      <StatusBar style="dark" />
+      <StatusBar style="light" />
       {/* האפליקציה מעוצבת לרוחב טלפון. בלי התיחום הזה היא נמתחת על כל
           רוחב מסך המחשב, והצ'קבוקס והטקסט מתרחקים לשני קצוות המסך. */}
       <View style={styles.page}>
@@ -103,17 +104,17 @@ const styles = StyleSheet.create({
   page: {
     flex: 1,
     alignItems: 'center',
-    backgroundColor: '#E5E7EB',
+    backgroundColor: '#0A0A0A',
   },
   shell: {
     flex: 1,
     width: '100%',
     maxWidth: MAX_WIDTH,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.bg,
   },
   centered: {
     flex: 1,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.bg,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 28,
@@ -121,16 +122,16 @@ const styles = StyleSheet.create({
   errorTitle: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#111827',
+    color: colors.text,
     marginBottom: 10,
     writingDirection: 'rtl',
   },
   errorText: {
     fontSize: 15,
-    color: '#4B5563',
+    color: colors.muted,
     textAlign: 'center',
     lineHeight: 22,
     writingDirection: 'rtl',
   },
-  errorDetail: { fontSize: 12, color: '#9CA3AF', textAlign: 'center', marginTop: 16 },
+  errorDetail: { fontSize: 12, color: colors.muted, textAlign: 'center', marginTop: 16 },
 });
