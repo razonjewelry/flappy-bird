@@ -1,4 +1,3 @@
-import { Ionicons } from '@expo/vector-icons';
 import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -13,6 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import Icon from '../components/Icon';
 import { confirmDestructive, notify } from '../lib/dialog';
 import { createTask, deleteTask, setTaskCompleted, setTaskImportant } from '../lib/tasks';
 import { useTasks } from '../lib/useTasks';
@@ -106,7 +106,7 @@ export default function FeedScreen({ currentUserId, onSwitchUser }) {
 
       {isOffline && (
         <View style={styles.banner}>
-          <Ionicons name="cloud-offline-outline" size={14} color={colors.primary} />
+          <Icon name="cloud" size={15} color={colors.primary} />
           <Text style={styles.bannerText}>אין חיבור · השינויים יסונכרנו כשהרשת תחזור</Text>
         </View>
       )}
@@ -202,10 +202,11 @@ export default function FeedScreen({ currentUserId, onSwitchUser }) {
               accessibilityRole="tab"
               accessibilityState={{ selected: active }}
             >
-              <Ionicons
-                name={active ? t.icon : `${t.icon}-outline`}
-                size={20}
+              <Icon
+                name={t.icon}
+                size={21}
                 color={active ? colors.primary : colors.muted}
+                strokeWidth={active ? 2.1 : 1.7}
               />
               <Text style={[styles.tabLabel, active && styles.tabLabelActive]}>{t.label}</Text>
             </TouchableOpacity>
@@ -258,7 +259,7 @@ function TaskRow({ task, onDelete }) {
         accessibilityRole="checkbox"
         accessibilityState={{ checked: done }}
       >
-        {done && <Ionicons name="checkmark" size={16} color="#000" />}
+        {done && <Icon name="check" size={16} color="#000" strokeWidth={2.4} />}
       </TouchableOpacity>
 
       <View style={styles.rowMain}>
@@ -280,9 +281,9 @@ function TaskRow({ task, onDelete }) {
           style={styles.iconButton}
           accessibilityLabel={task.isImportant ? 'הסר חשוב' : 'סמן כחשוב'}
         >
-          <Ionicons
+          <Icon
             name={task.isImportant ? 'star' : 'star-outline'}
-            size={19}
+            size={20}
             color={task.isImportant ? colors.primary : colors.muted}
           />
         </TouchableOpacity>
@@ -294,7 +295,7 @@ function TaskRow({ task, onDelete }) {
         style={styles.iconButton}
         accessibilityLabel="מחק"
       >
-        <Ionicons name="trash-outline" size={18} color={colors.muted} />
+        <Icon name="trash" size={19} color={colors.muted} />
       </TouchableOpacity>
     </View>
   );
@@ -305,7 +306,7 @@ function SettingsPanel({ currentUser, onSwitchUser, counts }) {
     <>
       <Card title="מי אני">
         <View style={styles.row}>
-          <Ionicons name="person-circle-outline" size={22} color={colors.primary} />
+          <Icon name="person" size={22} color={colors.primary} />
           <View style={styles.rowMain}>
             <Text style={styles.rowTitle}>{currentUser?.name ?? 'לא ידוע'}</Text>
             <Text style={styles.metaText}>נשמר במכשיר הזה</Text>
