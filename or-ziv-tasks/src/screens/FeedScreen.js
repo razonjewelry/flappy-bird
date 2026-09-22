@@ -14,20 +14,13 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { confirmDestructive, notify } from '../lib/dialog';
-import {
-  createTask,
-  deleteTask,
-  setTaskCompleted,
-  setTaskImportant,
-  setTaskSnoozed,
-} from '../lib/tasks';
+import { createTask, deleteTask, setTaskCompleted, setTaskImportant } from '../lib/tasks';
 import { useTasks } from '../lib/useTasks';
 import { getUser, USERS } from '../lib/users';
 import { colors, NAV_HEIGHT, radius, relativeTime, todayLabel, userColors } from '../theme';
 
 const TABS = [
   { key: 'feed', label: 'הפיד', icon: 'home' },
-  { key: 'snoozed', label: 'דחויים', icon: 'alarm' },
   { key: 'settings', label: 'הגדרות', icon: 'settings' },
 ];
 
@@ -38,15 +31,14 @@ export default function FeedScreen({ currentUserId, onSwitchUser }) {
 
   const currentUser = getUser(currentUserId);
 
-  const { important, open, done, snoozed } = useMemo(() => {
-    const active = tasks.filter((t) => !t.isSnoozed);
-    return {
-      important: active.filter((t) => t.isImportant && !t.isCompleted),
-      open: active.filter((t) => !t.isImportant && !t.isCompleted),
-      done: active.filter((t) => t.isCompleted),
-      snoozed: tasks.filter((t) => t.isSnoozed),
-    };
-  }, [tasks]);
+  const { important, open, done } = useMemo(
+    () => ({
+      important: tasks.filter((t) => t.isImportant && !t.isCompleted),
+      open: tasks.filter((t) => !t.isImportant && !t.isCompleted),
+      done: tasks.filter((t) => t.isCompleted),
+    }),
+    [tasks]
+  );
 
   const handleAdd = async () => {
     const text = inputText.trim();
@@ -189,21 +181,12 @@ export default function FeedScreen({ currentUserId, onSwitchUser }) {
           </>
         )}
 
-        {!isLoading && tab === 'snoozed' && (
-          <Card
-            title="דחויים"
-            count={snoozed.length}
-            empty="שום דבר לא נדחה. משימות שתדחו יופיעו כאן."
-          >
-            {snoozed.map(renderRow)}
-          </Card>
-        )}
 
         {!isLoading && tab === 'settings' && (
           <SettingsPanel
             currentUser={currentUser}
             onSwitchUser={onSwitchUser}
-            counts={{ open: open.length + important.length, done: done.length, snoozed: snoozed.length }}
+            counts={{ open: open.length + important.length, done: done.length }}
           />
         )}
       </ScrollView>
@@ -270,12 +253,12 @@ function TaskRow({ task, onDelete }) {
     <View style={[styles.row, task.isImportant && !done && styles.rowImportant, done && styles.rowDone]}>
       <TouchableOpacity
         onPress={() => setTaskCompleted(task.id, !done)}
-        hitSlop={8}
+        hitSlop={12}
         style={[styles.check, done && styles.checkOn]}
         accessibilityRole="checkbox"
         accessibilityState={{ checked: done }}
       >
-        {done && <Ionicons name="checkmark" size={14} color="#000" />}
+        {done && <Ionicons name="checkmark" size={16} color="#000" />}
       </TouchableOpacity>
 
       <View style={styles.rowMain}>
@@ -304,19 +287,6 @@ function TaskRow({ task, onDelete }) {
           />
         </TouchableOpacity>
       )}
-
-      <TouchableOpacity
-        onPress={() => setTaskSnoozed(task.id, !task.isSnoozed)}
-        hitSlop={8}
-        style={styles.iconButton}
-        accessibilityLabel={task.isSnoozed ? 'החזר לפיד' : 'דחה למועד אחר'}
-      >
-        <Ionicons
-          name={task.isSnoozed ? 'arrow-undo-outline' : 'time-outline'}
-          size={19}
-          color={colors.muted}
-        />
-      </TouchableOpacity>
 
       <TouchableOpacity
         onPress={onDelete}
@@ -350,7 +320,6 @@ function SettingsPanel({ currentUser, onSwitchUser, counts }) {
         <View style={styles.statsRow}>
           <Stat label="לעשות" value={counts.open} tone={colors.primary} />
           <Stat label="בוצעו" value={counts.done} tone={colors.ok} />
-          <Stat label="דחויים" value={counts.snoozed} tone={colors.muted} />
         </View>
       </Card>
 
@@ -513,9 +482,9 @@ const styles = StyleSheet.create({
   metaText: { color: colors.muted, fontSize: 11 },
 
   check: {
-    width: 22,
-    height: 22,
-    borderRadius: 6,
+    width: 26,
+    height: 26,
+    borderRadius: 7,
     borderWidth: 2,
     borderColor: colors.muted,
     alignItems: 'center',
