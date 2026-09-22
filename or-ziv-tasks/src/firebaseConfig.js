@@ -1,16 +1,15 @@
-// ⚠️ מלא כאן את הפרטים מהפרויקט שלך ב-Firebase.
-// איפה מוצאים: console.firebase.google.com → הפרויקט שלך → ⚙️ Project settings
-// → גוללים ל-"Your apps" → בוחרים את אפליקציית ה-Web → מעתיקים את firebaseConfig.
+// ההגדרות של פרויקט or-ziv-tasks ב-Firebase.
+// מקור: console.firebase.google.com → Project settings → Your apps → tasks
 //
-// הערה: המפתחות האלה אינם סוד. הם נועדו להיות גלויים בצד הלקוח,
-// וההגנה האמיתית מגיעה מחוקי האבטחה של Firestore (ראה firestore.rules).
+// הערכים האלה אינם סוד. בכל אפליקציית Web או מובייל הם מגיעים ממילא
+// למכשיר של המשתמש. מה שמגן על הנתונים הוא חוקי האבטחה שב-firestore.rules.
 export const firebaseConfig = {
-  apiKey: 'REPLACE_ME',
-  authDomain: 'REPLACE_ME.firebaseapp.com',
-  projectId: 'REPLACE_ME',
-  storageBucket: 'REPLACE_ME.appspot.com',
-  messagingSenderId: 'REPLACE_ME',
-  appId: 'REPLACE_ME',
+  apiKey: 'AIzaSyBSE2Q7PubbvzQ6b-illrdxwxeWLDH5k7A',
+  authDomain: 'or-ziv-tasks.firebaseapp.com',
+  projectId: 'or-ziv-tasks',
+  storageBucket: 'or-ziv-tasks.firebasestorage.app',
+  messagingSenderId: '27141284773',
+  appId: '1:27141284773:web:2bcaa9d185479707d8be4c',
 };
 
 export const isFirebaseConfigured = !String(firebaseConfig.apiKey).includes('REPLACE_ME');
