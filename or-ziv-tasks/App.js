@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 import { isFirebaseConfigured } from './src/firebaseConfig';
@@ -86,12 +86,31 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <StatusBar style="dark" />
-      <AppContent />
+      {/* האפליקציה מעוצבת לרוחב טלפון. בלי התיחום הזה היא נמתחת על כל
+          רוחב מסך המחשב, והצ'קבוקס והטקסט מתרחקים לשני קצוות המסך. */}
+      <View style={styles.page}>
+        <View style={styles.shell}>
+          <AppContent />
+        </View>
+      </View>
     </SafeAreaProvider>
   );
 }
 
+const MAX_WIDTH = 560;
+
 const styles = StyleSheet.create({
+  page: {
+    flex: 1,
+    alignItems: 'center',
+    backgroundColor: '#E5E7EB',
+  },
+  shell: {
+    flex: 1,
+    width: '100%',
+    maxWidth: MAX_WIDTH,
+    backgroundColor: '#F3F4F6',
+  },
   centered: {
     flex: 1,
     backgroundColor: '#F3F4F6',
