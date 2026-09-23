@@ -60,6 +60,21 @@ export function setTaskDue(id, dueAt) {
   return updateDoc(doc(db, TASKS, id), { dueAt });
 }
 
+/**
+ * מחזיר משימה שנמחקה. Firestore לא יודע לבטל מחיקה, אז אנחנו כותבים
+ * אותה מחדש מהעותק שהחזקנו בזיכרון. המזהה משתנה, התוכן לא.
+ */
+export function restoreTask(task) {
+  return addDoc(collection(db, TASKS), {
+    text: task.text,
+    creatorId: task.creatorId,
+    isCompleted: Boolean(task.isCompleted),
+    isImportant: Boolean(task.isImportant),
+    dueAt: task.dueAt ?? null,
+    createdAt: task.createdAt ?? Date.now(),
+  });
+}
+
 export function deleteTask(id) {
   return deleteDoc(doc(db, TASKS, id));
 }

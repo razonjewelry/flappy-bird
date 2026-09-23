@@ -1,1 +1,1 @@
-export const BUILD = 'v5 · וואטסאפ וסימון חדש';
+export const BUILD = 'v6 · ביטול, תפריט ואנימציות';

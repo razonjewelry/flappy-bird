@@ -13,13 +13,15 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import DateSheet from '../components/DateSheet';
+import RowMenu from '../components/RowMenu';
+import Toast from '../components/Toast';
 import Icon from '../components/Icon';
 import TaskRow from '../components/TaskRow';
 import { GROUPS, groupOf } from '../lib/dates';
 import { confirmDestructive, notify } from '../lib/dialog';
 import { markSeen, readLastSeen } from '../lib/lastSeen';
-import { loadPartnerPhone, savePartnerPhone } from '../lib/share';
-import { createTask, deleteTask, setTaskDue } from '../lib/tasks';
+import { loadPartnerPhone, savePartnerPhone, sendToWhatsApp } from '../lib/share';
+import { createTask, deleteTask, restoreTask, setTaskDue } from '../lib/tasks';
 import { useTasks } from '../lib/useTasks';
 import { getUser, USERS } from '../lib/users';
 import { colors, NAV_HEIGHT, radius, todayLabel } from '../theme';
@@ -35,6 +37,8 @@ export default function FeedScreen({ currentUserId, onSwitchUser }) {
   const [tab, setTab] = useState('feed');
   const [dateTask, setDateTask] = useState(null);
   const [partnerPhone, setPartnerPhone] = useState('');
+  const [menuTask, setMenuTask] = useState(null);
+  const [undo, setUndo] = useState(null);
   const { tasks, isLoading, isOffline, error } = useTasks();
 
   // נלכד פעם אחת בפתיחה. אחרת כל רינדור היה "מאפס" את הסימון,
@@ -109,17 +113,21 @@ export default function FeedScreen({ currentUserId, onSwitchUser }) {
     }
   };
 
+  // מחיקה בלי דיאלוג אישור: הביטול מגיע אחריה ולא לפניה, אז אין צורך
+  // לעצור את המשתמש באמצע, ובכל זאת אי אפשר לאבד משהו בטעות.
   const handleDelete = (task) => {
-    confirmDestructive({
-      title: 'למחוק את המשימה?',
-      message: task.text,
-      confirmLabel: 'מחק',
-      onConfirm: () => {
-        deleteTask(task.id).catch(() =>
-          notify('המחיקה נכשלה', 'בדוק את החיבור לאינטרנט ונסה שוב.')
-        );
-      },
-    });
+    deleteTask(task.id)
+      .then(() => setUndo({ task, message: 'המשימה נמחקה' }))
+      .catch(() => notify('המחיקה נכשלה', 'בדוק את החיבור לאינטרנט ונסה שוב.'));
+  };
+
+  const handleUndo = () => {
+    const pending = undo;
+    setUndo(null);
+    if (!pending) return;
+    restoreTask(pending.task).catch(() =>
+      notify('השחזור נכשל', 'בדוק את החיבור לאינטרנט ונסה שוב.')
+    );
   };
 
   const handleClearDone = () => {
@@ -145,15 +153,14 @@ export default function FeedScreen({ currentUserId, onSwitchUser }) {
   };
 
   const renderRow = (task) => (
-    <TaskRow
-      key={task.id}
-      task={task}
-      onDelete={() => handleDelete(task)}
-      onPickDate={setDateTask}
-      partnerPhone={partnerPhone}
-      isNew={isNewTask(task)}
-    />
+    <TaskRow key={task.id} task={task} onOpenMenu={setMenuTask} isNew={isNewTask(task)} />
   );
+
+  const menuActions = (task) => [
+    { label: 'קבע תאריך', icon: 'calendar', onPress: () => setDateTask(task) },
+    { label: 'שלח בוואטסאפ', icon: 'send', tone: colors.ok, onPress: () => sendToWhatsApp(task, partnerPhone) },
+    { label: 'מחק', icon: 'trash', tone: colors.danger, onPress: () => handleDelete(task) },
+  ];
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -271,6 +278,19 @@ export default function FeedScreen({ currentUserId, onSwitchUser }) {
           );
         })}
       </View>
+
+      <Toast
+        message={undo?.message}
+        actionLabel="בטל"
+        onAction={handleUndo}
+        onHide={() => setUndo(null)}
+      />
+
+      <RowMenu
+        task={menuTask}
+        actions={menuTask ? menuActions(menuTask) : []}
+        onClose={() => setMenuTask(null)}
+      />
 
       <DateSheet task={dateTask} onPick={handlePickDate} onClose={() => setDateTask(null)} />
     </SafeAreaView>
