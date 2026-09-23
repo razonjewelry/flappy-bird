@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import { dueLabel, daysUntil } from '../lib/dates';
+import { sendToWhatsApp } from '../lib/share';
 import { setTaskCompleted, setTaskImportant, setTaskText } from '../lib/tasks';
 import { getUser } from '../lib/users';
 import { colors, radius, relativeTime, userColors } from '../theme';
 import Icon from './Icon';
 
-export default function TaskRow({ task, onDelete, onPickDate }) {
+export default function TaskRow({ task, onDelete, onPickDate, partnerPhone, isNew }) {
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState(task.text);
 
@@ -76,6 +77,11 @@ export default function TaskRow({ task, onDelete, onPickDate }) {
               <Text style={[styles.pillText, { color: tint.fg }]}>{creator.name}</Text>
             </View>
           )}
+          {isNew && (
+            <View style={styles.newPill}>
+              <Text style={styles.newText}>חדש</Text>
+            </View>
+          )}
           {task.dueAt && (
             <View style={[styles.duePill, overdue && styles.duePillLate]}>
               <Text style={[styles.dueText, overdue && styles.dueTextLate]}>
@@ -89,6 +95,15 @@ export default function TaskRow({ task, onDelete, onPickDate }) {
 
       {!done && (
         <>
+          <TouchableOpacity
+            onPress={() => sendToWhatsApp(task, partnerPhone)}
+            hitSlop={8}
+            style={styles.iconButton}
+            accessibilityLabel="שלח בוואטסאפ"
+          >
+            <Icon name="send" size={18} color={colors.ok} />
+          </TouchableOpacity>
+
           <TouchableOpacity
             onPress={() => onPickDate(task)}
             hitSlop={8}
@@ -178,6 +193,13 @@ const styles = StyleSheet.create({
   pill: { borderWidth: 1, borderRadius: radius.pill, paddingHorizontal: 8, paddingVertical: 1 },
   pillText: { fontSize: 11 },
 
+  newPill: {
+    backgroundColor: colors.primary,
+    borderRadius: radius.pill,
+    paddingHorizontal: 7,
+    paddingVertical: 1,
+  },
+  newText: { fontSize: 10, color: '#000', fontWeight: 'bold' },
   duePill: {
     borderWidth: 1,
     borderColor: colors.line,

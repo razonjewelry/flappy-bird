@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Platform,
@@ -17,6 +17,8 @@ import Icon from '../components/Icon';
 import TaskRow from '../components/TaskRow';
 import { GROUPS, groupOf } from '../lib/dates';
 import { confirmDestructive, notify } from '../lib/dialog';
+import { markSeen, readLastSeen } from '../lib/lastSeen';
+import { loadPartnerPhone, savePartnerPhone } from '../lib/share';
 import { createTask, deleteTask, setTaskDue } from '../lib/tasks';
 import { useTasks } from '../lib/useTasks';
 import { getUser, USERS } from '../lib/users';
@@ -32,7 +34,38 @@ export default function FeedScreen({ currentUserId, onSwitchUser }) {
   const [inputText, setInputText] = useState('');
   const [tab, setTab] = useState('feed');
   const [dateTask, setDateTask] = useState(null);
+  const [partnerPhone, setPartnerPhone] = useState('');
   const { tasks, isLoading, isOffline, error } = useTasks();
+
+  // נלכד פעם אחת בפתיחה. אחרת כל רינדור היה "מאפס" את הסימון,
+  // והתגית "חדש" הייתה נעלמת מול העיניים.
+  const seenBeforeRef = useRef(undefined);
+  const [seenBefore, setSeenBefore] = useState(null);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const [previous, phone] = await Promise.all([readLastSeen(), loadPartnerPhone()]);
+      if (!alive) return;
+      if (seenBeforeRef.current === undefined) {
+        seenBeforeRef.current = previous;
+        setSeenBefore(previous);
+      }
+      setPartnerPhone(phone);
+      markSeen();
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const isNewTask = (task) =>
+    Boolean(seenBefore) && task.creatorId !== currentUserId && task.createdAt > seenBefore;
+
+  const handleSavePhone = async (value) => {
+    setPartnerPhone(value);
+    await savePartnerPhone(value);
+  };
 
   const currentUser = getUser(currentUserId);
 
@@ -117,6 +150,8 @@ export default function FeedScreen({ currentUserId, onSwitchUser }) {
       task={task}
       onDelete={() => handleDelete(task)}
       onPickDate={setDateTask}
+      partnerPhone={partnerPhone}
+      isNew={isNewTask(task)}
     />
   );
 
@@ -208,6 +243,8 @@ export default function FeedScreen({ currentUserId, onSwitchUser }) {
             currentUser={currentUser}
             onSwitchUser={onSwitchUser}
             counts={{ open: open.length, done: done.length }}
+            partnerPhone={partnerPhone}
+            onSavePhone={handleSavePhone}
           />
         )}
       </ScrollView>
@@ -267,7 +304,7 @@ function Card({ title, count, empty, actionLabel, onAction, tone, children }) {
   );
 }
 
-function SettingsPanel({ currentUser, onSwitchUser, counts }) {
+function SettingsPanel({ currentUser, onSwitchUser, counts, partnerPhone, onSavePhone }) {
   return (
     <>
       <Card title="מי אני">
@@ -281,6 +318,22 @@ function SettingsPanel({ currentUser, onSwitchUser, counts }) {
         <TouchableOpacity style={styles.ghostButton} onPress={onSwitchUser}>
           <Text style={styles.ghostButtonText}>החלף משתמש</Text>
         </TouchableOpacity>
+      </Card>
+
+      <Card title="שליחה בוואטסאפ">
+        <Text style={styles.aboutText}>
+          כפתור השליחה בכל משימה פותח וואטסאפ עם הטקסט מוכן. מספר שמור כאן
+          יפתח את הצ'אט ישירות; בלעדיו ייפתח בוחר אנשי הקשר.
+        </Text>
+        <TextInput
+          style={styles.phoneInput}
+          placeholder="050-0000000"
+          placeholderTextColor={colors.muted}
+          value={partnerPhone}
+          onChangeText={onSavePhone}
+          keyboardType="phone-pad"
+          autoComplete="tel"
+        />
       </Card>
 
       <Card title="סיכום">
@@ -395,6 +448,18 @@ const styles = StyleSheet.create({
 
   aboutText: { color: colors.text, fontSize: 13, lineHeight: 20, textAlign: 'right', writingDirection: 'rtl' },
   aboutMuted: { color: colors.muted, marginTop: 10, fontSize: 12 },
+  phoneInput: {
+    marginTop: 12,
+    backgroundColor: colors.card2,
+    borderWidth: 1,
+    borderColor: colors.line,
+    borderRadius: radius.md,
+    color: colors.text,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+    fontSize: 15,
+    textAlign: 'right',
+  },
   build: { color: colors.primary, fontSize: 11, marginTop: 12, textAlign: 'right', writingDirection: 'rtl' },
 
   tabbar: {

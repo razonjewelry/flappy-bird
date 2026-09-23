@@ -1,1 +1,1 @@
-export const BUILD = 'v4 · עריכה ותאריכים';
+export const BUILD = 'v5 · וואטסאפ וסימון חדש';

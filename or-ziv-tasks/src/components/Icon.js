@@ -119,6 +119,16 @@ const SHAPES = {
       strokeLinecap="round"
     />
   ),
+  send: (c, w) => (
+    <Path
+      d="M21.5 2.5L2.5 10.2l7.4 2.6 2.6 7.4z M21.5 2.5L9.9 12.8"
+      fill="none"
+      stroke={c}
+      strokeWidth={w}
+      strokeLinejoin="round"
+      strokeLinecap="round"
+    />
+  ),
   cloud: (c, w) => (
     <Path
       d="M18 17H7A4 4 0 1 1 7.6 9a5.5 5.5 0 0 1 10.6 2A3 3 0 0 1 18 17z"
