@@ -1,0 +1,120 @@
+<!--
+  סימון מובנה (Schema.org) לרצון תכשיטים
+
+  בלוק 1: להדביק בכל האתר (למשל בתוך ה-<head>, או דרך תוסף "Insert Headers and Footers").
+    אם מותקן Yoast או RankMath, אפשר למלא את אותם פרטים בהגדרות "Local SEO" של התוסף במקום להדביק.
+    לא לעשות את שניהם, כדי שלא יהיו שני סימונים סותרים.
+
+  לפני ההדבקה:
+    - להוסיף את שעות הפתיחה האמיתיות ב-openingHoursSpecification (הדוגמה כרגע היא ניחוש!)
+    - להוסיף ל-sameAs קישורים לפייסבוק, לאינסטגרם ולפרופיל בגוגל, אם יש
+    - לוודא שכתובת הלוגו נכונה
+
+  בלוק 2: להדביק רק בעמוד קטגוריית עגילי ילדות, ורק אחרי שהשאלות והתשובות מופיעות בעמוד עצמו.
+
+  בדיקה אחרי ההדבקה: https://search.google.com/test/rich-results
+-->
+
+<!-- בלוק 1: חנות מקומית, לכל האתר -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "JewelryStore",
+  "@id": "https://www.razon.co.il/#store",
+  "name": "רצון תכשיטים",
+  "alternateName": ["Razon Jewelry", "רצון רפי צורף"],
+  "url": "https://www.razon.co.il/",
+  "logo": "https://www.razon.co.il/wp-content/uploads/logo.png",
+  "image": "https://www.razon.co.il/wp-content/uploads/logo.png",
+  "telephone": "+972-3-9317294",
+  "foundingDate": "1998",
+  "founder": {
+    "@type": "Person",
+    "name": "רפאל (רפי) רצון"
+  },
+  "description": "חנות תכשיטים וצורפות משפחתית בפתח תקווה מאז 1998. תכשיטי זהב 14K, כסף 925 ויהלומים, עגילי ילדות, טבעות ושרשראות. תיקוני תכשיטים, שיבוץ יהלומים וחריטה בלייזר.",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "חובבי ציון 32",
+    "addressLocality": "פתח תקווה",
+    "addressCountry": "IL"
+  },
+  "areaServed": ["פתח תקווה", "ישראל"],
+  "priceRange": "₪₪",
+  "knowsAbout": [
+    "עגילי ילדות",
+    "תכשיטי זהב 14K",
+    "תכשיטי כסף",
+    "יהלומים",
+    "שיבוץ יהלומים ואבני חן",
+    "תיקוני תכשיטים",
+    "חריטה בלייזר",
+    "החלפת סוללה לשעון"
+  ],
+  "openingHoursSpecification": [
+    {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"],
+      "opens": "09:00",
+      "closes": "19:00"
+    },
+    {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": "Friday",
+      "opens": "09:00",
+      "closes": "13:00"
+    }
+  ],
+  "sameAs": []
+}
+</script>
+
+<!-- בלוק 2: שאלות נפוצות, רק בעמוד עגילי ילדות -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "מאיזה גיל אפשר לענוד עגילי ילדות?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "אין גיל אחד שמתאים לכולן. יש הורים שמנקבים כבר בחודשים הראשונים ויש שמחכים עד שהילדה תבקש בעצמה. מומלץ להתייעץ עם רופאת הילדים. כשמגיע הזמן, הכי כדאי להתחיל בעגיל זהב 14K קטן עם סוגר בורג."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "למה דווקא זהב 14K ולא ציפוי זהב?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "ציפוי נשחק עם הזמן, ומתחתיו יש מתכת שעלולה לגרות את העור. זהב 14K הוא זהב אמיתי לאורך כל העגיל, כך שהוא מתאים לענידה יומיומית לאורך שנים."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "מה ההבדל בין סוגר בורג לסוגר פרפר?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "בסוגר בורג מסובבים את הסוגר על המוט, ולכן הוא לא נפתח לבד. בסוגר פרפר לוחצים את הסוגר על המוט. הוא נוח ומהיר, אבל פחות מתאים לתינוקות."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "אפשר להחליף את הסוגר או לתקן עגיל?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "כן. אנחנו צורפים, והתיקונים נעשים אצלנו בחנות בפתח תקווה: החלפת סוגר, הלחמה, תיקון מוט עקום ועוד."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "יש אחריות על עגילי הילדות?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "כן, שנה אחת על כל תכשיט שנקנה ברצון תכשיטים."
+      }
+    }
+  ]
+}
+</script>
