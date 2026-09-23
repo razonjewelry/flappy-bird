@@ -12,12 +12,15 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import DateSheet from '../components/DateSheet';
 import Icon from '../components/Icon';
+import TaskRow from '../components/TaskRow';
+import { GROUPS, groupOf } from '../lib/dates';
 import { confirmDestructive, notify } from '../lib/dialog';
-import { createTask, deleteTask, setTaskCompleted, setTaskImportant } from '../lib/tasks';
+import { createTask, deleteTask, setTaskDue } from '../lib/tasks';
 import { useTasks } from '../lib/useTasks';
 import { getUser, USERS } from '../lib/users';
-import { colors, NAV_HEIGHT, radius, relativeTime, todayLabel, userColors } from '../theme';
+import { colors, NAV_HEIGHT, radius, todayLabel } from '../theme';
 import { BUILD } from '../version';
 
 const TABS = [
@@ -28,25 +31,31 @@ const TABS = [
 export default function FeedScreen({ currentUserId, onSwitchUser }) {
   const [inputText, setInputText] = useState('');
   const [tab, setTab] = useState('feed');
+  const [dateTask, setDateTask] = useState(null);
   const { tasks, isLoading, isOffline, error } = useTasks();
 
   const currentUser = getUser(currentUserId);
 
-  const { important, open, done } = useMemo(
-    () => ({
-      important: tasks.filter((t) => t.isImportant && !t.isCompleted),
-      open: tasks.filter((t) => !t.isImportant && !t.isCompleted),
-      done: tasks.filter((t) => t.isCompleted),
-    }),
-    [tasks]
-  );
+  const { buckets, open, done } = useMemo(() => {
+    const openTasks = tasks.filter((t) => !t.isCompleted);
+    const doneTasks = tasks.filter((t) => t.isCompleted);
+
+    // חשוב לא מקבל סקשן משלו יותר - הקיבוץ הראשי הוא לפי זמן, והכוכב
+    // רק מרים את המשימה לראש הקבוצה שלה ונותן לה מסגרת זהב.
+    const byGroup = {};
+    for (const g of GROUPS) byGroup[g.key] = [];
+    for (const t of openTasks) byGroup[groupOf(t)].push(t);
+    for (const key of Object.keys(byGroup)) {
+      byGroup[key].sort((a, b) => Number(b.isImportant) - Number(a.isImportant));
+    }
+
+    return { buckets: byGroup, open: openTasks, done: doneTasks };
+  }, [tasks]);
 
   const handleAdd = async () => {
     const text = inputText.trim();
     if (text === '') return;
 
-    // מנקים מיד כדי שההקלדה תרגיש מיידית. Firestore מציג את המשימה
-    // מקומית עוד לפני שהשרת מאשר אותה.
     setInputText('');
     try {
       await createTask({ text, creatorId: currentUserId });
@@ -93,8 +102,22 @@ export default function FeedScreen({ currentUserId, onSwitchUser }) {
     });
   };
 
+  const handlePickDate = (value) => {
+    const task = dateTask;
+    setDateTask(null);
+    if (!task) return;
+    setTaskDue(task.id, value).catch(() =>
+      notify('לא הצלחנו לעדכן', 'בדוק את החיבור לאינטרנט ונסה שוב.')
+    );
+  };
+
   const renderRow = (task) => (
-    <TaskRow key={task.id} task={task} onDelete={() => handleDelete(task)} />
+    <TaskRow
+      key={task.id}
+      task={task}
+      onDelete={() => handleDelete(task)}
+      onPickDate={setDateTask}
+    />
   );
 
   return (
@@ -114,9 +137,7 @@ export default function FeedScreen({ currentUserId, onSwitchUser }) {
 
       {error && (
         <View style={[styles.banner, styles.bannerError]}>
-          <Text style={[styles.bannerText, { color: colors.danger }]}>
-            שגיאת חיבור ל-Firebase
-          </Text>
+          <Text style={[styles.bannerText, { color: colors.danger }]}>שגיאת חיבור ל-Firebase</Text>
         </View>
       )}
 
@@ -153,41 +174,40 @@ export default function FeedScreen({ currentUserId, onSwitchUser }) {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {isLoading && (
-          <ActivityIndicator size="large" color={colors.primary} style={styles.loader} />
-        )}
+        {isLoading && <ActivityIndicator size="large" color={colors.primary} style={styles.loader} />}
 
         {!isLoading && tab === 'feed' && (
           <>
-            {important.length > 0 && (
-              <Card title="חשוב" count={important.length}>
-                {important.map(renderRow)}
-              </Card>
+            {open.length === 0 && (
+              <Card title="לעשות" count={0} empty="הכול נקי. הוסף משימה למעלה." />
             )}
 
-            <Card title="לעשות" count={open.length} empty="הכול נקי. הוסף משימה למעלה.">
-              {open.map(renderRow)}
-            </Card>
+            {GROUPS.map((g) =>
+              buckets[g.key].length > 0 ? (
+                <Card
+                  key={g.key}
+                  title={g.title}
+                  count={buckets[g.key].length}
+                  tone={g.key === 'overdue' ? colors.danger : colors.primary}
+                >
+                  {buckets[g.key].map(renderRow)}
+                </Card>
+              ) : null
+            )}
 
             {done.length > 0 && (
-              <Card
-                title="בוצעו"
-                count={done.length}
-                actionLabel="נקה"
-                onAction={handleClearDone}
-              >
+              <Card title="בוצעו" count={done.length} actionLabel="נקה" onAction={handleClearDone}>
                 {done.map(renderRow)}
               </Card>
             )}
           </>
         )}
 
-
         {!isLoading && tab === 'settings' && (
           <SettingsPanel
             currentUser={currentUser}
             onSwitchUser={onSwitchUser}
-            counts={{ open: open.length + important.length, done: done.length }}
+            counts={{ open: open.length, done: done.length }}
           />
         )}
       </ScrollView>
@@ -214,19 +234,20 @@ export default function FeedScreen({ currentUserId, onSwitchUser }) {
           );
         })}
       </View>
+
+      <DateSheet task={dateTask} onPick={handlePickDate} onClose={() => setDateTask(null)} />
     </SafeAreaView>
   );
 }
 
-/** כרטיס־סקשן עם כותרת זהב וספירה, כמו ב-Ratzon. */
-function Card({ title, count, empty, actionLabel, onAction, children }) {
+function Card({ title, count, empty, actionLabel, onAction, tone, children }) {
   const isEmpty = React.Children.count(children) === 0;
 
   return (
     <View style={styles.card}>
       {title && (
         <View style={styles.cardHead}>
-          <Text style={styles.cardTitle}>{title}</Text>
+          <Text style={[styles.cardTitle, tone && { color: tone }]}>{title}</Text>
           <View style={styles.cardHeadEnd}>
             {actionLabel && (
               <Pressable onPress={onAction} hitSlop={8}>
@@ -246,70 +267,14 @@ function Card({ title, count, empty, actionLabel, onAction, children }) {
   );
 }
 
-function TaskRow({ task, onDelete }) {
-  const creator = getUser(task.creatorId);
-  const tint = userColors[task.creatorId] ?? userColors.or;
-  const done = Boolean(task.isCompleted);
-
-  return (
-    <View style={[styles.row, task.isImportant && !done && styles.rowImportant, done && styles.rowDone]}>
-      <TouchableOpacity
-        onPress={() => setTaskCompleted(task.id, !done)}
-        hitSlop={12}
-        style={[styles.check, done && styles.checkOn]}
-        accessibilityRole="checkbox"
-        accessibilityState={{ checked: done }}
-      >
-        {done && <Icon name="check" size={16} color="#000" strokeWidth={2.4} />}
-      </TouchableOpacity>
-
-      <View style={styles.rowMain}>
-        <Text style={[styles.rowTitle, done && styles.rowTitleDone]}>{task.text}</Text>
-        <View style={styles.rowMeta}>
-          {creator && (
-            <View style={[styles.pill, { borderColor: tint.border }]}>
-              <Text style={[styles.pillText, { color: tint.fg }]}>{creator.name}</Text>
-            </View>
-          )}
-          <Text style={styles.metaText}>{relativeTime(task.createdAt)}</Text>
-        </View>
-      </View>
-
-      {!done && (
-        <TouchableOpacity
-          onPress={() => setTaskImportant(task.id, !task.isImportant)}
-          hitSlop={8}
-          style={styles.iconButton}
-          accessibilityLabel={task.isImportant ? 'הסר חשוב' : 'סמן כחשוב'}
-        >
-          <Icon
-            name={task.isImportant ? 'star' : 'star-outline'}
-            size={20}
-            color={task.isImportant ? colors.primary : colors.muted}
-          />
-        </TouchableOpacity>
-      )}
-
-      <TouchableOpacity
-        onPress={onDelete}
-        hitSlop={8}
-        style={styles.iconButton}
-        accessibilityLabel="מחק"
-      >
-        <Icon name="trash" size={19} color={colors.muted} />
-      </TouchableOpacity>
-    </View>
-  );
-}
-
 function SettingsPanel({ currentUser, onSwitchUser, counts }) {
   return (
     <>
       <Card title="מי אני">
-        <View style={styles.row}>
+        <View style={styles.settingsRow}>
           <Icon name="person" size={22} color={colors.primary} />
-          <View style={styles.rowMain}>
-            <Text style={styles.rowTitle}>{currentUser?.name ?? 'לא ידוע'}</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.settingsTitle}>{currentUser?.name ?? 'לא ידוע'}</Text>
             <Text style={styles.metaText}>נשמר במכשיר הזה</Text>
           </View>
         </View>
@@ -327,8 +292,8 @@ function SettingsPanel({ currentUser, onSwitchUser, counts }) {
 
       <Card title="על האפליקציה">
         <Text style={styles.aboutText}>
-          המשימות נשמרות בענן ומסונכרנות בין המכשירים בזמן אמת. כל מה שאחד
-          מוסיף או מסמן מופיע אצל השני תוך שנייה, בלי לרענן.
+          המשימות נשמרות בענן ומסונכרנות בין המכשירים בזמן אמת. לחיצה על טקסט
+          של משימה פותחת אותה לעריכה, ואייקון לוח השנה קובע לה תאריך יעד.
         </Text>
         <Text style={[styles.aboutText, styles.aboutMuted]}>
           {USERS.map((u) => u.name).join(' · ')}
@@ -352,27 +317,9 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
 
   header: { paddingHorizontal: 16, paddingTop: 14, paddingBottom: 6 },
-  h1: {
-    color: colors.primary,
-    fontSize: 24,
-    fontWeight: 'bold',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-  },
-  sub: {
-    color: colors.muted,
-    fontSize: 13,
-    marginTop: 2,
-    textAlign: 'right',
-    writingDirection: 'rtl',
-  },
-  date: {
-    color: colors.text,
-    fontSize: 14,
-    marginTop: 6,
-    textAlign: 'right',
-    writingDirection: 'rtl',
-  },
+  h1: { color: colors.primary, fontSize: 24, fontWeight: 'bold', textAlign: 'right', writingDirection: 'rtl' },
+  sub: { color: colors.muted, fontSize: 13, marginTop: 2, textAlign: 'right', writingDirection: 'rtl' },
+  date: { color: colors.text, fontSize: 14, marginTop: 6, textAlign: 'right', writingDirection: 'rtl' },
 
   banner: {
     flexDirection: 'row-reverse',
@@ -401,12 +348,7 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     writingDirection: 'rtl',
   },
-  addButton: {
-    backgroundColor: colors.primary,
-    borderRadius: radius.md,
-    paddingHorizontal: 20,
-    justifyContent: 'center',
-  },
+  addButton: { backgroundColor: colors.primary, borderRadius: radius.md, paddingHorizontal: 20, justifyContent: 'center' },
   addButtonOff: { backgroundColor: colors.card2, borderWidth: 1, borderColor: colors.line },
   addButtonText: { color: '#000', fontWeight: 'bold', fontSize: 14 },
   addButtonTextOff: { color: colors.muted },
@@ -423,87 +365,18 @@ const styles = StyleSheet.create({
     padding: 14,
     marginBottom: 14,
   },
-  cardHead: {
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 11,
-  },
-  cardTitle: {
-    color: colors.primary,
-    fontSize: 16,
-    fontWeight: 'bold',
-    writingDirection: 'rtl',
-  },
+  cardHead: { flexDirection: 'row-reverse', alignItems: 'center', justifyContent: 'space-between', marginBottom: 11 },
+  cardTitle: { color: colors.primary, fontSize: 16, fontWeight: 'bold', writingDirection: 'rtl' },
   cardHeadEnd: { flexDirection: 'row-reverse', alignItems: 'center', gap: 10 },
   cardAction: { color: colors.muted, fontSize: 12, textDecorationLine: 'underline' },
-  countPill: {
-    backgroundColor: colors.card2,
-    borderRadius: radius.pill,
-    paddingHorizontal: 9,
-    paddingVertical: 2,
-  },
+  countPill: { backgroundColor: colors.card2, borderRadius: radius.pill, paddingHorizontal: 9, paddingVertical: 2 },
   countText: { color: colors.muted, fontSize: 12 },
-  empty: {
-    color: colors.muted,
-    fontSize: 13,
-    textAlign: 'center',
-    paddingVertical: 14,
-    writingDirection: 'rtl',
-  },
+  empty: { color: colors.muted, fontSize: 13, textAlign: 'center', paddingVertical: 14, writingDirection: 'rtl' },
 
-  row: {
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
-    gap: 10,
-    backgroundColor: colors.card2,
-    borderRadius: radius.md,
-    paddingVertical: 11,
-    paddingHorizontal: 12,
-    marginBottom: 9,
-  },
-  rowImportant: {
-    borderWidth: 1,
-    borderColor: colors.primary,
-    backgroundColor: colors.primarySoft,
-  },
-  rowDone: { opacity: 0.6 },
-  rowMain: { flex: 1, minWidth: 0 },
-  rowTitle: {
-    color: colors.text,
-    fontSize: 15,
-    lineHeight: 20,
-    textAlign: 'right',
-    writingDirection: 'rtl',
-  },
-  rowTitleDone: {
-    color: colors.muted,
-    textDecorationLine: 'line-through',
-    textDecorationColor: colors.muted,
-  },
-  rowMeta: { flexDirection: 'row-reverse', alignItems: 'center', gap: 7, marginTop: 4 },
   metaText: { color: colors.muted, fontSize: 11 },
 
-  check: {
-    width: 26,
-    height: 26,
-    borderRadius: 7,
-    borderWidth: 2,
-    borderColor: colors.muted,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  checkOn: { backgroundColor: colors.ok, borderColor: colors.ok },
-
-  pill: {
-    borderWidth: 1,
-    borderRadius: radius.pill,
-    paddingHorizontal: 8,
-    paddingVertical: 1,
-  },
-  pillText: { fontSize: 11 },
-
-  iconButton: { paddingHorizontal: 5, paddingVertical: 4 },
+  settingsRow: { flexDirection: 'row-reverse', alignItems: 'center', gap: 10 },
+  settingsTitle: { color: colors.text, fontSize: 15, textAlign: 'right', writingDirection: 'rtl' },
 
   ghostButton: {
     marginTop: 12,
@@ -516,31 +389,13 @@ const styles = StyleSheet.create({
   ghostButtonText: { color: colors.primary, fontWeight: 'bold', fontSize: 14 },
 
   statsRow: { flexDirection: 'row-reverse', gap: 10 },
-  stat: {
-    flex: 1,
-    backgroundColor: colors.card2,
-    borderRadius: radius.md,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
+  stat: { flex: 1, backgroundColor: colors.card2, borderRadius: radius.md, paddingVertical: 14, alignItems: 'center' },
   statValue: { fontSize: 22, fontWeight: 'bold' },
   statLabel: { color: colors.muted, fontSize: 11, marginTop: 3 },
 
-  aboutText: {
-    color: colors.text,
-    fontSize: 13,
-    lineHeight: 20,
-    textAlign: 'right',
-    writingDirection: 'rtl',
-  },
+  aboutText: { color: colors.text, fontSize: 13, lineHeight: 20, textAlign: 'right', writingDirection: 'rtl' },
   aboutMuted: { color: colors.muted, marginTop: 10, fontSize: 12 },
-  build: {
-    color: colors.primary,
-    fontSize: 11,
-    marginTop: 12,
-    textAlign: 'right',
-    writingDirection: 'rtl',
-  },
+  build: { color: colors.primary, fontSize: 11, marginTop: 12, textAlign: 'right', writingDirection: 'rtl' },
 
   tabbar: {
     flexDirection: 'row-reverse',

@@ -39,6 +39,7 @@ export function createTask({ text, creatorId }) {
     creatorId,
     isCompleted: false,
     isImportant: false,
+    dueAt: null,
     createdAt: Date.now(),
   });
 }
@@ -49,6 +50,14 @@ export function setTaskCompleted(id, isCompleted) {
 
 export function setTaskImportant(id, isImportant) {
   return updateDoc(doc(db, TASKS, id), { isImportant });
+}
+
+export function setTaskText(id, text) {
+  return updateDoc(doc(db, TASKS, id), { text: text.trim() });
+}
+
+export function setTaskDue(id, dueAt) {
+  return updateDoc(doc(db, TASKS, id), { dueAt });
 }
 
 export function deleteTask(id) {

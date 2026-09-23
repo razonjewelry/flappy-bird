@@ -88,6 +88,37 @@ const SHAPES = {
       />
     </>
   ),
+  calendar: (c, w) => (
+    <>
+      <Path
+        d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"
+        fill="none"
+        stroke={c}
+        strokeWidth={w}
+        strokeLinejoin="round"
+      />
+      <Path d="M4 9.5h16M8.5 2.5v3M15.5 2.5v3" fill="none" stroke={c} strokeWidth={w} strokeLinecap="round" />
+    </>
+  ),
+  pencil: (c, w) => (
+    <Path
+      d="M15.6 3.6a2 2 0 0 1 2.8 2.8L8 16.8l-3.6.8.8-3.6z"
+      fill="none"
+      stroke={c}
+      strokeWidth={w}
+      strokeLinejoin="round"
+      strokeLinecap="round"
+    />
+  ),
+  close: (c, w) => (
+    <Path
+      d="M6 6l12 12M18 6L6 18"
+      fill="none"
+      stroke={c}
+      strokeWidth={w + 0.3}
+      strokeLinecap="round"
+    />
+  ),
   cloud: (c, w) => (
     <Path
       d="M18 17H7A4 4 0 1 1 7.6 9a5.5 5.5 0 0 1 10.6 2A3 3 0 0 1 18 17z"
